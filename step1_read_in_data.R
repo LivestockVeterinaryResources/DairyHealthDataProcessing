@@ -11,8 +11,6 @@ source('functions/fxn_parse_free_text.R') #functions to parse remarks and protoc
 source('functions/fxn_event_type.R') #c function to categorize events
 source('functions/fxn_location.R') #custom function to specify event location
 
-#set defaults ------------
-set_farm_name<-'Default Farm Name'
 
 #set custom functions
 fxn_parse_remark<-fxn_parse_remark_default # parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom

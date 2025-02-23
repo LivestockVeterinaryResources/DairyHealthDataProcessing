@@ -1,0 +1,40 @@
+---
+title: "Create Denominators"
+format: 
+ html:
+   embed-resources: true
+   toc: true
+   toc-location: left
+execute:
+    echo: false
+    message: false
+    warning: false
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dtplyr)
+
+source('functions/DT_base.R')
+
+```
+
+```{r}
+#denominator base files -------------------
+deno_dim_group <- read_parquet(
+  'data/intermediate_files/denominator_by_DIM_group.parquet') 
+
+deno_gran <- read_parquet(
+  'data/intermediate_files/denominator_granular.parquet')
+
+deno_day_cow <- read_parquet(
+  'data/intermediate_files/denominator_by_day_cow.parquet')
+
+deno_day_lact_dim <- read_parquet(
+  'data/intermediate_files/denominator_by_day_lact_dim_lt_60.parquet')
+
+deno_day_lact_dim <- read_parquet(
+  'data/intermediate_files/denominator_by_day_lact_dim_lt_60.parquet')
+
