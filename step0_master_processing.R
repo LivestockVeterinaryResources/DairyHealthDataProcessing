@@ -8,7 +8,6 @@ pacman::p_load(
   rmarkdown,
   lubridate,
   quarto, 
-  gt,
   arrow,
   zoo,
   dt
