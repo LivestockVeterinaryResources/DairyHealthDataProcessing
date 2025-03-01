@@ -124,65 +124,53 @@ date_end <- ymd(date_end)
 
 # to get cows with dates in window
 deno <- animal_lactations |>
-  left_join(animals%>%select(id_animal, date_left)) |> #nora added this, feel free to delete if it causes problems
+  left_join(animals%>%select(id_animal, date_left)) |> #nora added this as the "real" date left . . . which is slightly different than date_archive_max
   
   select(id_animal, 
          id_animal_lact, 
          lact_number, lact_group, lact_group_basic, lact_group_5,
          date_fresh, date_left, date_archive, date_archive_max) |> 
+  
   # get cull date
-  #group_by(id_animal) |> 
-  
   #***Lets discuss if it works to do this by joing to animals, it keeps it cleaner to not calculate the same value in 2 locations, see addition on line 56***
-  # mutate(date_left = max(date_archive_max)) |> 
-  # ungroup() |> 
+  group_by(id_animal) |>
+  mutate(date_not_elig = max(date_archive_max)) |>
+  ungroup() |>
   
-  
-  #***create 5 lact groupp - his now happens in step 1 to put it in the same place as all the other lactation group assignments***
-  # mutate (lact_group_5 = case_when(
-  #     (lact_number == 0) ~ 'Heifer', 
-  #     (lact_number == 1) ~ 'LACT 1',
-  #     (lact_number == 2) ~ 'LACT 2',
-  #     (lact_number == 3) ~ 'LACT 3',
-  #     (lact_number == 4) ~ 'LACT 4',
-  #     (lact_number >4) ~ 'LACT 5+',
-  #     .default = 'Unknown')
-  # ) |> 
   #this works for test, but we need to come back to it to see if can integrate into workflow
   mutate(time_period = time_period_text) |> 
+  
   # removes heifers
   filter(lact_number>0) |>  
-  # keeps cows with not culled or cows fresh before end
+ 
+   # keeps cows with not culled or cows fresh before end
   # filter(is.na(date_left) & date_fresh <= date_end | date_fresh <= date_end) |> 
-  filter(date_fresh <= date_end) |> #keeps cows that freshen before the end date, caution this code only works with LACT>0 not for heifers
-  filter(is.na(date_archive) | date_archive >=  date_start) |> #keeps cows that are currently active or were archived during the time period
-  # filters cows fresh before start date
+  filter(date_fresh <= date_end) |> 
+  filter(is.na(date_archive) | date_archive >=  date_start) |> 
+ 
+   # filters cows fresh before start date
   filter(date_fresh <= date_start & date_archive >= date_start |
-           date_fresh <= date_start & is.na(date_archive) | 
+           date_fresh <= date_start & is.na(date_not_elig) | 
   # filters cows fresh after start date
     date_fresh >= date_start & date_archive <= date_end |
-           date_fresh >= date_start & is.na(date_archive)
+           date_fresh >= date_start & is.na(date_not_elig)
          )
 }
 
-# test example
+# test  new function -------------------------------------
 denominators2 <- fxn_create_deno2()%>%
   arrange(id_animal, id_animal_lact)%>%
   select(names(denominators))
 
-waldo::compare(head(denominators), head(denominators2))
+waldo::compare(denominators, denominators2)
 
-test<-denominators%>%
-  mutate(deno_original = TRUE)%>%
-  full_join(denominators2%>%
-              mutate(deno_nora = TRUE))%>%
-  filter(is.na(deno_original) | is.na(deno_nora))%>%
-  filter(id_animal %in% '1031_03/23/22')
 
 list_animals_original<-sort(unique(denominators$id_animal))
 list_animals_nora<-sort(unique(denominators2$id_animal))
 
-waldo::compare(list_animals_original, list_animals_nora)
+waldo::compare(list_animals_original, list_animals_nora) #final animals included are the same, and we didn't create a date_left that has a different definition than the one in the animals table
+
+#***Nora stopped here***
 ```
 
 
