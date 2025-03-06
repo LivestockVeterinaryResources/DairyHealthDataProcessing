@@ -8,8 +8,9 @@ pacman::p_load(
   rmarkdown,
   lubridate,
   quarto, 
-  gt,
-  arrow
+  arrow,
+  zoo,
+  dt
   )
 
 start<-now()
@@ -20,6 +21,7 @@ start<-now()
 #set defaults
 
 set_farm_name<-'Default Farm Name'
+
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
 
@@ -42,9 +44,12 @@ list_selected_events<-c('MAST')
 source('step2_create_intermediate_files.R')
 
 ### Step3 Create Denominators ---------------------
+quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
+
 #***Modify This Step to Include the Denominators of Interest***
-quarto::quarto_render('step3_create_denominators_by_lact_group.qmd') 
-quarto::quarto_render('step3_create_denominators_by_dim_group.qmd') 
+#*Nora's calculations
+# quarto::quarto_render('step3_create_denominators_by_lact_group.qmd') 
+# quarto::quarto_render('step3_create_denominators_by_dim_group.qmd') 
 
 
 ### Step 4 Report Templates------------------------

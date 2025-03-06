@@ -93,7 +93,7 @@ write_parquet(master_animals, 'data/intermediate_files/animals.parquet')
 #animal_lactations - each row is an animal/lactation----------
 animal_lactations<-events_formatted|>
   group_by(id_animal, id_animal_lact, lact_number, 
-           lact_group, lact_group_basic, lact_group_repro
+           lact_group, lact_group_basic, lact_group_repro, lact_group_5
            )|>
   summarize(date_lact_first_event = min(date_event), 
             date_lact_last_event = max(date_event))|>

@@ -149,6 +149,14 @@ mutate(technician = Technician,
       (lact_number ==1)~'LACT 1',
       (lact_number ==2)~'LACT 2',
       (lact_number >2)~'LACT 3+',
+      TRUE~'Unknown'), 
+    lact_group_5 = case_when(
+      (lact_number == 0)~'Heifer', 
+      (lact_number ==1)~'LACT 1',
+      (lact_number ==2)~'LACT 2',
+      (lact_number ==3)~'LACT 3',
+      (lact_number ==4)~'LACT 4',
+      (lact_number >4)~'LACT 5+',
       TRUE~'Unknown')
   )
 
@@ -166,7 +174,7 @@ write_parquet(events2%>%
                 select(source_file_path, 
                        id_animal, date_birth, breed, eid, date_enrolled, qc_diff_bdat_edat,
                        id_animal_lact, date_archived, 
-                       lact_number, lact_group_basic, lact_group, lact_group_repro,
+                       lact_number, lact_group_basic, lact_group, lact_group_repro, lact_group_5,
                        event_type, event, remark, contains('remark'), protocols, contains('protocols'), 
                        technician, date_event, dim_event, location_event, locate_lesion, 
                        R, `T`, B, date_heat, date_concieved, date_aborted, date_repro_dx
