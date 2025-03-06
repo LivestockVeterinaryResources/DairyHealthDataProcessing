@@ -9,8 +9,6 @@
 
 # set themes
 
-light <- bs_theme(preset = "simplex", bg = "white", fg = "#7a0019")
-
 library(shiny)
 library(bslib)
 
