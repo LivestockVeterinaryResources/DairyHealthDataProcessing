@@ -29,3 +29,7 @@ Step 4 - View the report files. If files are written to shiny apps, open the app
 
 Code structure details and reference documents: tidyverse style guide <https://style.tidyverse.org/files.html>.\
 <https://design.tidyverse.org/>
+
+
+Future stuff:
+DC305 code to pull milk data: EVENTS ID LACT CBRD FDAT BFDT XHPAI FOR LACT>0 FDAT>12/12/2022\\4

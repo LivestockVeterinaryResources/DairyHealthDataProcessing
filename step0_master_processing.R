@@ -17,6 +17,10 @@ start<-now()
 
 ### Step 1 Read in data----------
 
+####Aquire data from Parnell Database (only works for people who have access to this)
+##access database---------------------
+#source("C:/Code/ParnellFunctions/fxn_connect_to_mySYNCH_update_herd_cows_events_meta.R")
+
 # modify these are required -----
 #set defaults
 
