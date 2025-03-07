@@ -18,8 +18,10 @@ start<-now()
 ### Step 1 Read in data----------
 
 ####Aquire data from Parnell Database (only works for people who have access to this)
-##access database---------------------
-#source("C:/Code/ParnellFunctions/fxn_connect_to_mySYNCH_update_herd_cows_events_meta.R")
+#source('C:/Code/ParnellFunctions/get_event_data_from_mySYNCH.R')
+
+
+
 
 # modify these are required -----
 #set defaults
@@ -58,6 +60,7 @@ quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 
 ### Step 4 Report Templates------------------------
 #add basic report templates
+quarto::quarto_render('sara_Report_Template.qmd')
 
 # event check reports
 quarto::quarto_render('explore_event_types.qmd') 

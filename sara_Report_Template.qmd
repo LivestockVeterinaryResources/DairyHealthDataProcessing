@@ -13,6 +13,29 @@ execute:
 ---
 
 ```{r}
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse,
+arrow,
+dtplyr,
+DT,
+survival,
+survminer,
+stringr,
+viridis,
+RColorBrewer,
+flextable,
+officer,
+gtsummary,
+cardx,
+htmltools,
+lubridate,
+httr,
+jsonlite,
+gt,
+scales)
+
+
 library(tidyverse)
 library(arrow)
 library(dtplyr)
@@ -75,7 +98,11 @@ youngstock_data <- events_formatted%>%
 # EVENTS ID BDAT LACT\4S730 (730 = last 2 years of data, change based on goals)
 # Save in data/intermediate_files/production_data. It should be the only file in there
 
-# Define file path
+# Define file path 
+#***This breaks when Nora trys to run it . . . where did this file comefrom?***
+#*I am going to substitute events?
+#*production_file <- "data/intermediate_files/production_data/production.parquet"
+
 production_file <- "data/intermediate_files/production_data/production.parquet"
 
 # # Read Parquet file
