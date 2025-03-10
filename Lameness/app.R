@@ -63,7 +63,7 @@ ui <- page_sidebar(
 
 
 server <- function(input, output) {
-  bs_themer()
+  #bs_themer()
   
 }
 
