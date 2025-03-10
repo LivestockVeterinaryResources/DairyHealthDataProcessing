@@ -5,7 +5,7 @@
 # Find out more about building applications with Shiny here:
 #
 #    https://shiny.posit.co/
-#
+# add R folder and put scripts/functions in that
 
 # set themes
 
@@ -14,7 +14,8 @@ library(bslib)
 
 ui <- page_sidebar( 
   title = "Hoof Lesion Data Analysis App", 
-  theme = bs_theme(preset = "simplex", bg = "white", fg = "#7a0019",
+  theme = bs_theme(base_font = font_google("Outfit"),
+                   preset = "simplex", bg = "white", fg = "#7a0019",
                    primary = "grey"), 
   
   sidebar = sidebar(
@@ -62,7 +63,7 @@ ui <- page_sidebar(
 
 
 server <- function(input, output) {
-  #bs_themer()
+  bs_themer()
   
 }
 
