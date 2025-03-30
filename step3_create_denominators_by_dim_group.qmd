@@ -164,12 +164,21 @@ deno_dataframe_30_original<-deno_dataframe_30
 ```{r, message = FALSE}
 
 
-fxn_count_cows_for_DIMgroup<-function(dim_group_name, dim_elig){
+fxn_count_cows_for_DIMgroup<-function(dim_group_name, dim_elig, dim_elig_start){
 #i = 1
 for (i in seq_along(calendar$date_calendar)){
   
   df<-deno_base%>%
     mutate(date_elig_end = {{dim_elig}})%>%
+    mutate(date_elig_start = {{dim_elig_start}})%>%
+    mutate(date_elig_end = case_when(
+      date_elig_end>today()~today(), 
+      TRUE~date_elig_end
+    ))%>%
+    mutate(date_elig_start = case_when(
+      date_elig_start>today()~today(), 
+      TRUE~date_elig_start
+    ))%>%
     mutate(`DIM Group` = dim_group_name)%>%
     mutate(date_ref = calendar$date_calendar[[i]])%>%
     mutate(eligible = case_when(
@@ -201,37 +210,51 @@ for (i in seq_along(calendar$date_calendar)){
 
 #DIM 30---------------------
 deno_dataframe_DIM<-NULL
-fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-30', dim_elig = date_elig_end_dim30)
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-30', 
+                            dim_elig = date_elig_end_dim30, 
+                            dim_elig_start = date_fresh)
 deno_dataframe_30<-deno_dataframe_DIM
 
 #DIM 60---------------------
 deno_dataframe_DIM<-NULL
-fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-60', dim_elig = date_elig_end_dim60)
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 30-60', 
+                            dim_elig = date_elig_end_dim60, 
+                            dim_elig_start = date_elig_end_dim30)
 deno_dataframe_60<-deno_dataframe_DIM
 
 #DIM 90---------------------
 deno_dataframe_DIM<-NULL
-fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-90', dim_elig = date_elig_end_dim90)
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 60-90', 
+                            dim_elig = date_elig_end_dim90, 
+                            dim_elig_start = date_elig_end_dim60)
 deno_dataframe_90<-deno_dataframe_DIM
 
 #DIM 120---------------------
 deno_dataframe_DIM<-NULL
-fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-120', dim_elig = date_elig_end_dim120)
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 90-120', 
+                            dim_elig = date_elig_end_dim120, 
+                            dim_elig_start = date_elig_end_dim90)
 deno_dataframe_120<-deno_dataframe_DIM
 
 #DIM 150---------------------
 deno_dataframe_DIM<-NULL
-fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-150', dim_elig = date_elig_end_dim150)
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 120-150', 
+                            dim_elig = date_elig_end_dim150, 
+                            dim_elig_start = date_elig_end_dim120)
 deno_dataframe_150<-deno_dataframe_DIM
 
 #DIM 200---------------------
 deno_dataframe_DIM<-NULL
-fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-200', dim_elig = date_elig_end_dim200)
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 150-200', 
+                            dim_elig = date_elig_end_dim200, 
+                            dim_elig_start = date_elig_end_dim150)
 deno_dataframe_200<-deno_dataframe_DIM
 
 #DIM 305---------------------
 deno_dataframe_DIM<-NULL
-fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-305', dim_elig = date_elig_end_dim305)
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 200-305', 
+                            dim_elig = date_elig_end_dim305, 
+                            dim_elig_start = date_elig_end_dim200)
 deno_dataframe_305<-deno_dataframe_DIM
 
 #DIM master
@@ -245,7 +268,7 @@ deno_dataframe<-bind_rows(deno_dataframe_30, deno_dataframe_60, deno_dataframe_9
 ```{r}
 
 test_animal<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
-  filter(id_animal %in% '233349_04/30/22')
+  filter(id_animal %in% '15584_09/08/12')
 
 check_fresh<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
   filter(event %in% 'FRESH')%>%
@@ -268,7 +291,7 @@ ggplot(deno_dataframe%>%filter(eligible %in% 'eligible'))+
   geom_point(aes(x = date_ref, y = ct_animals, color = `Lactation Group`))+
   ylim(c(0, NA))+
   facet_wrap(`DIM Group`~., scales = 'free')+
-  coord_cartesian(ylim = c(1000, 4500))
+  coord_cartesian(ylim = c(0, 1000))
 
 ```
 

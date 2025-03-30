@@ -17,7 +17,7 @@ start<-now()
 
 ### Step 1 Read in data----------
 
-####Aquire data from Parnell Database (only works for people who have access to this)
+####Aquire data from Parnell Database (only works for people who have access to this, you must modify the get_event_data_from_mySYNCH.R function to specify which data to pull)
 #source('C:/Code/ParnellFunctions/get_event_data_from_mySYNCH.R')
 
 
@@ -26,7 +26,7 @@ start<-now()
 # modify these are required -----
 #set defaults
 
-set_farm_name<-'Default Farm Name'
+set_farm_name<-'Quality Data Dairy'
 
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
@@ -45,7 +45,7 @@ set_outcome_gap_lactation<- 1
 
 #* set events of interest to create long and wide disease specifics data sets
 #* #***Modify this *** to be the list of events you want to explore
-list_selected_events<-c('MAST') 
+list_selected_events<-c('BRED') 
 
 source('step2_create_intermediate_files.R')
 
