@@ -54,8 +54,9 @@ quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 
 #***Modify This Step to Include the Denominators of Interest***
 #*Nora's calculations
-# quarto::quarto_render('step3_create_denominators_by_lact_group.qmd') 
-# quarto::quarto_render('step3_create_denominators_by_dim_group.qmd') 
+#quarto::quarto_render('step3_create_denominators_by_lact_group.qmd') 
+#quarto::quarto_render('step3_create_denominators_by_dim_group.qmd') 
+quarto::quarto_render('step3_create_denominators_by_custom_group.qmd') #this can be modified to include all animals, or just milking animals
 
 
 ### Step 4 Report Templates------------------------
