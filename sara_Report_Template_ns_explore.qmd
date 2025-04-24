@@ -13,7 +13,6 @@ execute:
 ---
 
 ```{r}
-
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse,
 arrow,
@@ -94,37 +93,40 @@ vwp <- 50 # Set to herd's VWP
 youngstock_data <- events_formatted%>%
   filter(lact_number == 0)
 
-# Pull production data from dairy comp and re-format:
-# EVENTS ID BDAT LACT\4S730 (730 = last 2 years of data, change based on goals)
-# Save in data/intermediate_files/production_data. It should be the only file in there
-
-# Define file path 
-#***This breaks when Nora trys to run it . . . where did this file comefrom?***
-#*I am going to substitute events?
-#*production_file <- "data/intermediate_files/production_data/production.parquet"
-
-production_file <- "data/intermediate_files/production_data/production.parquet"
-
-# # Read Parquet file
-production_data <- read_parquet(production_file)
-
-# # Reformat the data
-production_data <- production_data %>%
-  mutate(
-    id_animal = paste0(as.character(ID), "_", as.character(BDAT)) #Create id_animal
-  ) %>%
-  rename(id = ID) %>%
-  rename(date_birth = BDAT)%>%
-  rename(date_test = TestDate) %>%
-  mutate(date_test = mdy(date_test))%>% # Convert to Date (Adjust format if needed)
-  relocate(id_animal, .before = everything())  # Move id_animal to the first column
-
-
-
 ```
 
-```         
-```
+
+<!-- ```{r} -->
+<!-- # Pull production data from dairy comp and re-format: -->
+<!-- # EVENTS ID BDAT LACT\4S730 (730 = last 2 years of data, change based on goals) -->
+<!-- # Save in data/intermediate_files/production_data. It should be the only file in there -->
+
+<!-- # Define file path  -->
+<!-- #***This breaks when Nora trys to run it . . . where did this file comefrom?*** -->
+<!-- #*I am going to substitute events? -->
+<!-- #*production_file <- "data/intermediate_files/production_data/production.parquet" -->
+
+<!-- production_file <- "data/intermediate_files/production_data/production.parquet" -->
+
+<!-- # # Read Parquet file -->
+<!-- production_data <- read_parquet(production_file) -->
+
+<!-- # # Reformat the data -->
+<!-- production_data <- production_data %>% -->
+<!--   mutate( -->
+<!--     id_animal = paste0(as.character(ID), "_", as.character(BDAT)) #Create id_animal -->
+<!--   ) %>% -->
+<!--   rename(id = ID) %>% -->
+<!--   rename(date_birth = BDAT)%>% -->
+<!--   rename(date_test = TestDate) %>% -->
+<!--   mutate(date_test = mdy(date_test))%>% # Convert to Date (Adjust format if needed) -->
+<!--   relocate(id_animal, .before = everything())  # Move id_animal to the first column -->
+
+
+
+<!-- ``` -->
+
+
 
 # Herd Summary
 
@@ -177,235 +179,237 @@ ggplot(denos_dim, aes(x = dim, y = count, color = lact_group, group = lact_group
 
 ```
 
-# Production
+<!-- # Production -->
 
-```{r}
-# Milk production by month overtime:
+<!-- ```{r} -->
+<!-- # Milk production by month overtime: -->
 
-# Filter only test data within our date range
-production_data <- production_data |>
-  filter(date_test > date_start)
+<!-- # Filter only test data within our date range -->
+<!-- production_data <- production_data |> -->
+<!--   filter(date_test > date_start) -->
 
-# Remove * from Milk and convert to numeric
-monthly_data <- production_data %>%
-  mutate(MILK = as.numeric(gsub("\\*", "", MILK)))
+<!-- # Remove * from Milk and convert to numeric -->
+<!-- monthly_data <- production_data %>% -->
+<!--   mutate(MILK = as.numeric(gsub("\\*", "", MILK))) -->
 
-# Collect monthly averages
-monthly_data <- monthly_data %>%
-  mutate(month = floor_date(date_test, "month")) %>%
-  group_by(month) %>%
-  summarize(avg_milk = mean(MILK, na.rm = TRUE))
+<!-- # Collect monthly averages -->
+<!-- monthly_data <- monthly_data %>% -->
+<!--   mutate(month = floor_date(date_test, "month")) %>% -->
+<!--   group_by(month) %>% -->
+<!--   summarize(avg_milk = mean(MILK, na.rm = TRUE)) -->
 
-# Identify the most recent month
-most_recent_month <- max(monthly_data$month, na.rm = TRUE)
+<!-- # Identify the most recent month -->
+<!-- most_recent_month <- max(monthly_data$month, na.rm = TRUE) -->
 
-# Filter out the most recent month
-monthly_data <- monthly_data %>%
-  filter(month != most_recent_month)
+<!-- # Filter out the most recent month -->
+<!-- monthly_data <- monthly_data %>% -->
+<!--   filter(month != most_recent_month) -->
 
-# Find the lowest points for labeling
-lowest_points <- monthly_data %>%
-  filter(avg_milk == min(avg_milk, na.rm = TRUE))  # Find the lowest average milk points
+<!-- # Find the lowest points for labeling -->
+<!-- lowest_points <- monthly_data %>% -->
+<!--   filter(avg_milk == min(avg_milk, na.rm = TRUE))  # Find the lowest average milk points -->
 
-# Plot
-ggplot(monthly_data, aes(x = month, y = avg_milk)) +
-  geom_line(color = "#2C3E50", size = 1.2) +  # Line color and size
-  geom_point(aes(color = avg_milk), size = 3) +  # Point size and coloring
-  geom_text(data = lowest_points, aes(label = paste0(round(avg_milk, 2))),
-            vjust = -1, hjust = 0.5, color = "red", size = 4) +  # Labels for lowest points
-  
-  # Add additional labels for specific months 
-  geom_text(aes(label = ifelse(month %in% seq(min(month), max(month), by = "3 months"), 
-                               format(month, "%b %Y"), "")),
-            vjust = 1.5, size = 3, color = "#2980B9", angle = 45, hjust = 0.5) +  # Labels for key months
-  
-  geom_smooth(method = "loess", se = FALSE, color = "green", size = 1) +  # Smoothing line
-  
-  # Formatting
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +  # Date labels
-  labs(title = "Average Monthly Milk Production",
-       subtitle = "Trends and key points of milk production over time",
-       x = "Month",
-       y = "Average Milk Production (L)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for readability
-        plot.title = element_text(face = "bold", size = 16),  # Bold title
-        plot.subtitle = element_text(size = 12),  # Subtitle size
-        axis.title = element_text(size = 14))  # Axis titles size
+<!-- # Plot -->
+<!-- ggplot(monthly_data, aes(x = month, y = avg_milk)) + -->
+<!--   geom_line(color = "#2C3E50", size = 1.2) +  # Line color and size -->
+<!--   geom_point(aes(color = avg_milk), size = 3) +  # Point size and coloring -->
+<!--   geom_text(data = lowest_points, aes(label = paste0(round(avg_milk, 2))), -->
+<!--             vjust = -1, hjust = 0.5, color = "red", size = 4) +  # Labels for lowest points -->
 
-```
+<!--   # Add additional labels for specific months  -->
+<!--   geom_text(aes(label = ifelse(month %in% seq(min(month), max(month), by = "3 months"),  -->
+<!--                                format(month, "%b %Y"), "")), -->
+<!--             vjust = 1.5, size = 3, color = "#2980B9", angle = 45, hjust = 0.5) +  # Labels for key months -->
 
-# Production and THI
+<!--   geom_smooth(method = "loess", se = FALSE, color = "green", size = 1) +  # Smoothing line -->
 
-```{r}
-# Plot THI over Weekly Milk prodcution
+<!--   # Formatting -->
+<!--   scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +  # Date labels -->
+<!--   labs(title = "Average Monthly Milk Production", -->
+<!--        subtitle = "Trends and key points of milk production over time", -->
+<!--        x = "Month", -->
+<!--        y = "Average Milk Production (L)") + -->
+<!--   theme_minimal() + -->
+<!--   theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for readability -->
+<!--         plot.title = element_text(face = "bold", size = 16),  # Bold title -->
+<!--         plot.subtitle = element_text(size = 12),  # Subtitle size -->
+<!--         axis.title = element_text(size = 14))  # Axis titles size -->
 
-# Pull weather data from VisualConnections API. You need an API key saved as an environmental variable in your computer
+<!-- ``` -->
 
-get_weather_data <- function(location, date_range = "lastyear", api_key = NULL) {
-  if (is.null(api_key) || api_key == "") {
-    message("API key is missing, skipping weather data retrieval.")
-    return(NULL)  # Return NULL if no API key is found
-  }
-  
-  url <- paste0("https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/",
-                location, "/", date_range, "?unitGroup=us&key=", api_key)
-  
-  response <- GET(url)
-  
-  if (status_code(response) == 200) {
-    data <- content(response, "text", encoding = "UTF-8")
-    weather_data <- fromJSON(data)
-    return(weather_data)
-  } else {
-    stop("Request failed")
-  }
-}
+<!-- # Production and THI -->
 
-# Example usage
-location <- "55350"  # Zip code for the location
-date_range <- "lastyear"  # Use 'lastyear' to pull data from the last year
+<!-- ```{r} -->
+<!-- # Plot THI over Weekly Milk prodcution -->
 
-# Check for the API key in environment variables
-api_key <- Sys.getenv("VISUAL_CROSSING_API_KEY")
+<!-- # Pull weather data from VisualConnections API. You need an API key saved as an environmental variable in your computer -->
+<!-- get_api_key<-'WPT2DPQQ96BTQLWBTRDQFF3AR#' -->
+<!-- #https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/olsburg%20ks?unitGroup=us&key=WPT2DPQQ96BTQLWBTRDQFF3AR&contentType=json' -->
 
-# Get weather data only if the API key is available
-weather_data_raw <- if (!is.null(api_key) && api_key != "") {
-  get_weather_data(location, date_range, api_key)
-} else {
-  NULL  # If API key is missing, skip fetching weather data
-}
+<!-- get_weather_data <- function(location, date_range = "lastyear", api_key = NULL) { -->
+<!--   if (is.null(api_key) || api_key == "") { -->
+<!--     message("API key is missing, skipping weather data retrieval.") -->
+<!--     return(NULL)  # Return NULL if no API key is found -->
+<!--   } -->
 
-# If weather data was successfully retrieved, process it
-if (!is.null(weather_data_raw)) {
-  
-  # Convert the weather data (assuming it is under 'days')
-  weather_data_raw <- as.data.frame(weather_data_raw$days)
+<!--   url <- paste0("https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/", -->
+<!--                 location, "/", date_range, "?unitGroup=us&key=", api_key) -->
 
-  # Select relevant columns and convert the 'date' column to Date format
-  weather_data <- weather_data_raw %>%
-    select(datetime, temp, humidity) %>%
-    mutate(datetime = as.Date(datetime))%>%
-    rename(date_weather = datetime)%>%
-    mutate(THI = temp - (0.55 - 0.0055 * humidity) * (temp - 58)) 
-  
-  weather_data <- weather_data%>%
-    filter(date_weather >= date_start & date_weather <= date_end)
-  
-  # Weekly THI Averages:
-  # Group the weather data by week and calculate the weekly average THI
-  weather_weekly <- weather_data %>%
-    mutate(date_weather = floor_date(date_weather, "week")) %>%
-    group_by(date_weather) %>%
-    summarize(avg_THI = mean(THI, na.rm = TRUE))
+<!--   response <- GET(url) -->
 
-  # color scale
-  weather_weekly <- weather_weekly %>%
-    mutate(THI_color = case_when(
-      avg_THI >= 70 ~ "red",       
-      avg_THI >= 60 ~ "orange",    
-      avg_THI >= 50 ~ "yellow",    
-      TRUE ~ "green"           
-    ))
-  
-  weather_weekly <- weather_weekly %>%
-    mutate(next_date = lead(date_weather),   # Get the next date for each row (for segment plotting)
-           next_THI = lead(avg_THI),     # Get the next THI value for each row
-           next_THI_color = lead(THI_color))  # Get the next THI color
-  
-  # Plot with color-changing line
-  thi_plot <- ggplot(weather_weekly, aes(x = date_weather, y = avg_THI)) +
-    geom_segment(aes(xend = next_date, yend = next_THI, color = next_THI_color), size = 1) +  # Line segments with color
-    labs(title = "Thermal Heat Index (THI) Over Time",
-         x = "Date",
-         y = "THI") +
-    scale_color_identity() +  # Use color values directly from the THI_color column
-    theme_minimal() +  # Minimal theme for a clean look
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
-   
-}
+<!--   if (status_code(response) == 200) { -->
+<!--     data <- content(response, "text", encoding = "UTF-8") -->
+<!--     weather_data <- fromJSON(data) -->
+<!--     return(weather_data) -->
+<!--   } else { -->
+<!--     stop("Request failed") -->
+<!--   } -->
+<!-- } -->
 
-# Filter production data to get weekly averages for past year:
+<!-- # Example usage -->
+<!-- location <- "55350"  # Zip code for the location -->
+<!-- date_range <- "lastyear"  # Use 'lastyear' to pull data from the last year -->
 
-milk_weekly <- production_data %>%
-  mutate(MILK = as.numeric(gsub("\\*", "", MILK)))
+<!-- # Check for the API key in environment variables -->
+<!-- api_key <- Sys.getenv("VISUAL_CROSSING_API_KEY") -->
 
-milk_weekly <- milk_weekly %>%
-  mutate(week = floor_date(date_test, "week")) %>%
-  group_by(week) %>%
-  summarize(avg_milk = mean(MILK, na.rm = TRUE))
+<!-- # Get weather data only if the API key is available -->
+<!-- weather_data_raw <- if (!is.null(api_key) && api_key != "") { -->
+<!--   get_weather_data(location, date_range, api_key) -->
+<!-- } else { -->
+<!--   NULL  # If API key is missing, skip fetching weather data -->
+<!-- } -->
 
-# Filter for the last 12 months
-milk_weekly_last_year <- milk_weekly %>%
-  filter(week >= date_start)
+<!-- # If weather data was successfully retrieved, process it -->
+<!-- if (!is.null(weather_data_raw)) { -->
 
-milk_plot <- ggplot(milk_weekly_last_year, aes(x = week, y = avg_milk)) +
-  geom_line(color = "green", size = 1) +  # Line for milk production
-  labs(title = "THI and Weekly Average Milk Production Over the Last Year",
-       x = "Date",
-       y = "Value") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+<!--   # Convert the weather data (assuming it is under 'days') -->
+<!--   weather_data_raw <- as.data.frame(weather_data_raw$days) -->
 
-combined_plot <- ggplot() + 
-  # Plot the THI data with color-changing line segments
-  geom_segment(data = weather_weekly, 
-               aes(x = date_weather, y = avg_THI, xend = next_date, yend = next_THI, color = next_THI_color), 
-               size = 1.2) +  # Slightly thicker line for better visibility
-  # Plot the Milk Production as a line plot
-  geom_line(data = milk_weekly_last_year, aes(x = week, y = avg_milk), color = "steelblue", size = 1.2) +
-  
-  # Add points on the milk production line for better visual tracking
-  geom_point(data = milk_weekly_last_year, aes(x = week, y = avg_milk), color = "steelblue", size = 2) +
-  
-  # Add titles and labels
-  labs(
-    title = "THI and Weekly Average Milk Production Over the Last Year",
-    subtitle = "Weekly averages of milk production and Thermal Heat Index",
-    x = "Week",
-    y = "THI",
-    caption = "Data Source: VisualCrossing API"
-  ) +
-  
-  # Enhance the color scale for THI levels
-  scale_color_manual(values = c("green", "yellow", "orange", "red"),
-                     breaks = c("green", "yellow", "orange", "red"),
-                     labels = c("Low THI (< 50)", "Moderate THI (50-60)", "High THI (60-70)", "Very High THI (> 70)")) +
-  
-  # Modify gridlines and background for clarity
-  theme_minimal(base_size = 14) +  # Increase base size for readability
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  # Rotate x-axis labels for readability
-    axis.title.x = element_text(size = 14),
-    axis.title.y = element_text(size = 14),
-    axis.text.y = element_text(size = 12),
-    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
-    plot.caption = element_text(hjust = 1, size = 10, color = "gray"),
-    legend.title = element_text(size = 12),
-    legend.text = element_text(size = 11)
-  ) +
-  
-  # Secondary y-axis for milk production
-  scale_y_continuous(
-    name = "THI", 
-    sec.axis = sec_axis(~ ., name = "Milk Production (units)")
-  ) +  # You can adjust scaling between THI and Milk Production if necessary
-  
-  theme(
-    axis.title.y.right = element_text(color = "black", size = 14),
-    axis.text.y.right = element_text(color = "black", size = 12),
-    legend.position = "top"  # Position the legend at the top
-  )
+<!--   # Select relevant columns and convert the 'date' column to Date format -->
+<!--   weather_data <- weather_data_raw %>% -->
+<!--     select(datetime, temp, humidity) %>% -->
+<!--     mutate(datetime = as.Date(datetime))%>% -->
+<!--     rename(date_weather = datetime)%>% -->
+<!--     mutate(THI = temp - (0.55 - 0.0055 * humidity) * (temp - 58))  -->
 
-# Show the plot
-print(combined_plot)
+<!--   weather_data <- weather_data%>% -->
+<!--     filter(date_weather >= date_start & date_weather <= date_end) -->
 
-```
+<!--   # Weekly THI Averages: -->
+<!--   # Group the weather data by week and calculate the weekly average THI -->
+<!--   weather_weekly <- weather_data %>% -->
+<!--     mutate(date_weather = floor_date(date_weather, "week")) %>% -->
+<!--     group_by(date_weather) %>% -->
+<!--     summarize(avg_THI = mean(THI, na.rm = TRUE)) -->
+
+<!--   # color scale -->
+<!--   weather_weekly <- weather_weekly %>% -->
+<!--     mutate(THI_color = case_when( -->
+<!--       avg_THI >= 70 ~ "red",        -->
+<!--       avg_THI >= 60 ~ "orange",     -->
+<!--       avg_THI >= 50 ~ "yellow",     -->
+<!--       TRUE ~ "green"            -->
+<!--     )) -->
+
+<!--   weather_weekly <- weather_weekly %>% -->
+<!--     mutate(next_date = lead(date_weather),   # Get the next date for each row (for segment plotting) -->
+<!--            next_THI = lead(avg_THI),     # Get the next THI value for each row -->
+<!--            next_THI_color = lead(THI_color))  # Get the next THI color -->
+
+<!--   # Plot with color-changing line -->
+<!--   thi_plot <- ggplot(weather_weekly, aes(x = date_weather, y = avg_THI)) + -->
+<!--     geom_segment(aes(xend = next_date, yend = next_THI, color = next_THI_color), size = 1) +  # Line segments with color -->
+<!--     labs(title = "Thermal Heat Index (THI) Over Time", -->
+<!--          x = "Date", -->
+<!--          y = "THI") + -->
+<!--     scale_color_identity() +  # Use color values directly from the THI_color column -->
+<!--     theme_minimal() +  # Minimal theme for a clean look -->
+<!--     theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels -->
+
+<!-- } -->
+
+<!-- # Filter production data to get weekly averages for past year: -->
+
+<!-- milk_weekly <- production_data %>% -->
+<!--   mutate(MILK = as.numeric(gsub("\\*", "", MILK))) -->
+
+<!-- milk_weekly <- milk_weekly %>% -->
+<!--   mutate(week = floor_date(date_test, "week")) %>% -->
+<!--   group_by(week) %>% -->
+<!--   summarize(avg_milk = mean(MILK, na.rm = TRUE)) -->
+
+<!-- # Filter for the last 12 months -->
+<!-- milk_weekly_last_year <- milk_weekly %>% -->
+<!--   filter(week >= date_start) -->
+
+<!-- milk_plot <- ggplot(milk_weekly_last_year, aes(x = week, y = avg_milk)) + -->
+<!--   geom_line(color = "green", size = 1) +  # Line for milk production -->
+<!--   labs(title = "THI and Weekly Average Milk Production Over the Last Year", -->
+<!--        x = "Date", -->
+<!--        y = "Value") + -->
+<!--   theme_minimal() + -->
+<!--   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -->
+
+<!-- combined_plot <- ggplot() +  -->
+<!--   # Plot the THI data with color-changing line segments -->
+<!--   geom_segment(data = weather_weekly,  -->
+<!--                aes(x = date_weather, y = avg_THI, xend = next_date, yend = next_THI, color = next_THI_color),  -->
+<!--                size = 1.2) +  # Slightly thicker line for better visibility -->
+<!--   # Plot the Milk Production as a line plot -->
+<!--   geom_line(data = milk_weekly_last_year, aes(x = week, y = avg_milk), color = "steelblue", size = 1.2) + -->
+
+<!--   # Add points on the milk production line for better visual tracking -->
+<!--   geom_point(data = milk_weekly_last_year, aes(x = week, y = avg_milk), color = "steelblue", size = 2) + -->
+
+<!--   # Add titles and labels -->
+<!--   labs( -->
+<!--     title = "THI and Weekly Average Milk Production Over the Last Year", -->
+<!--     subtitle = "Weekly averages of milk production and Thermal Heat Index", -->
+<!--     x = "Week", -->
+<!--     y = "THI", -->
+<!--     caption = "Data Source: VisualCrossing API" -->
+<!--   ) + -->
+
+<!--   # Enhance the color scale for THI levels -->
+<!--   scale_color_manual(values = c("green", "yellow", "orange", "red"), -->
+<!--                      breaks = c("green", "yellow", "orange", "red"), -->
+<!--                      labels = c("Low THI (< 50)", "Moderate THI (50-60)", "High THI (60-70)", "Very High THI (> 70)")) + -->
+
+<!--   # Modify gridlines and background for clarity -->
+<!--   theme_minimal(base_size = 14) +  # Increase base size for readability -->
+<!--   theme( -->
+<!--     axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  # Rotate x-axis labels for readability -->
+<!--     axis.title.x = element_text(size = 14), -->
+<!--     axis.title.y = element_text(size = 14), -->
+<!--     axis.text.y = element_text(size = 12), -->
+<!--     plot.title = element_text(hjust = 0.5, size = 16, face = "bold"), -->
+<!--     plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"), -->
+<!--     plot.caption = element_text(hjust = 1, size = 10, color = "gray"), -->
+<!--     legend.title = element_text(size = 12), -->
+<!--     legend.text = element_text(size = 11) -->
+<!--   ) + -->
+
+<!--   # Secondary y-axis for milk production -->
+<!--   scale_y_continuous( -->
+<!--     name = "THI",  -->
+<!--     sec.axis = sec_axis(~ ., name = "Milk Production (units)") -->
+<!--   ) +  # You can adjust scaling between THI and Milk Production if necessary -->
+
+<!--   theme( -->
+<!--     axis.title.y.right = element_text(color = "black", size = 14), -->
+<!--     axis.text.y.right = element_text(color = "black", size = 12), -->
+<!--     legend.position = "top"  # Position the legend at the top -->
+<!--   ) -->
+
+<!-- # Show the plot -->
+<!-- print(combined_plot) -->
+
+<!-- ``` -->
 
 # Reproduction
 
-```{r}
+```{r repro bookend dates}
 # 21 Day Preg Risk
 date_end <- pull_date
 
@@ -416,12 +420,22 @@ date_start_repro = date_start-365
 
 periods <- rev(seq(to = date_start_repro, from = date_end, by = "-21 days"))
 
-# Ensure lact_number > 0 and only repro events that affect elig.
-repro_data <- repro_data %>%
-  filter(lact_number > 0, event %in% c("PREG", "ABORT", "BRED", "OK", "OPEN", "DNB"))
+```
+
+
+```{r repro eligible animals}
+test_cows<-c('13916_07/19/11', '15584_09/08/12')
+test_cows<-sort(unique(animals$id_animal))
+
+# Ensure lact_number > 0 and only repro events that affect elig. 
+#Do we want this?? what about animals that freshend and didn't get bred nor dnb?
+repro_elig <- repro_data %>%
+  filter(id_animal %in% test_cows)%>%
+  filter(#lact_number > 0,
+         event %in% c("PREG", "ABORT", "BRED", "OK", "OPEN", "DNB", "BULLPEN")
+         )%>%
 
 # Assign time periods to repro data
-repro_data <- repro_data %>%
   mutate(
     period_number = findInterval(date_event, periods, rightmost.closed = TRUE),
     period_start_date = periods[pmax(period_number, 1)], 
@@ -431,18 +445,26 @@ repro_data <- repro_data %>%
       TRUE ~ period_end_date  # Otherwise, keep the calculated end date
     )
   )
+```
 
-# set up animal data
-animals_repro <- animal_lactations %>% 
+
+```{r get fresh dates}
+# set up animal data - Cows
+animals_fresh <- animal_lactations %>% 
+    filter(id_animal %in% test_cows)%>%
   filter(lact_number > 0) %>%
-  filter(lact_number != 32) |> 
-  filter(date_archive >= date_start_repro | is.na(date_archive)) %>% 
-  select(id_animal_lact, date_fresh, date_archive) 
+  #filter(lact_number != 32) |> 
+  filter(date_archive >= date_start_repro | is.na(date_archive)) %>% #exclude lactations archived before start date
+  select(id_animal_lact, date_fresh, date_archive) #date enrolled?
 
+```
+
+
+```{r crossjoin}
 # Create row for every animal in every period
-all_periods <- animals_repro %>%
+all_periods <- animals_fresh %>%
   distinct(id_animal_lact) %>%  # Get unique id_animal_lact
-  mutate(id_animal_lact = as.character(id_animal_lact)) %>%  # Ensure it's character type for joining
+  #mutate(id_animal_lact = as.character(id_animal_lact)) %>%  # Ensure it's character type for joining
   crossing(period_start_date = periods) %>%  # Cross join with periods to get 18 rows per id_animal_lact
   mutate(
     period_end_date = period_start_date + 20,  # Assign 21-day period
@@ -450,30 +472,32 @@ all_periods <- animals_repro %>%
   )
 
 # Merge with existing animal_repro data
-animals_repro <- all_periods %>%
-  left_join(animals_repro, by = c("id_animal_lact")) %>%
-  group_by(id_animal_lact) %>%
-  fill(date_fresh, date_archive, .direction = "downup") %>%  # Ensure lact info is copied
-  ungroup()
-
+animals_repro2 <- all_periods %>%
+  left_join(animals_fresh, by = c("id_animal_lact")) %>%
+  
+     #***This seems dangerous . . . why is it needed? ***
+  # group_by(id_animal_lact) %>%
+  # fill(date_fresh, date_archive, .direction = "downup") %>%  # Ensure lact info is copied, 
+  # 
+  # ungroup()%>%
 # Ensure data is sorted by animal and period
-animals_repro <- animals_repro %>%
   arrange(id_animal_lact, period_start_date) %>% 
   mutate(date_vwp = date_fresh + vwp)
+```
 
+
+```{r recent preg events}
 # set up event data 
 events_filtered <- events_formatted %>%
-  filter(event %in% c("PREG", "ABORT"))
-
+  filter(event %in% c("PREG", "ABORT"))%>%
 # Set up event data with period information (matching the structure of animals_repro)
-events_filtered <- events_filtered %>%
   left_join(
-    animals_repro %>%
+    animals_repro2 %>%
       select(id_animal_lact, period_number, period_start_date, period_end_date),
     by = c("id_animal_lact")
-  ) 
+  ) %>%
 
-events_filtered <- events_filtered %>%
+#events_filtered <- events_filtered %>%
   filter(date_archived > date_start_repro | is.na(date_archived)) |> 
   filter(lact_number !=32)
 
@@ -495,12 +519,13 @@ latest_abort_events <- events_filtered %>%
 
 latest_events <- latest_preg_events %>%
   left_join(
-    latest_abort_events %>% select(id_animal_lact, period_start_date, latest_abort_event),  # Only keep relevant columns from latest_abort_events
+    latest_abort_events %>% 
+      select(id_animal_lact, period_start_date, latest_abort_event),  # Only keep relevant columns from latest_abort_events
     by = c("id_animal_lact", "period_start_date")
   )
 
 # Merge the latest PREG and ABORT event dates back into animals_repro
-animals_repro_test <- animals_repro %>%
+animals_repro_test <- animals_repro2 %>%
   left_join(
     latest_events %>%
       select(id_animal_lact, period_number, 
@@ -512,7 +537,7 @@ animals_repro_test <- animals_repro %>%
 # Merge data - assign events to animal and period
 animals_repro_2 <- animals_repro_test %>%
   left_join(
-    repro_data %>% 
+    repro_elig %>% 
       select(id_animal_lact, period_start_date, event, R, 
              period_number, period_end_date), 
     by = c("id_animal_lact", "period_start_date", "period_end_date", "period_number")
@@ -615,6 +640,7 @@ eligible_no <- eligible_cows_summary |>
 
 
 #      *Number Pregnant Logic:*
+#***Should  R=="C" be sorted out at the begining? A pregnancy due to a previous breeding essentially had no effect other than labor and semen expense***
 
 # Count the number of breedings that resulted in a pregnancy per period and lactation group
 pregnant_counts_by_period <- animals_repro_gc3 %>%
@@ -624,11 +650,11 @@ pregnant_counts_by_period <- animals_repro_gc3 %>%
   summarise(total_pregnancies = n(), .groups = "drop") 
 
 
-
 preg_risk_long <- pregnant_counts_by_period %>%
   inner_join(eligibility_long, by = c("period_number", "lact_number")) %>%
   mutate(pregnancy_risk = total_pregnancies / total_eligible) %>%
   replace_na(list(pregnancy_risk = 0))  # Ensure no NAs
+
 ```
 
 21-Day PR
@@ -755,9 +781,7 @@ ggplot() +
 
 ```
 
-```{r}
 
-```
 
 # Lameness
 

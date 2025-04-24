@@ -17,10 +17,16 @@ start<-now()
 
 ### Step 1 Read in data----------
 
+####Aquire data from Parnell Database (only works for people who have access to this, you must modify the get_event_data_from_mySYNCH.R function to specify which data to pull)
+#source('C:/Code/ParnellFunctions/get_event_data_from_mySYNCH.R')
+
+
+
+
 # modify these are required -----
 #set defaults
 
-set_farm_name<-'Default Farm Name'
+set_farm_name<-'Quality Data Dairy'
 
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
@@ -39,7 +45,7 @@ set_outcome_gap_lactation<- 1
 
 #* set events of interest to create long and wide disease specifics data sets
 #* #***Modify this *** to be the list of events you want to explore
-list_selected_events<-c('MAST') 
+list_selected_events<-c('BRED') 
 
 source('step2_create_intermediate_files.R')
 
@@ -48,12 +54,14 @@ quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 
 #***Modify This Step to Include the Denominators of Interest***
 #*Nora's calculations
-# quarto::quarto_render('step3_create_denominators_by_lact_group.qmd') 
-# quarto::quarto_render('step3_create_denominators_by_dim_group.qmd') 
+#quarto::quarto_render('step3_create_denominators_by_lact_group.qmd') 
+#quarto::quarto_render('step3_create_denominators_by_dim_group.qmd') 
+quarto::quarto_render('step3_create_denominators_by_custom_group.qmd') #this can be modified to include all animals, or just milking animals
 
 
 ### Step 4 Report Templates------------------------
 #add basic report templates
+quarto::quarto_render('sara_Report_Template.qmd')
 
 # event check reports
 quarto::quarto_render('explore_event_types.qmd') 
