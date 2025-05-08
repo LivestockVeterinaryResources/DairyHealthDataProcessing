@@ -37,9 +37,10 @@ data_pull_max<-max(animals$data_pull_date_max)
 # function for above to allow date range 
 
 # setes data to be use
-label_deno <- "2024"
-date_start_deno <- "2024-01-01"
-date_end_deno <- "2024-12-31"
+date_end_deno <- data_pull_max
+date_start_deno <- data_pull_max-365
+
+label_deno <- as.character(year(date_end_deno))
 
 # data set create function
 fxn_create_deno <- function(label = label_deno,
@@ -108,9 +109,8 @@ denominators <- fxn_create_deno()%>%
 # function for above to allow date range 
 
 # setes data to be use
-label_deno <- "2024"
-date_start_deno <- "2024-01-01"
-date_end_deno <- "2024-12-31"
+
+
 
 # data set create function
 fxn_create_deno2 <- function(label = label_deno,
