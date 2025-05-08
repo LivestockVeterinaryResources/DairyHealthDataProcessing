@@ -51,6 +51,7 @@ list_selected_events<-c('BRED')
 source('step2_create_intermediate_files.R')
 
 ### Step3 Create Denominators ---------------------
+# note need to set dates and time frame in document
 quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 
 #***Modify This Step to Include the Denominators of Interest***
