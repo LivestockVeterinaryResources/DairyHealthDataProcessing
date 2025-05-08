@@ -106,7 +106,7 @@ youngstock_data <- events_formatted%>%
 production_file <- "data/intermediate_files/production_data/production.parquet"
 
 # # Read Parquet file
-production_data <- read_parquet(production_file)
+production_data <- read_parquet(production_data)
 
 # # Reformat the data
 production_data <- production_data %>%
@@ -617,17 +617,26 @@ eligible_no <- eligible_cows_summary |>
 #      *Number Pregnant Logic:*
 
 # Count the number of breedings that resulted in a pregnancy per period and lactation group
+bred_counts_by_period <- animals_repro_gc3 |> 
+  filter(event == "BRED") %>% 
+  mutate(lact_number = sub(".*_(\\d+)$", "\\1", id_animal_lact)) %>%  
+  group_by(period_number, period_start_date, lact_number) %>% 
+  summarise(total_breedings = n(), .groups = "drop") 
+
+
 pregnant_counts_by_period <- animals_repro_gc3 %>%
   filter(event == "BRED" & R %in% c("P", "A", "C")) %>% 
   mutate(lact_number = sub(".*_(\\d+)$", "\\1", id_animal_lact)) %>%  
   group_by(period_number, period_start_date, lact_number) %>% 
-  summarise(total_pregnancies = n(), .groups = "drop") 
+  summarise(total_pregnancies = n(), .groups = "drop") |> 
+  left_join(bred_counts_by_period)
 
 
 
 preg_risk_long <- pregnant_counts_by_period %>%
   inner_join(eligibility_long, by = c("period_number", "lact_number")) %>%
-  mutate(pregnancy_risk = total_pregnancies / total_eligible) %>%
+  mutate(pregnancy_risk = total_pregnancies / total_eligible,
+         ai_sub_risk = total_breedings / total_eligible) %>%
   replace_na(list(pregnancy_risk = 0))  # Ensure no NAs
 ```
 
@@ -646,12 +655,14 @@ preg_risk_lact_group <- preg_risk_long %>%
   ) %>%
   group_by(period_number, period_start_date, lact_group) %>%
   summarise(
+    total_breedings = sum(total_breedings, na.rm = TRUE),
     total_pregnancies = sum(total_pregnancies, na.rm = TRUE),
     total_eligible = sum(total_eligible, na.rm = TRUE),
     .groups = "drop"
   ) %>%
-  mutate(pregnancy_risk = total_pregnancies / total_eligible) %>%
-  replace_na(list(pregnancy_risk = 0)) 
+  mutate(pregnancy_risk = total_pregnancies / total_eligible,
+         ai_sub_risk = total_breedings / total_eligible) %>%
+  replace_na(list(pregnancy_risk = 0, ai_sub_risk = 0)) 
 
 preg_risk_plot_data <- preg_risk_lact_group %>%
   filter(period_start_date >= date_start-43, period_start_date <= date_end-43)
