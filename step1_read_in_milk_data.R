@@ -44,7 +44,7 @@ production_data2 <- production_data |>
            .before = everything())  |> 
   select(-c(id, test_date, fdat ))
  
-write_parquet(production_data, 'data/intermediate_files/production_data.parquet')
+write_parquet(production_data2, 'data/intermediate_files/production_data.parquet')
 
 rm(production_data, production_data2)
 
