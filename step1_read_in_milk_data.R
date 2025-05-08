@@ -35,14 +35,14 @@ production_data2 <- production_data |>
     date_test = mdy(test_date),
     date_birth = mdy(bdat),
     date_fresh = mdy(fdat),
-    dim_test = date_test - date_fresh,
+    dim_test = as.numeric(date_test - date_fresh),
     milk = as.numeric(gsub("\\*", "", milk)),
     across(c(pctf, pctp, fcm, milk_305_me, relv,
              scc, lgscc, pen, mun ), as.numeric)
     ) |> 
-  relocate(c(id_animal, date_birth, date_test, pen),
+  relocate(c(id_animal, id_animal_lact, date_birth, date_fresh, dim_test, date_test, pen),
            .before = everything())  |> 
-  select(-c(id, test_date, fdat ))
+  select(-c(id, test_date, fdat, dim ))
  
 write_parquet(production_data2, 'data/intermediate_files/production_data.parquet')
 
