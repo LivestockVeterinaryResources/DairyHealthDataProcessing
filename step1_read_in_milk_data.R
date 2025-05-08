@@ -20,7 +20,7 @@ for (i in seq_along(list_files)){
     mutate(source_file_path = paste0('data/milk_files/', list_files[i])
     ) 
   
-  production_data<-bind_rows(milk, df)
+  production_data<-bind_rows(production_data, df)
 }
 
 
@@ -42,7 +42,7 @@ production_data2 <- production_data |>
            .before = everything())  |> 
   select(-c(id, test_date, fdat ))
  
-write_parquet(production_data, 'data/production_data.parquet')
+write_parquet(production_data, 'data/intermediate_files/production_data.parquet')
 
 rm(production_data, production_data2)
 
