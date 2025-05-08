@@ -34,6 +34,8 @@ production_data2 <- production_data |>
     id_animal_lact = paste0(id, "_", bdat, "_", lact),
     date_test = mdy(test_date),
     date_birth = mdy(bdat),
+    date_fresh = mdy(fdat),
+    dim_test = date_test - date_fresh,
     milk = as.numeric(gsub("\\*", "", milk)),
     across(c(pctf, pctp, fcm, milk_305_me, relv,
              scc, lgscc, pen, mun ), as.numeric)
