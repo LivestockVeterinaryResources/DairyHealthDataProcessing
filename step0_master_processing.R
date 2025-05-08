@@ -10,7 +10,7 @@ pacman::p_load(
   quarto, 
   arrow,
   zoo,
-  dt
+  DT
   )
 
 start<-now()
