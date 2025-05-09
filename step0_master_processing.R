@@ -52,13 +52,6 @@ source('step2_create_intermediate_files.R')
 ### Step3 Create Denominators ---------------------
 quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 
-#***Modify This Step to Include the Denominators of Interest***
-#*Nora's calculations
-#quarto::quarto_render('step3_create_denominators_by_lact_group.qmd') 
-#quarto::quarto_render('step3_create_denominators_by_dim_group.qmd') 
-quarto::quarto_render('step3_create_denominators_by_custom_group.qmd') #this can be modified to include all animals, or just milking animals
-
-
 ### Step 4 Report Templates------------------------
 #add basic report templates
 quarto::quarto_render('sara_Report_Template.qmd')
@@ -67,12 +60,7 @@ quarto::quarto_render('sara_Report_Template.qmd')
 quarto::quarto_render('explore_event_types.qmd') 
 quarto::quarto_render('data_dictionary.qmd')
 
-# disease report 
-# quarto::quarto_render('step3_report_disease_template.qmd')
 
-#cohort disease incidence (Location, Lactation, Breed, etc)
-#timing of disease (DIM (or Age) and calendar time distributions, Kaplan Meier)
-#perfomrance and disease (milk, gain, repro)
 
 end<-now()
 
