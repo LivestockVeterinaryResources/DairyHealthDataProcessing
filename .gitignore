@@ -102,8 +102,9 @@ data/stashed_files/*.parquet
 
 
 #quarto temp folders
-tool_event_details_files/
+
 step3_create_denominators_by_dim_group_files/
 step3_create_denominators_by_lact_group_files/
 step3_create_denominators_lact_dim_season_files/
 step3_create_denominators_lact_dim_season_ns_experiment_files/
+tool_event_details_files/
