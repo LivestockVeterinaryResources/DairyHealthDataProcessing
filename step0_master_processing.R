@@ -31,6 +31,9 @@ set_farm_name<-'Mulhern'
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
 
+#*** If downloaded milk data
+source('step1a_read_in_production_data.R')
+
 ### Step 2 Intermediate Files----------------------
 #***Modify This Step to Include the Events/Disease of Interest***
 #*
