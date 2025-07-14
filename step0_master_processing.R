@@ -58,7 +58,7 @@ quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 
 ### Step 4 Report Templates------------------------
 #add basic report templates
-quarto::quarto_render('sara_Report_Template.qmd')
+#quarto::quarto_render('sara_Report_Template.qmd')
 
 # event check reports
 quarto::quarto_render('explore_event_types.qmd') 
