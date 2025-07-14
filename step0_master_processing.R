@@ -10,7 +10,7 @@ pacman::p_load(
   quarto, 
   arrow,
   zoo,
-  dt
+  DT
   )
 
 start<-now()
@@ -26,7 +26,7 @@ start<-now()
 # modify these are required -----
 #set defaults
 
-set_farm_name<-'Quality Data Dairy'
+set_farm_name<-'Mulhern'
 
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
