@@ -132,7 +132,7 @@ write_parquet(production2%>%
                        id_animal, date_birth, breed, 
                        id_animal_lact,  
                        lact_number, lact_group_basic, lact_group, lact_group_repro, lact_group_5,
-                       dim_test, location_event,  pen,
+                       date_test, dim_test, location_event,  pen,
                        milk, milk_fcm, milk_305ME, fat_pct, prot_pct,
                        scc, linear_score, mun, relv
                        ), 
