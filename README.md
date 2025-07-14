@@ -31,5 +31,5 @@ Code structure details and reference documents: tidyverse style guide <https://s
 <https://design.tidyverse.org/>
 
 
-Future stuff:
-DC305 code to pull milk data: EVENTS ID LACT CBRD FDAT BFDT XHPAI FOR LACT>0 FDAT>12/12/2022\\4
+Future stuff: to pull milk data
+EVENTS #1 #11 #29 #6 #13\4S2000H
