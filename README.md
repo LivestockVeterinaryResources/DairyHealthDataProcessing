@@ -21,7 +21,9 @@ Option 2 pull smaller time frames using "days back" starting with
 "S""days back" and ending with "L""days back": EVENTS\\2S99L0CH #1 #2 #4
 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
 
-Step 2 - Open the file names "step0_MasterProcessing.Rmd" in Rstudio. Check to make sure that all farm specific functions are set up correctly.
+Option 3 pull directly from a database (you much have permission and database access)
+
+Step 2 - Open the file nameed "step0_MasterProcessing.Rmd" in Rstudio. Check to make sure that all farm specific functions are set up correctly.
 
 Step 3 - Run step0_MasterProcessing.Rmd
 
