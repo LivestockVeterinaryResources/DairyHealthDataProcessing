@@ -1,24 +1,14 @@
-# loads packages for set up
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(
-  tidyverse,
-  dtplyr,
-  gt,
-  arrow,
-  rmarkdown,
-  lubridate,
-  quarto, 
-  arrow,
-  zoo,
-  dt
-  )
+
+renv::refresh()
+library(tidyverse)
 
 start<-now()
 
 ### Step 1 Read in data----------
 
 ###Aquire data from Parnell Database (only works for people who have access to this)#*** you must modify the get_event_data_from_mySYNCH.R function to specify which data to pull***
-#source('C:/Code/ParnellFunctions/get_event_data_from_mySYNCH.R')
+source('C:/Code/ParnellFunctions/get_event_data_from_mySYNCH.R')
+source('functions/fxn_location.R') #custom function to specify event location
 
 
 
@@ -26,7 +16,9 @@ start<-now()
 # modify these are required -----
 #set defaults
 
-set_farm_name<-'Quality Data Dairy'
+set_farm_name<-'Muli-Farm Report'
+
+fxn_assign_location_event<-fxn_assign_location_event_parnell() #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')

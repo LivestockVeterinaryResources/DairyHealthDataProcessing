@@ -23,6 +23,20 @@ fxn_assign_location_event_custom <- function(df){
     
 }
 
+#location event parnell----------------
+fxn_assign_location_event_parnell <- function(df){
+  df%>%
+    mutate(pen_num = parse_number(PEN))%>%
+    mutate(
+      location_event = case_when(
+        str_detect(source_file_path, '4cfbbdc2-d892-424b-b3e9-cff09e1c3ee8') ~"Herd A"
+        str_detect(source_file_path, '2108e618-b6fb-42fe-84de-54f849e5a6d0') ~"Herd B",
+        TRUE~"Unknown Location"
+      )
+    )
+  
+}
+
 fxn_detect_location_lesion_default<-function(df){
   df%>%
     mutate(
