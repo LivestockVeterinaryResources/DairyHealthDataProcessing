@@ -1,0 +1,146 @@
+---
+title: "Disease Template"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dtplyr)
+
+source('functions/DT_base.R')
+
+```
+
+```{r}
+#denominator base files -------------------
+animals<-read_parquet('data/intermediate_files/animals.parquet') #each row is an animal
+
+animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parquet') #each row is an animal lactation
+
+#numerator base files long ----------------------each row is a unique disease event (gapx_key)
+disease_animal_long<-read_parquet('data/intermediate_files/disease_animal_level_long.parquet')
+
+disease_lact_long<-read_parquet('data/intermediate_files/disease_lactation_level_long.parquet')
+
+#numerator base files long ---------each row is a an animal or animal lact with diseases in wide format
+disease_animal_wide<-read_parquet('data/intermediate_files/disease_animal_level_wide.parquet')
+
+disease_lact_wide<-read_parquet('data/intermediate_files/disease_lactation_level_wide.parquet')
+
+#---------------------------
+data_pull_min<-min(animals$data_pull_date_min)
+data_pull_max<-max(animals$data_pull_date_max)
+```
+
+## make cohorts
+
+```{r}
+cohorts_fresh_date<-animal_lactations%>%
+  filter(lact_number>0)%>%
+  mutate(date_fresh = case_when(
+    is.na(date_fresh)~data_pull_min-365, 
+    TRUE~date_fresh)
+    )%>%
+  mutate(cohort_fresh_year = as.factor(floor_date(date_fresh, unit = 'years')), 
+         cohort_fresh_season = as.factor(floor_date(date_fresh, unit = 'seasons')), 
+         cohort_fresh_month = as.factor(floor_date(date_fresh, unit = 'months')), 
+         cohort_fresh_week = as.factor(floor_date(date_fresh, unit = 'weeks'))
+         )%>%
+  select(id_animal, id_animal_lact, contains('cohort'))
+
+
+
+```
+
+
+## Disease Discriptions
+
+### Distribution of First Disease Event within Phase (Lactation) - DIM at disease event
+
+```{r}
+
+ggplot(disease_lact_long%>%
+         left_join(cohorts_fresh_date))+
+  geom_density(aes(x = dim_disease_first,  color = cohort_fresh_year, group = cohort_fresh_year))+
+ # geom_histogram(aes(x = dim_disease_first,  fill = cohort_fresh_year, group = cohort_fresh_year), 
+ #                alpha = .2, binwidth = 7)+
+ #  geom_density(aes(x = dim_disease_first,  color = cohort_fresh_year, group = cohort_fresh_year))+
+   theme_bw()+
+  coord_cartesian(xlim = c(0, 305))+
+  facet_wrap(.~cohort_fresh_year)+
+  coord_cartesian(ylim = c(0, 0.01))
+
+```
+
+
+
+
+### Disease Duration
+
+```{r}
+
+duration<-disease_lact_long%>%
+  mutate(disease_duration = as.numeric(date_disease_last - date_disease_first))%>%
+         mutate(floordate_season = factor(floor_date(date_disease_first, unit = 'season')))
+
+ggplot(duration%>%filter(disease_count == 1))+
+  geom_point(aes(x = floordate_season,  y = disease_duration), position = position_jitter(), size = .1)+
+  geom_violin(aes(x = floordate_season,  y = disease_duration), fill = 'grey', scale = 'width')+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+ 
+#***START HERE***
+### Calander Time
+```{r}
+
+disease_by_month<-disease_lact_long%>%
+  mutate(dz_status = case_when(
+    str_detect(list_treatments, 'A')~'Abort',
+     str_detect(list_treatments, 'P|E')~'Pregnant',
+    TRUE~'Open'
+  ))%>%
+  
+  mutate(floordate_month = floor_date(date_disease_first, 'month'))%>%
+  group_by(floordate_month)%>%
+  mutate(disease_total = n_distinct(gap1_key), 
+         cowlact_total = n_distinct(id_animal_lact))%>%
+  ungroup()%>%
+  group_by(floordate_month, disease_total, cowlact_total, repro_status)%>%
+  summarise(ct_disease = n_distinct(gap1_key), 
+            ct_cowlact = n_distinct(id_animal_lact))%>%
+  ungroup()%>%
+  mutate(pct_disease = ct_disease/disease_total,
+         pct_cowlact = ct_cowlact/cowlact_total)
+
+
+
+
+
+```
+
+#### plot canander time
+```{r}
+ggplot(disease_by_month)+
+  geom_point(aes(x = floordate_month, y = pct_disease, color = repro_status))+
+  geom_smooth(aes(x = floordate_month, y = pct_disease, color = repro_status, group = repro_status), span = .2)+
+  theme_bw()
+```
+
+
+### Phase Time (days in milk)
+```{r}
+
+
+
+```
+
+# Disease Outcome
+
+
+

@@ -1,0 +1,354 @@
+---
+title: "Create Denominators"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dtplyr)
+
+source('functions/DT_base.R')
+
+```
+
+```{r}
+#denominator base files -------------------
+animals<-read_parquet('data/intermediate_files/animals.parquet') #each row is an animal
+
+animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parquet') #each row is an animal lactation
+
+#numerator base files long ----------------------each row is a unique disease event (gapx_key)
+disease_animal_long<-read_parquet('data/intermediate_files/disease_animal_level_long.parquet')
+
+disease_lact_long<-read_parquet('data/intermediate_files/disease_lactation_level_long.parquet')
+
+#numerator base files long ---------each row is a an animal or animal lact with diseases in wide format
+disease_animal_wide<-read_parquet('data/intermediate_files/disease_animal_level_wide.parquet')
+
+disease_lact_wide<-read_parquet('data/intermediate_files/disease_lactation_level_wide.parquet')
+
+#---------------------------
+data_pull_min<-min(animals$data_pull_date_min)
+data_pull_max<-max(animals$data_pull_date_max)
+```
+
+
+## define calendar days and cows
+
+```{r}
+calendar<-tibble(date_calendar = seq.Date(from = data_pull_max-1200, to = data_pull_max, by = 1))
+
+deno_base<-animal_lactations |> 
+  filter(lact_number>0) |> 
+  left_join(animals) |> 
+  group_by(id_animal) |> 
+  mutate(lact_number_max = max(lact_number, na.rm = T)) |> 
+  mutate(
+    date_first_fresh = case_when(
+      (lact_number_max == 0)~mdy(NA), 
+      TRUE~min(date_fresh, na.rm = T)), 
+    
+    date_last_fresh = case_when(
+      (lact_number_max == 0)~mdy(NA), 
+      TRUE~max(date_fresh, na.rm = T))
+    ) |> 
+  
+  ungroup() |> 
+  
+  mutate(
+    date_elig_start = case_when(
+      ((lact_number >0)&((is.na(date_fresh))<1))~date_fresh, 
+      ((lact_number >0)&((is.na(date_fresh))>0))~data_pull_min, 
+      TRUE~data_pull_min), 
+    
+    date_elig_end_dim30 = case_when(
+      is.na(date_archive)~date_dim30,
+      (date_archive<date_dim30)~date_archive, 
+      (date_archive>=date_dim30)~date_dim30,
+      TRUE~data_pull_max),
+    
+    date_elig_end_dim60 = case_when(
+      is.na(date_archive)~date_dim60,
+      (date_archive<date_dim60)~date_archive, 
+      (date_archive>=date_dim60)~date_dim60,
+      TRUE~data_pull_max),
+    
+    date_elig_end_dim90 = case_when(
+      is.na(date_archive)~date_dim90,
+      (date_archive<date_dim90)~date_archive, 
+      (date_archive>=date_dim90)~date_dim90,
+      TRUE~data_pull_max),
+    
+    date_elig_end_dim120 = case_when(
+      is.na(date_archive)~date_dim120,
+      (date_archive<date_dim120)~date_archive, 
+      (date_archive>=date_dim120)~date_dim120,
+      TRUE~data_pull_max),
+    
+    date_elig_end_dim150 = case_when(
+      is.na(date_archive)~date_dim150,
+      (date_archive<date_dim150)~date_archive, 
+      (date_archive>=date_dim150)~date_dim150,
+      TRUE~data_pull_max),
+    
+    date_elig_end_dim200 = case_when(
+      is.na(date_archive)~date_dim200,
+      (date_archive<date_dim200)~date_archive, 
+      (date_archive>=date_dim200)~date_dim200,
+      TRUE~data_pull_max),
+    
+    date_elig_end_dim305 = case_when(
+      is.na(date_archive)~date_dim305,
+      (date_archive<date_dim305)~date_archive, 
+      (date_archive>=date_dim305)~date_dim305,
+      TRUE~data_pull_max)
+    
+    
+    )
+
+sk_deno<-skimr::skim(deno_base)
+
+
+test<-deno_base%>%
+  #filter(lact_number == 0)%>%
+  select(id_animal, id_animal_lact, date_birth, lact_number, lact_number_max, date_fresh, date_sold, date_died, date_archive, date_elig_start, date_elig_end_dim30)
+
+```
+
+## count cows on each calendar day for dim30
+
+```{r, message = FALSE}
+
+deno_dataframe_30<-NULL
+#i = 1
+for (i in seq_along(calendar$date_calendar)){
+  
+  df<-deno_base%>%
+    mutate(date_elig_end = date_elig_end_dim30)%>%
+    mutate(`DIM Group` = 'DIM 0-30')%>%
+    mutate(date_ref = calendar$date_calendar[[i]])%>%
+    mutate(eligible = case_when(
+      ((date_elig_start<=date_ref)&(date_elig_end>=date_ref))~'eligible', 
+      TRUE~'not eligiible'
+    ))
+  
+  df2<-df%>%
+    group_by(`DIM Group`, lact_group_basic, date_ref, eligible) |> 
+    summarize(ct_animals = n_distinct(id_animal))%>%
+    ungroup() |> 
+    rename(`Lactation Group` = lact_group_basic)
+  
+  df3<-df%>%
+    group_by(`DIM Group`, lact_group, date_ref, eligible) |> 
+    summarize(ct_animals = n_distinct(id_animal))%>%
+    ungroup()|> 
+    rename(`Lactation Group` = lact_group)
+  
+  df4<-bind_rows(df2, df3)%>%
+    distinct()
+  
+  deno_dataframe_30 <-bind_rows(deno_dataframe_30, df4) 
+    
+}
+  
+
+deno_dataframe_30_original<-deno_dataframe_30
+
+
+```
+
+## function to count cows on each calendar day for dim30
+
+```{r, message = FALSE}
+
+
+fxn_count_cows_for_DIMgroup<-function(dim_group_name, dim_elig, dim_elig_start){
+#i = 1
+for (i in seq_along(calendar$date_calendar)){
+  
+  df<-deno_base%>%
+    mutate(date_elig_end = {{dim_elig}})%>%
+    mutate(date_elig_start = {{dim_elig_start}})%>%
+    mutate(date_elig_end = case_when(
+      date_elig_end>today()~today(), 
+      TRUE~date_elig_end
+    ))%>%
+    mutate(date_elig_start = case_when(
+      date_elig_start>today()~today(), 
+      TRUE~date_elig_start
+    ))%>%
+    mutate(`DIM Group` = dim_group_name)%>%
+    mutate(date_ref = calendar$date_calendar[[i]])%>%
+    mutate(eligible = case_when(
+      ((date_elig_start<=date_ref)&(date_elig_end>=date_ref))~'eligible', 
+      TRUE~'not eligiible'
+    ))
+  
+  df2<-df%>%
+    group_by(`DIM Group`, lact_group_basic, date_ref, eligible) |> 
+    summarize(ct_animals = n_distinct(id_animal))%>%
+    ungroup() |> 
+    rename(`Lactation Group` = lact_group_basic)
+  
+  df3<-df%>%
+    group_by(`DIM Group`, lact_group, date_ref, eligible) |> 
+    summarize(ct_animals = n_distinct(id_animal))%>%
+    ungroup()|> 
+    rename(`Lactation Group` = lact_group)
+  
+  df4<-bind_rows(df2, df3)%>%
+    distinct()
+  
+  deno_dataframe_DIM <<-bind_rows(deno_dataframe_DIM, df4) 
+    
+}
+  
+}
+
+
+#DIM 30---------------------
+deno_dataframe_DIM<-NULL
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 0-30', 
+                            dim_elig = date_elig_end_dim30, 
+                            dim_elig_start = date_fresh)
+deno_dataframe_30<-deno_dataframe_DIM
+
+#DIM 60---------------------
+deno_dataframe_DIM<-NULL
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 30-60', 
+                            dim_elig = date_elig_end_dim60, 
+                            dim_elig_start = date_elig_end_dim30)
+deno_dataframe_60<-deno_dataframe_DIM
+
+#DIM 90---------------------
+deno_dataframe_DIM<-NULL
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 60-90', 
+                            dim_elig = date_elig_end_dim90, 
+                            dim_elig_start = date_elig_end_dim60)
+deno_dataframe_90<-deno_dataframe_DIM
+
+#DIM 120---------------------
+deno_dataframe_DIM<-NULL
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 90-120', 
+                            dim_elig = date_elig_end_dim120, 
+                            dim_elig_start = date_elig_end_dim90)
+deno_dataframe_120<-deno_dataframe_DIM
+
+#DIM 150---------------------
+deno_dataframe_DIM<-NULL
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 120-150', 
+                            dim_elig = date_elig_end_dim150, 
+                            dim_elig_start = date_elig_end_dim120)
+deno_dataframe_150<-deno_dataframe_DIM
+
+#DIM 200---------------------
+deno_dataframe_DIM<-NULL
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 150-200', 
+                            dim_elig = date_elig_end_dim200, 
+                            dim_elig_start = date_elig_end_dim150)
+deno_dataframe_200<-deno_dataframe_DIM
+
+#DIM 305---------------------
+deno_dataframe_DIM<-NULL
+fxn_count_cows_for_DIMgroup(dim_group_name = 'DIM 200-305', 
+                            dim_elig = date_elig_end_dim305, 
+                            dim_elig_start = date_elig_end_dim200)
+deno_dataframe_305<-deno_dataframe_DIM
+
+#DIM master
+deno_dataframe<-bind_rows(deno_dataframe_30, deno_dataframe_60, deno_dataframe_90, deno_dataframe_120, deno_dataframe_150, deno_dataframe_200, deno_dataframe_305)
+
+```
+
+
+## check logic
+
+```{r}
+
+test_animal<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+  filter(id_animal %in% '15584_09/08/12')
+
+check_fresh<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+  filter(event %in% 'FRESH')%>%
+  mutate(floordate_month = floor_date(date_event, unit = 'month'))
+
+check_left<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+  filter(event %in% c('SOLD', 'DIED'))%>%
+  mutate(floordate_month = floor_date(date_event, unit = 'month'))
+
+ggplot(check_fresh)+
+  geom_bar(aes(x = floordate_month, fill = lact_group))+
+  facet_grid(.~lact_group)
+
+ggplot(check_left)+
+  geom_bar(aes(x = floordate_month, fill = lact_group))+
+  facet_grid(lact_group~., scales = 'free')
+
+
+ggplot(deno_dataframe%>%filter(eligible %in% 'eligible'))+
+  geom_point(aes(x = date_ref, y = ct_animals, color = `Lactation Group`))+
+  ylim(c(0, NA))+
+  facet_wrap(`DIM Group`~., scales = 'free')+
+  coord_cartesian(ylim = c(0, 1000))
+
+```
+
+
+## summarize by floor_dates
+
+```{r}
+
+denominator_granular<-deno_dataframe%>%
+  filter(eligible %in% 'eligible')%>%
+  rename(date_calendar = date_ref)%>%
+  mutate(floordate_calendar_year = floor_date(date_calendar, unit = 'years'), 
+         floordate_calendar_season = floor_date(date_calendar, unit = 'seasons'), 
+         floordate_calendar_month = floor_date(date_calendar, unit = 'months'), 
+         floordate_calendar_week = floor_date(date_calendar, unit = 'weeks') )%>%
+  select(`DIM Group`, `Lactation Group`, ct_animals, contains('date'))
+
+write_parquet(denominator_granular, 'data/intermediate_files/denominator_granular_by_DIM_group.parquet')
+
+```
+
+## denominators base files by lact group and calendar date
+
+```{r}
+
+fxn_create_deno<-function(time_period){
+  denominator_granular%>%
+    group_by(`DIM Group`, `Lactation Group`, {{time_period}})%>%
+    #group_by(`Lactation Group`, floordate_calendar_year)%>%
+    summarize(time_period_start = min(date_calendar), 
+              time_period_end = max(date_calendar), 
+              animal_count_mean = round(mean(ct_animals), digits = 0), 
+              animal_count_sd = round(sd(ct_animals), digits = 0), 
+              animal_count_min = min(ct_animals), 
+              animal_count_max = max(ct_animals))%>%
+    ungroup()%>%
+    mutate(date_calendar = {{time_period}})
+}
+
+denominator_year<-fxn_create_deno(time_period = floordate_calendar_year)
+denominator_season<-fxn_create_deno(time_period = floordate_calendar_season)
+denominator_month<-fxn_create_deno(time_period = floordate_calendar_month)
+denominator_week<-fxn_create_deno(time_period = floordate_calendar_week)
+
+denominator_time_period<-bind_rows(denominator_year, denominator_season, denominator_month, denominator_week)%>%
+  select(`DIM Group`, `Lactation Group`, date_calendar, contains('time_period'), contains('animal'), contains('floordate'))%>%
+  mutate(time_period_type = case_when(
+    (is.na(floordate_calendar_year)<1)~'year', 
+    (is.na(floordate_calendar_season)<1)~'season', 
+    (is.na(floordate_calendar_month)<1)~'month', 
+    (is.na(floordate_calendar_week)<1)~'week', 
+    TRUE~'unknown')
+  )
+
+write_parquet(denominator_time_period, 'data/intermediate_files/denominator_by_DIM_group.parquet')
+
+
+```
+
+
