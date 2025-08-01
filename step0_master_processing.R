@@ -26,7 +26,7 @@ start<-now()
 # modify these are required -----
 #set defaults
 
-set_farm_name<-'Mulhern'
+set_farm_name<-'demo'
 
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
