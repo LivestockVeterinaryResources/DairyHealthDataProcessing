@@ -53,3 +53,15 @@ if(sum(str_detect(production_columns, 'USDA'))>0){
     rename(EID = USDA)
 }
 
+#fat--------------------
+if(sum(str_detect(production_columns, 'FAT%'))>0){
+  production<-production%>%
+    rename(PCTF = 'FAT%')
+}
+
+#fat--------------------
+if(sum(str_detect(production_columns, 'PROT%'))>0){
+  production<-production%>%
+    rename(PCTP = 'PROT%')
+}
+
