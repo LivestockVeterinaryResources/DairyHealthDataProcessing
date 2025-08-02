@@ -46,6 +46,7 @@ Code structure details and reference documents: tidyverse style guide
 
 Future stuff: DC305 code to pull milk data:
 
-EVENTS #1 #11 #29 #6 #13\\4S2000H
-
 Step 1 - Pull the data and save in the **milk_files folder**
+EVENTS #1 #11 #29 #6 #13\4S2000H
+
+
