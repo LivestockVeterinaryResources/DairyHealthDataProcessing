@@ -10,7 +10,7 @@ pacman::p_load(
   quarto, 
   arrow,
   zoo,
-  dt
+  DT
   )
 
 start<-now()
@@ -26,10 +26,13 @@ start<-now()
 # modify these are required -----
 #set defaults
 
-set_farm_name<-'Quality Data Dairy'
+set_farm_name<-'demo'
 
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
+
+#*** If downloaded milk data
+source('step1a_read_in_production_data.R')
 
 ### Step 2 Intermediate Files----------------------
 #***Modify This Step to Include the Events/Disease of Interest***
@@ -55,7 +58,7 @@ quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 
 ### Step 4 Report Templates------------------------
 #add basic report templates
-quarto::quarto_render('sara_Report_Template.qmd')
+#quarto::quarto_render('sara_Report_Template.qmd')
 
 # event check reports
 quarto::quarto_render('explore_event_types.qmd') 

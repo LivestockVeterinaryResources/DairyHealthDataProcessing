@@ -37,9 +37,9 @@ data_pull_max<-max(animals$data_pull_date_max)
 # function for above to allow date range 
 
 # setes data to be use
-label_deno <- "2024"
-date_start_deno <- "2024-01-01"
-date_end_deno <- "2024-12-31"
+date_end_deno <- unique(animals$data_pull_date_max)
+date_start_deno <- date_end_deno - 365
+label_deno <- year(date_end_deno)
 
 # data set create function
 fxn_create_deno <- function(label = label_deno,
@@ -107,10 +107,6 @@ denominators <- fxn_create_deno()%>%
 ```{r}
 # function for above to allow date range 
 
-# setes data to be use
-label_deno <- "2024"
-date_start_deno <- "2024-01-01"
-date_end_deno <- "2024-12-31"
 
 # data set create function
 fxn_create_deno2 <- function(label = label_deno,
@@ -244,14 +240,19 @@ fxn_DT_base(herd_deno)
 ```{r}
 # can do multiple years or time periods by combining the above
 
-denominators_yr1 <- fxn_create_deno(label = "2023",
-                        date_start = "2023-01-01",
-                        date_end = "2023-12-31") |> 
+date_end_deno_yr2 <- date_start_deno-1
+date_start_deno_yr2 <- date_end_deno_yr2 - 365
+label_deno_yr2 <- year(date_end_deno_yr2)
+
+
+denominators_yr1 <- fxn_create_deno(label = label_deno,
+                        date_start = date_start_deno,
+                        date_end = date_end_deno) |> 
   fxn_calc_deno()
 
-denominators_yr2 <- fxn_create_deno(label = "2024",
-                        date_start = "2024-01-01",
-                        date_end = "2024-12-31") |> 
+denominators_yr2 <- fxn_create_deno(label = label_deno_yr2,
+                        date_start = date_start_deno_yr2,
+                        date_end = date_end_deno_yr2) |> 
   fxn_calc_deno()
 
 deno_2yrs <- bind_rows(denominators_yr1, denominators_yr2)

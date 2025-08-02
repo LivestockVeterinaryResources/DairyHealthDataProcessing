@@ -1,0 +1,13 @@
+---
+title: "sample data"
+format: html
+---
+
+```{r}
+
+library(tidyverse)
+
+get_file_names<-list.files('data/my_data')
+
+```
+
