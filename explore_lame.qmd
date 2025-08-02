@@ -1,5 +1,5 @@
 ---
-title: "Explore Events"
+title: "Sample Lameness Report"
 editor: source
 format: 
  html:
@@ -314,7 +314,7 @@ risk <- lesion_table |>
 
 ```
 
-# Summary table of this lesion incidence 
+# Table of lesion incidence 
 
 ```{r}
 
@@ -455,7 +455,7 @@ les_graph <- df %>%
 }
 ```
 
-# Total Lesion Distribution
+# Graphical Lesion Distribution
 
 ```{r}
 #| label: fig_any
@@ -492,7 +492,7 @@ graph_overall
 
 ```
 
-# Lesion Distribution by Lactation Group
+# Graphical Lesion Distribution by Lactation Group
 
 ```{r}
 #| fig-cap: "**More repeats in older cows**"
