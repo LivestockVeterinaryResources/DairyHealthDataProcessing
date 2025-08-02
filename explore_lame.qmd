@@ -21,8 +21,12 @@ library(gt)
 
 source('functions/DT_base.R') #functions to parse remarks and protocols
 
+animals <-read_parquet('data/intermediate_files/animals.parquet') |> 
+   select(id_animal, date_left)
+
 events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet') |> 
-   filter(event %in% c("LAME", "FOOTRIM"))
+   filter(event %in% c("LAME", "FOOTRIM")) |> 
+  left_join(animals)
 
 pull_date <- max(events_formatted$date_event)
 farm_name <- unique(events_formatted$location_event)
@@ -70,16 +74,10 @@ summarize_events <- summarize_events %>%
         )
 ```
 
-# Table of events
+
 
 ```{r}
-fxn_DT_base(summarize_events)
-```
-
-
-# process Data
-
-```{r}
+#| label: process_data
 
 # assign lesion
 
@@ -92,44 +90,46 @@ all_lesions <- c("dd", "footrot", 'wld', "sole_ulcer","injury",
 
 # create variables
 lame_events <- events_formatted |> 
+  mutate(farm = farm_name) |> 
   # create lesion vars
   fxn_code_lesions(protocol_var = protocols,
                    remark_var = remark) |> 
     #select(-c(notes, remark_disease, diagnosis)) |> 
   lazy_dt() |> 
   # delete footrim if lame/footrim on same day
-  group_by(location_event, id_animal, date_event) |>
+  group_by(farm, id_animal, date_event) |>
   slice_min(trimonly) |> 
   ungroup() |> 
   as_tibble()
 
 # data set to summarize
 lame_events_sum <- lame_events |> 
-  group_by(location_event, id_animal, date_event) |>
+  group_by(farm, id_animal, date_event) |>
   summarise(across(.cols = all_of(all_lesions), max)
             )|> 
   ungroup() 
 
 lame_events <- lame_events |> 
   select(-c(all_of(all_lesions))) |> 
-  distinct(location_event, id_animal, date_event, .keep_all = TRUE) |> 
+  distinct(farm, id_animal, date_event, .keep_all = TRUE) |> 
   left_join(lame_events_sum, 
-            by = join_by(location_event, id_animal, date_event)) |> 
+            by = join_by(farm, id_animal, date_event)) |> 
   mutate(floordate_year = floor_date(date_event, unit = 'year'))
 
 rm(lame_events_sum)
 
 
 ```
-# counting lifetime lamneness events
-With most disease whether it is the first or 2nd event matters. The code below separates that out for the newly created diseases and also create some date and duration variables we will use later
+
 
 
 ```{r}
 
+# counting lifetime lamneness events
+# With most disease whether it is the first or 2nd event matters. The code below separates that out for the newly created diseases and also create some date and duration variables we will use later
+
 # count trims
 lame_events_test <- lame_events |> 
-  rename(farm = location_event) |> 
 group_by(farm, id_animal) %>% 
   # calculate times trimmed in data set
   mutate(times_trimmed = dense_rank(date_event)) %>% 
@@ -212,13 +212,14 @@ lame_events2 <- lesion_counts %>%
   ungroup()
 
 ```
-# count events
 
-To then count all occurences diagnoses/events
   
 ```{r}
 
 # this counts overall lesions 
+# count events
+# 
+# To then count all occurences diagnoses/events
 
 last_year_floor <- floor_date(pull_date,"year")
 
@@ -243,15 +244,16 @@ lame_sum_all <- lame_events2 |>
                names_to = "lesion_type",
                values_to = "count_all")
 
-fxn_DT_base(head(lame_sum_all))
 
 ```
 
-# count incident events
 
-To then count first lesion occurrences.  Bases on 1st classification of any lesion in a cow's life. Could do by 1st for each lesion but harder to attribute cause to RF if skin/corium is damaged by lesion or compensation. For example if a cow gets DD and then an ulcer is the ulcer due to excessive standing time due to management or due to shifting weight to other leg due DD?
   
 ```{r}
+
+# count incident events
+
+# To then count first lesion occurrences.  Bases on 1st classification of any lesion in a cow's life. Could do by 1st for each lesion but harder to attribute cause to RF if skin/corium is damaged by lesion or compensation. For example if a cow gets DD and then an ulcer is the ulcer due to excessive standing time due to management or due to shifting weight to other leg due DD?
 
 # this counts first lesions 
 
@@ -277,13 +279,12 @@ lame_sum_first <- lame_events2 |>
                names_to = "lesion_type",
                values_to = "count_1st")
 
-fxn_DT_base(head(lame_sum_first))
-
 ```
 
-# merge sum tables
 
 ```{r}
+
+# merge sum tables
 
 lesion_table <- lame_sum_all |> 
   left_join(lame_sum_first, 
@@ -292,28 +293,28 @@ lesion_table <- lame_sum_all |>
 ```
 
 
-# merge with denominators
 
-To turn this into a lacational risk and account for # cows we need to merge this with the denominators we calculated earlier
 
 ```{r}
 
+# merge with denominators
 
+# To turn this into a lacational risk and account for # cows we need to merge this with the denominators we calculated earlier
 risk <- lesion_table |> 
     # filter out just 2024
   filter(floordate_year == last_year_floor & lact_group_5 != "Heifer") |> 
   left_join(herd_deno, by = join_by(farm, lact_group_5 == 'Lactation Group')) |> 
   mutate(risk_first = round(count_1st/count_lactations*100,1),
          risk_all = round(count_all/count_lactations * 100, 1),
+         risk_first = if_else(is.na(risk_first), 0, risk_first),
+         risk_all = if_else(is.na(risk_all), 0, risk_all)
          ) |> 
   select(-c(floordate_year))
-
-fxn_DT_base(head(risk))
 
 
 ```
 
-# create a GT table of this data for the whole herd 
+# Summary table of this lesion incidence 
 
 ```{r}
 
@@ -328,14 +329,14 @@ lesion_labels <- c(
   inf = "Infectious",
   noninf = "Non-Infectious",
   toe = "Any Toe Lesion",
-  toe_ulcer = "Toe Ulcer",
   thin = "Thin Sole",
-  cork = "Corkscrew"
+  toe_ulcer = "Toe Ulcer",
+  hemorrhage = "Hemorrhage"
 )
 
 risk_gt <- risk |> 
   filter(lact_group_5 == "LACT > 0") |> 
-  filter(risk_first >0 & risk_all>0) |> 
+  filter(risk_all>0) |> 
   select(farm, lesion_type, risk_first, risk_all) |> 
   arrange(desc(risk_first)) |> 
   mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels)) |> 
@@ -363,9 +364,10 @@ risk_gt
 
 ```
 
-# code for graph (a dynamic function)
+
 
 ```{r}
+# code for graph (a dynamic function)
 
 region_les_graph <- function(.data, 
                              facet_col = farm,
@@ -457,7 +459,7 @@ les_graph <- df %>%
 
 ```{r}
 #| label: fig_any
-#| fig-cap: "**Most lesions don't seem to repeat**"
+#| fig-cap: "**A lot of repeat lesions**"
 #| fig-cap-location: top
 
 
@@ -467,6 +469,7 @@ lesion_labels <- c(
   lesion = "Any Lesion",
   dd = "Digital Dermatitis",
   sole_ulcer = "Sole Ulcer",
+  hemorrhage = "Hemorrhage",
   wld = "White Line",
   other = "Other",
   footrot = "Footrot",
@@ -503,3 +506,116 @@ graph_lact <- risk |>
 graph_lact
 
 ```
+
+```{r}
+# set up for culling
+# rough code needs to be improved
+
+lame_cull <- lame_events2 |> 
+  # for development 
+  # select(site_id, primary_tag, date_trim, trimonly, date_cull) |> 
+  # using dtplyr for speed but transfers var labels to new variables
+  lazy_dt() |> 
+  # deal with culling
+  mutate(
+    date_trim = date_event,
+    # create culling variables
+    culled_ever = if_else(is.na(date_left), 0, 1),
+    days_to_cull = date_left - date_trim,
+    # temp censor date need to adjust
+    date_censor = ymd(pull_date) 
+  ) |> 
+  arrange(farm, id_animal, date_trim) |> 
+  group_by(farm, id_animal) |> 
+  # id prev trim date and time
+  mutate(date_prev_trim = lag(date_trim, n = 1),
+         days_from_prev_trim = date_trim - date_prev_trim,
+         days_to_next_trim = lead(days_from_prev_trim, n =1),
+         type_prev_trim = lag(trimonly, n = 1),
+         type_next_trim = lead(trimonly, n = 1),
+         # calc for lame cows time from last trim if last was a trim
+         ## don't think need one below as can just use days from previous trim
+         # days_from_trim = if_else(trimonly == 0 & type_prev_trim == 1,
+         #                        date_trim - date_prev_trim, NA),
+         ## don't need first one as only applies to trimonly to lame 
+         # days_to_next_lame = lead(days_from_trim, n = 1),
+         days_to_next_lame = if_else(type_next_trim == 0, 
+                                          days_to_next_trim, NA)
+         ) |> 
+  ungroup() |> 
+  # set days to censor when trimmed again for time_to_event graphs
+  # cows culled and not trimmed again
+  mutate(
+    days_to_censor_trim = case_when(is.na(days_to_next_trim) & culled_ever == 1 ~
+                                     days_to_cull,
+                                    # cows not culled or trimmed
+                                    is.na(days_to_next_trim) & culled_ever == 0 ~
+                                      date_censor - date_trim,
+                                    # cows with next trimdate
+                                    !is.na(days_to_next_trim) ~ 
+                                      days_to_next_trim,
+                                    .default =  as.difftime(NA, unit = "days")
+                                    ),
+    days_to_censor_cull = case_when(culled_ever == 1 ~
+                                     days_to_cull,
+                                    # cows not culled
+                                    culled_ever == 0 ~
+                                      date_censor - date_trim,
+                                    .default =  as.difftime(NA, unit = "days")
+                                    ),
+         next_trim_lame = if_else(is.na(days_to_next_lame),0,1),
+    across(starts_with("days"), as.numeric)
+    ) |> 
+  group_by(farm, id_animal) |> 
+  mutate(culled_last_trim = 
+           if_else(culled_ever == 1 & 
+                     days_to_censor_trim != days_to_censor_cull, 0, 
+                   culled_ever)
+         )|>
+  ungroup() |> 
+  as_tibble()
+
+```
+
+# Time to cull after lesion diagnosis for Non infectious lesions
+
+```{r}
+
+source("functions/fxn_time_to_cull.R")
+
+library(survival)
+library(survminer)
+
+life_colours <- c('Never any lesion' = "#440154ff" ,
+                  'Once' = "#3b528bff",
+                  'Twice' = "#21908cff",
+                  '3 or more times' = "#fde725ff"
+                  )
+
+
+years <- "2025"
+
+time_to_cull_non_inf <- lame_cull |> 
+  mutate(year = year(floordate_year)) |> 
+  survival_data(years = "2024", 
+                disease = noninf, life_x_dz = life_times_noninf)
+  
+km <- time_to_cull_non_inf |> 
+  km_fit(facet_col = farm, facet_row = year)
+
+km
+```
+
+## Predicted culling risk at specific times for non-infectious lesions
+
+```{r}
+
+library(gtsummary)
+library(flextable)
+
+table <- time_to_cull_non_inf |> 
+  km_fit_table()
+
+table
+```
+
