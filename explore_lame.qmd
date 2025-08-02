@@ -44,7 +44,8 @@ summarize_events<-events_formatted |>
 
 ```
 
-# Check out what Lesion are being reported
+## Check out what Lesion are being reported
+
 ```{r}
 #| fig-height: 8
 # count y vars
@@ -73,8 +74,6 @@ summarize_events <- summarize_events %>%
         # axis.text.y = element_text(size = 6)
         )
 ```
-
-
 
 ```{r}
 #| label: process_data
@@ -120,8 +119,6 @@ rm(lame_events_sum)
 
 
 ```
-
-
 
 ```{r}
 
@@ -213,7 +210,6 @@ lame_events2 <- lesion_counts %>%
 
 ```
 
-  
 ```{r}
 
 # this counts overall lesions 
@@ -247,8 +243,6 @@ lame_sum_all <- lame_events2 |>
 
 ```
 
-
-  
 ```{r}
 
 # count incident events
@@ -281,7 +275,6 @@ lame_sum_first <- lame_events2 |>
 
 ```
 
-
 ```{r}
 
 # merge sum tables
@@ -291,9 +284,6 @@ lesion_table <- lame_sum_all |>
             by = join_by(farm, floordate_year, lact_group_5, lesion_type))
 
 ```
-
-
-
 
 ```{r}
 
@@ -314,7 +304,7 @@ risk <- lesion_table |>
 
 ```
 
-# Table of lesion incidence 
+## Table of lesion incidence
 
 ```{r}
 
@@ -363,8 +353,6 @@ risk_gt <- risk |>
 risk_gt
 
 ```
-
-
 
 ```{r}
 # code for graph (a dynamic function)
@@ -455,7 +443,7 @@ les_graph <- df %>%
 }
 ```
 
-# Graphical Lesion Distribution
+## Graphical Lesion Distribution
 
 ```{r}
 #| label: fig_any
@@ -492,7 +480,7 @@ graph_overall
 
 ```
 
-# Graphical Lesion Distribution by Lactation Group
+## Graphical Lesion Distribution by Lactation Group
 
 ```{r}
 #| fig-cap: "**More repeats in older cows**"
@@ -577,7 +565,7 @@ lame_cull <- lame_events2 |>
 
 ```
 
-# Time to cull after lesion diagnosis for Non infectious lesions
+## Time to cull after lesion diagnosis for Non infectious lesions
 
 ```{r}
 
@@ -606,7 +594,7 @@ km <- time_to_cull_non_inf |>
 km
 ```
 
-## Predicted culling risk at specific times for non-infectious lesions
+### Predicted culling risk at specific times for non-infectious lesions
 
 ```{r}
 
@@ -619,3 +607,10 @@ table <- time_to_cull_non_inf |>
 table
 ```
 
+## Other graphing options
+
+-   Time to repeat lesion
+
+-   Time to lameness after a routine trim for healthy cows
+
+-   Recheck compliance
