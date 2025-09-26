@@ -11,18 +11,17 @@ source('functions/fxn_parse_free_text.R') #functions to parse remarks and protoc
 source('functions/fxn_event_type.R') #c function to categorize events
 source('functions/fxn_location.R') #custom function to specify event location
 
-
-#set custom functions
-fxn_parse_remark<-fxn_parse_remark_default # parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom
-
-fxn_parse_protocols<-fxn_parse_protocols_default #parse_free_text options: fxn_parse_protocols_default, fxn_parse_protocols_custom
-
-fxn_assign_location_event<-fxn_assign_location_event_default #location_event options: fxn_assign_location_event_default, fxn_assign_location_event_custom
-
-fxn_event_type<-fxn_assign_event_type_default #event_type options: fxn_assign_event_type_default, fxn_assign_event_type_custom
-
-fxn_detect_location_lesion<-fxn_detect_location_lesion_default #detect_location_lesion options: fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
-
+# #set custom functions - moved this to step0
+# fxn_parse_remark<-fxn_parse_remark_default # parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom
+# 
+# fxn_parse_protocols<-fxn_parse_protocols_default #parse_free_text options: fxn_parse_protocols_default, fxn_parse_protocols_custom
+# 
+# fxn_assign_location_event<-fxn_assign_location_event_parnell_ANON #location_event options: fxn_assign_location_event_default, fxn_assign_location_event_custom
+# 
+# fxn_event_type<-fxn_assign_event_type_default #event_type options: fxn_assign_event_type_default, fxn_assign_event_type_custom
+# 
+# fxn_detect_location_lesion<-fxn_detect_location_lesion_default #detect_location_lesion options: fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
+# 
 
 #read in files-----------------
 
@@ -39,16 +38,17 @@ for (i in seq_along(list_files)){
            source_file_path = paste0('data/event_files/', list_files[i])
     ) 
   
+  #check colnames ------------------
+  event_columns<-colnames(df)
+  source('functions/fxn_fix_item_names.R') #standardize column names for known variation in column names
+  
   events<-bind_rows(events, df)
 }
 
-#check colnames ------------------
-event_columns<-colnames(events)
 
-#fix column names----------------------
-source('functions/fxn_fix_item_names.R')
 
 #add a stop function here if all expected columns do not exist
+
 
 #initial cleanup ---------------------------
 events2 <- events|>
@@ -89,7 +89,7 @@ events2 <- events|>
   ##add standard event types-----------------
   fxn_assign_event_type_default()|>
   ##add event location --------------
-  fxn_assign_location_event_default()|>
+  fxn_assign_location_event()|>
   ##parse remarks and protocols-----------------
   fxn_parse_remark()|>
   fxn_parse_protocols()|>

@@ -8,7 +8,7 @@ fxn_assign_location_event_default <- function(df){
 }
 
 
-fxn_assign_location_event_custom <- function(df){
+fxn_assign_location_event_template <- function(df){
   df%>%
     mutate(pen_num = parse_number(PEN))%>%
     mutate(
@@ -21,6 +21,15 @@ fxn_assign_location_event_custom <- function(df){
       )
     )
     
+}
+
+fxn_assign_location_event_parnell_ANON <- function(df){
+  
+  df%>%
+    mutate(
+      location_event = str_sub(source_file_path, 17, 53)
+    )
+  
 }
 
 fxn_detect_location_lesion_default<-function(df){
