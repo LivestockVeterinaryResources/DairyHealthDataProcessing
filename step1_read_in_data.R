@@ -9,7 +9,6 @@ library(arrow)
 #read in functions -------------------
 source('functions/fxn_parse_free_text.R') #functions to parse remarks and protocols
 source('functions/fxn_event_type.R') #c function to categorize events
-source('functions/fxn_location.R') #custom function to specify event location
 
 
 #set custom functions
@@ -89,7 +88,7 @@ events2 <- events|>
   ##add standard event types-----------------
   fxn_assign_event_type_default()|>
   ##add event location --------------
-  fxn_assign_location_event_default()|>
+  fxn_assign_location_event()|>
   ##parse remarks and protocols-----------------
   fxn_parse_remark()|>
   fxn_parse_protocols()|>
