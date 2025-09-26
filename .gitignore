@@ -108,3 +108,21 @@ step3_create_denominators_by_lact_group_files/
 step3_create_denominators_lact_dim_season_files/
 step3_create_denominators_lact_dim_season_ns_experiment_files/
 tool_event_details_files/
+
+# Quarto render outputs
+*.html
+*.pdf
+*.docx
+*.odt
+*.epub
+
+
+# Quarto intermediate and cache directories
+*_files/
+*_cache/
+
+
+# Quarto preview server temp files
+.quarto/
+
+
