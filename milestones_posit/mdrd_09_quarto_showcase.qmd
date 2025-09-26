@@ -1,0 +1,165 @@
+---
+title: Showcase results
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load your packages here
+
+```
+
+## Showcasing your results
+
+In this milestone, you'll create two "publication ready" artifacts of your analysis:
+
+1. A formatted table with the gt package
+2. A polished plot with ggplot2
+
+
+## Recreation
+
+### Part 1 - Import
+
+As always, let's begin by importing our data. In the code chunk below, import both of our data sets from the `data/` directory:
+
+1. `mdrd.csv`, save it as `mdrd`
+2. `supp.csv`, save it as `supp`
+
+
+```{r}
+#| label: recreation-import
+# DO NOT INSTALL TIDYVERSE PACKAGES
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+```
+
+Next, run the chunk below to create a series of new tables derived from `mdrd`. Notice that this table only includes patient who did *not* drop out of the study.
+
+
+```{r unnamed-chunk-5}
+mdrd_tidy <- 
+  mdrd %>%
+  filter(dropout == 0) %>% 
+  pivot_longer(
+    cols = starts_with("diet"),
+    names_to = "treatment",
+    values_to = "value"
+  ) %>%
+  filter(value == 1) %>%
+  separate(
+    col = treatment,
+    into = c("diet", "bp"),
+    sep = "_"
+  ) %>%
+  mutate(
+    diet = str_remove(diet, "^diet"),
+    bp = str_remove(bp, "bp$")
+  ) %>%
+  mutate(
+    diet = if_else(diet == "k", "very low-protein", "low-protein"),
+    bp = if_else(bp == "norm", "normal", bp)
+  ) %>%
+  group_by(diet, bp, ptid) %>%
+  summarize(
+    gfr_slope = (last(gfr, order_by = months) - first(gfr, order_by = months)) / max(months),
+  ) %>%
+  filter(!is.nan(gfr_slope)) %>%
+  ungroup() 
+```
+
+This table shows the mean change in GFR over time and treatment group information for each patient who did not drop out of the study.
+
+
+### Part 2 - Make a polished table
+
+Run the code chunk below to generate a summary table, `mdrd_summary`.
+
+
+```{r}
+#| label: summarize
+mdrd_summary <- 
+  mdrd_tidy %>%
+  group_by(diet, bp) %>%
+  summarize(
+    n_patients = n(),
+    mean_gfr_slope = mean(gfr_slope)
+  ) %>% 
+  ungroup()
+
+mdrd_summary
+```
+
+Run the code chunk below to see a formatted version of this table. Your task is to use `mdrd_summary` to recreate this table.
+
+
+```{r}
+#| label: recreate-this-1
+#| message: false
+knitr::include_graphics("images/milestone09a.png")
+```
+
+Use what you've learned about the gt package in the chunk below to re-create the table above. Hint: Visit https://gt.rstudio.com/ to look up specific details of the gt package.
+
+
+```{r}
+#| label: recreation-table
+# The gt package has been installed, but not loaded.
+
+```
+
+### Part 3 - Make a polished plot
+
+Run the code chunk below to see a plot. Your task is to recreate this plot.
+
+
+```{r}
+#| label: recreate-this-2
+#| message: false
+knitr::include_graphics("images/milestone09b.png")
+```
+
+Use `mdrd_tidy` to make your plot in the code chunk below. Pay particular attention to the stylistic details of the plot, including colors and labels.
+
+_Hints:_
+
+* the color palette is "Set2" from the `brewer` scales.
+
+* the plot has a `theme_light()` applied
+
+* the plot legend has been removed
+
+
+```{r}
+#| label: recreation-plot
+
+```
+
+## Extension
+
+Use the code chunk(s) below to extend your work. Try something that you can learn from experimentation, a help page or a package website.  Consider:
+
+1. Making a different table with a different layout, colored cells, and a footnote
+2. Further customizing the color, theme and/or annotations of your plot
+3. Exploring a new data set (one you are allowed to present to your groupmates)
+4. Anything else
+
+Keep in mind that you may want to avoid these topics, as we will study them next week:
+
+- How to write parameterized reports that you can reuse with new input
+- How to make dashboards
+- How to make slide shows
+- How to share your data science artifacts on Posit Connect
+
+
+
+```{r}
+#| label: extension
+
+```
+
