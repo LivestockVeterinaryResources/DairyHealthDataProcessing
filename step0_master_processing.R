@@ -15,24 +15,23 @@ pacman::p_load(
 
 start<-now()
 
-### Step 1 Read in data----------
+#Set up ------------------
 
-###Aquire data from Parnell Database (only works for people who have access to this)#*** you must modify the get_event_data_from_mySYNCH.R function to specify which data to pull***
-#source('C:/Code/ParnellFunctions/get_event_data_from_mySYNCH.R')
-
-
-
-
-# modify these are required -----
-#set defaults
+event_data_exists<-TRUE
+milk_data_exists<-TRUE
 
 set_farm_name<-'demo'
 
+
+if (event_data_exists==TRUE){
 #***Modify This Step to Include Correctly Parse Location and Other custom functions***
 source('step1_read_in_data.R')
+}
 
 #*** If downloaded milk data
+if (milk_data_exists==TRUE){
 source('step1a_read_in_production_data.R')
+}
 
 ### Step 2 Intermediate Files----------------------
 #***Modify This Step to Include the Events/Disease of Interest***
@@ -50,7 +49,12 @@ set_outcome_gap_lactation<- 1
 #* #***Modify this *** to be the list of events you want to explore
 list_selected_events<-c('BRED') 
 
+#create intermediate files
 source('step2_create_intermediate_files.R')
+
+# event check reports
+quarto::quarto_render('explore_event_types.qmd') 
+quarto::quarto_render('data_dictionary.qmd')
 
 ### Step3 Create Denominators ---------------------
 quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
@@ -60,9 +64,7 @@ quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
 #add basic report templates
 #quarto::quarto_render('sara_Report_Template.qmd')
 
-# event check reports
-quarto::quarto_render('explore_event_types.qmd') 
-quarto::quarto_render('data_dictionary.qmd')
+
 
 # disease report (under development)
 # quarto::quarto_render('step3_report_disease_template.qmd') 
