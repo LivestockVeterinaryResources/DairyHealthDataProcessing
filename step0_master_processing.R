@@ -70,3 +70,22 @@ quarto::quarto_render('data_dictionary.qmd')
 end<-now()
 
 processingtime<-end-start
+
+
+
+events <-read_csv(original_file)
+
+selected_event<-'MAST'
+
+
+
+events_dz1<-events%>%filter(Event %in% selected_event)%>%
+  arrange(cowid, date)%>%
+  group_by(cowid)%>%
+  mutate(pull_count = 1:n())%>%
+  ungroup()%>%
+  filter(pull_count ==1)%>%
+  mutate(!!sym(selected_event) = Date))
+
+animals_dz<-animals%>%
+  left_join()

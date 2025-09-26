@@ -12,7 +12,7 @@ fxn_assign_disease_lameness<-function(df){
   df%>%
     mutate(disease = case_when(
       str_detect(remark, 'FOOTROT')~'footrot',
-      str-detect(remark, 'WL|.WL|WL.|.WL.')~'white line',
+      str_detect(remark, 'WL|.WL|WL.|.WL.')~'white line',
       TRUE ~ 'OTHER'
     ))
 }
