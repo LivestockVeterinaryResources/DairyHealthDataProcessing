@@ -22,12 +22,22 @@ source('functions/DT_base.R') #functions to parse remarks and protocols
 
 events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet')
 
+# summarize_events<-events_formatted |> 
+#   group_by(event_type,  event) |> 
+#   summarize(count_rows=sum(n()))|>
+#   ungroup()%>%
+#   mutate(event_type = factor(event_type), 
+#          Event = factor(event))
+
 summarize_events<-events_formatted |> 
-  group_by(event_type, event) |> 
+  group_by(event_type, location_event, event) |> 
   summarize(count_rows=sum(n()))|>
   ungroup()%>%
   mutate(event_type = factor(event_type), 
          Event = factor(event))
+
+
+
 
 ```
 
@@ -42,6 +52,12 @@ facet_order <- summarize_events %>%
   arrange(desc(n_y)) %>%  # Order by most y categories
   pull(event_type)
 
+
+
+```
+
+
+```{r}
 # order events
 summarize_events <- summarize_events %>%
   mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
@@ -58,12 +74,59 @@ summarize_events <- summarize_events %>%
   theme(legend.position = "none",
         # axis.text.y = element_text(size = 6)
         )
+  
+  
+```
+
+
+```{r}
+get_locations<-sort(unique(events_formatted$location_event))
+```
+
+
+
+```{r}
+#i=1
+for (i in seq_along(get_locations)){
+  
+  plot_data<-summarize_events%>%
+    filter(location_event %in% get_locations[[i]])
+  
+  
+  facet_order_herd <- plot_data%>%
+  group_by(event_type) %>%
+  summarise(n_y = n_distinct(event)) %>%
+  arrange(desc(n_y)) %>%  # Order by most y categories
+  pull(event_type)
+  
+  
+plot_data2 <- plot_data %>%
+  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
+
+  p<-ggplot(plot_data2)+
+  geom_bar(aes(x = event,
+               y = count_rows, fill = event_type), stat = "identity")+
+  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free')+
+  coord_flip()+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "",
+       y = "Row Count", 
+       title = paste0(get_locations[[i]]))+
+  theme(legend.position = "none",
+        # axis.text.y = element_text(size = 6)
+        )
+  
+  print(p)
+  
+}
+
 ```
 
 # Table of events
 
 ```{r}
-fxn_DT_base(summarize_events)
+fxn_DT_base(summarize_events%>%mutate(location_event = factor(location_event)))
 ```
 
 

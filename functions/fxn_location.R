@@ -27,7 +27,7 @@ fxn_assign_location_event_parnell_ANON <- function(df){
   
   df%>%
     mutate(
-      location_event = str_sub(source_file_path, 17, 53)
+      location_event = paste0('Herd ', str_sub(source_file_path, 18, 22))
     )
   
 }
