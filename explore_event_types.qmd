@@ -22,14 +22,14 @@ source('functions/DT_base.R') #functions to parse remarks and protocols
 
 events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet')
 
-# summarize_events<-events_formatted |> 
-#   group_by(event_type,  event) |> 
-#   summarize(count_rows=sum(n()))|>
-#   ungroup()%>%
-#   mutate(event_type = factor(event_type), 
-#          Event = factor(event))
+summarize_events<-events_formatted |>
+  group_by(event_type,  event) |>
+  summarize(count_rows=sum(n()))|>
+  ungroup()%>%
+  mutate(event_type = factor(event_type),
+         Event = factor(event))
 
-summarize_events<-events_formatted |> 
+summarize_events_by_location<-events_formatted |> 
   group_by(event_type, location_event, event) |> 
   summarize(count_rows=sum(n()))|>
   ungroup()%>%
@@ -41,14 +41,18 @@ summarize_events<-events_formatted |>
 
 ```
 
-# Summary Graph
+## All events accross all herds
+
+Events used less than 500 times are not reported here.
+
+
 ```{r}
 #| fig-height: 8
 # count y vars
 
 facet_order <- summarize_events %>%
-  group_by(event_type) %>%
-  summarise(n_y = n_distinct(event)) %>%
+  group_by(event_type, event) %>%
+  summarise(n_y = sum(n())) %>%
   arrange(desc(n_y)) %>%  # Order by most y categories
   pull(event_type)
 
@@ -56,16 +60,23 @@ facet_order <- summarize_events %>%
 
 ```
 
+### Heath Events
+
 
 ```{r}
 # order events
-summarize_events <- summarize_events %>%
+summarize_events2 <- summarize_events %>%
+  filter(event_type %in% 'health')%>%
+  group_by(event_location, event)
   mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
 
-  ggplot(summarize_events)+
+
+ggplot(summarize_events2)+
   geom_bar(aes(x = event,
-               y = count_rows, fill = event_type), stat = "identity")+
-  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free')+
+               y = count_rows, fill = location_event), stat = "identity")+
+    facet_wrap(location_event ~., scales = 'free', nrow = 2)+
+
+ # facet_wrap(factor(location_event, levels = facet_order) ~., scales = 'free', nrow = 2)+
   coord_flip()+
   scale_fill_viridis_d()+
   theme_minimal()+
@@ -79,10 +90,70 @@ summarize_events <- summarize_events %>%
 ```
 
 
+### Other Events
+
+
+```{r}
+# order events
+summarize_events2 <- summarize_events %>%
+  filter(!(event_type %in% c('unknown', 'repro', 'health')))%>%
+  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
+
+
+ggplot(summarize_events2)+
+  geom_bar(aes(x = event,
+               y = count_rows, fill = location_event), stat = "identity")+
+  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
+  coord_flip()+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "",
+       y = "Row Count")+
+  theme(legend.position = "none",
+        # axis.text.y = element_text(size = 6)
+        )
+  
+  
+```
+
+### Unclassified Events
+
+
+```{r}
+# order events
+summarize_events2 <- summarize_events %>%
+  filter(event_type %in% 'unknown')%>%
+  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
+
+
+ggplot(summarize_events2)+
+  geom_bar(aes(x = event,
+               y = count_rows, fill = location_event), stat = "identity")+
+  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
+  coord_flip()+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "",
+       y = "Row Count")+
+  theme(legend.position = "none",
+        # axis.text.y = element_text(size = 6)
+        )
+  
+  
+```
+
+## Events by Location
+
+
 ```{r}
 get_locations<-sort(unique(events_formatted$location_event))
 ```
 
+Locations reported: `r paste0(get_locations)`
+
+
+<br>
+### Events for each Herd
 
 
 ```{r}
@@ -106,7 +177,7 @@ plot_data2 <- plot_data %>%
   p<-ggplot(plot_data2)+
   geom_bar(aes(x = event,
                y = count_rows, fill = event_type), stat = "identity")+
-  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free')+
+  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
   coord_flip()+
   scale_fill_viridis_d()+
   theme_minimal()+
@@ -123,7 +194,7 @@ plot_data2 <- plot_data %>%
 
 ```
 
-# Table of events
+# Table of events by Herd
 
 ```{r}
 fxn_DT_base(summarize_events%>%mutate(location_event = factor(location_event)))

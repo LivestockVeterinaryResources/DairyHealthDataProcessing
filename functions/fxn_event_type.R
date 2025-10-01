@@ -42,9 +42,10 @@ fxn_assign_event_type_default <- function(df) {
     (str_detect(event, 'FOOT|.FOOT|FOOT.|.FOOT.|FEET|.FEET|FEET.|.FEET.'))~'health',
     (str_detect(event, 'DIG.|DIAR.')) ~ "health",
     (str_detect(event, 'MAST|.MAST|MAST.|.MAST.')) ~ "health",
-
+    (str_detect(event, 'TRIM|.TRIM|TRIM.|.TRIM.')) ~ "health",
     
-    TRUE ~ "Unknown")
+    
+    TRUE ~ "unknown")
     )
 }
 

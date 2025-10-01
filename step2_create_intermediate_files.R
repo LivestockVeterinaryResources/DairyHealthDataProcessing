@@ -7,19 +7,8 @@ library(dtplyr)
 
 
 source('functions/fxn_lag_master.R')
-source('functions/fxn_locate_lesion.R')
-
-source('functions/fxn_disease.R')
-source('functions/fxn_treatment.R')
-
 source('functions/fxn_parse_free_text.R') #functions to parse remarks and protocols
-source('functions/fxn_location.R') #custom function to specify event location
 
-#***Match disease function to selected events***
-## make a function to detect what to pick?
-fxn_assign_disease<-fxn_assign_disease_mastitis 
-#***Match treatment function to selected events***
-fxn_assign_treatment<-fxn_assign_treatment_template 
 
 
 #read in file-----------------
@@ -29,6 +18,7 @@ events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet
   mutate(data_pull_date_min = min(date_event, na.rm = TRUE))|>
   mutate(data_pull_date_max = max(date_event, na.rm = TRUE))|>
   rowid_to_column()
+
 
 
 
@@ -118,7 +108,17 @@ freshs<-events_formatted|>
   distinct()|>
   mutate(qc_date_fresh_diff = as.numeric(date_fresh_max-date_fresh))
 
-
+fresh_date_next<-read_parquet('data/intermediate_files/events_all_columns.parquet')%>%
+  filter(event %in% 'FRESH')%>%
+  group_by(id_animal, lact_number)%>%
+  summarize(date_fresh = min(date_event))%>%
+  ungroup()%>%
+  arrange(id_animal, date_fresh)%>%
+  group_by(id_animal)%>%
+  mutate(date_next_fresh = lead(date_fresh))%>%
+  ungroup()%>%
+  select(id_animal, lact_number, date_fresh, date_next_fresh)%>%
+  distinct()
 
 ##drys - each row is animal/lacatation----------------
 drys<-events_formatted|>
@@ -135,6 +135,7 @@ master_animal_lactations<-animal_lactations|>
   left_join(freshs)|>
   left_join(drys)|>
   left_join(archives)|>
+  left_join(fresh_date_next)%>%
   mutate(date_dim30 = date_fresh+30, 
          date_dim60 = date_fresh+60, 
          date_dim90 = date_fresh+90, 
@@ -145,8 +146,6 @@ master_animal_lactations<-animal_lactations|>
          dim_at_archive = as.numeric(date_archive-date_fresh))
 
 write_parquet(master_animal_lactations, 'data/intermediate_files/animal_lactations.parquet')
-
-
 
 
 #select events----------------------------

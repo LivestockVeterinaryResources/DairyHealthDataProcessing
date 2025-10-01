@@ -55,8 +55,9 @@ events2 <- events|>
   lazy_dt() |> 
   select(-starts_with('...')) |> #get rid of extra columns created by odd parsing in the original csv file, there is a better fix to the parsing issue, someday we should improve this
   ##create unique cow id--------------------------------------- 
-  mutate(id_animal = paste0(ID, '_', BDAT), 
-       id_animal_lact = paste0(ID, '_', BDAT, '_', LACT), 
+  fxn_assign_id_animal()%>%
+  mutate(#id_animal = paste0(ID, '_', BDAT), 
+         #id_animal_lact = paste0(ID, '_', BDAT, '_', LACT), 
        breed = CBRD)|>
   ##format dates--------------------------------------- 
   mutate(date_event = lubridate::mdy(Date), 
