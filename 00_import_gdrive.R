@@ -2,7 +2,7 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
   tidyverse,
   googlesheets4, # for importing from Google Drive
-  googledrive, # to link to your google drive
+  googledrive # to link to your google drive
 )
 
 
