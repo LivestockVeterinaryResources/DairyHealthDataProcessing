@@ -1,5 +1,5 @@
 ---
-title: "Explore Events"
+title: "Explore Events (not finalized)"
 editor: source
 format: 
  html:
@@ -22,72 +22,83 @@ source('functions/DT_base.R') #functions to parse remarks and protocols
 
 events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet')
 
-summarize_events<-events_formatted |>
-  group_by(event_type,  event) |>
-  summarize(count_rows=sum(n()))|>
-  ungroup()%>%
-  mutate(event_type = factor(event_type),
-         Event = factor(event))
 
 summarize_events_by_location<-events_formatted |> 
-  group_by(event_type, location_event, event) |> 
+  group_by(event_type, location_event,  event) |> 
   summarize(count_rows=sum(n()))|>
   ungroup()%>%
   mutate(event_type = factor(event_type), 
-         Event = factor(event))
+         event = factor(event))%>%
+  arrange(event_type, location_event, count_rows)%>%
+  rowid_to_column()%>%
+  rename(plot_order = rowid)
+
+trend_events_by_location<-events_formatted |> 
+  mutate(floordate_month = floor_date(date_event, unit = 'months'))%>%
+  group_by(event_type, location_event, floordate_month, event) |> 
+  summarize(count_rows=sum(n()))|>
+  ungroup()%>%
+  mutate(event_type = factor(event_type), 
+         event = factor(event))
 
 
 
 
 ```
 
-## All events accross all herds
 
-Events used less than 500 times are not reported here.
-
+### Trend Lactation Parameter Events
 
 ```{r}
-#| fig-height: 8
-# count y vars
-
-facet_order <- summarize_events %>%
-  group_by(event_type, event) %>%
-  summarise(n_y = sum(n())) %>%
-  arrange(desc(n_y)) %>%  # Order by most y categories
-  pull(event_type)
 
 
+ggplot(trend_events_by_location%>%
+         filter(event_type %in% "lact_parameter")%>%
+         filter(floordate_month>(floor_date((today()-1095), unit = 'months')))
+       )+
+  geom_point(aes(x = floordate_month,
+               y = count_rows, color = event))+
+    geom_smooth(aes(x = floordate_month,
+               y = count_rows, color = event, group = event), stat = "identity")+
 
-```
-
-### Heath Events
-
-
-```{r}
-# order events
-summarize_events2 <- summarize_events %>%
-  filter(event_type %in% 'health')%>%
-  group_by(event_location, event)
-  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
-
-
-ggplot(summarize_events2)+
-  geom_bar(aes(x = event,
-               y = count_rows, fill = location_event), stat = "identity")+
     facet_wrap(location_event ~., scales = 'free', nrow = 2)+
-
- # facet_wrap(factor(location_event, levels = facet_order) ~., scales = 'free', nrow = 2)+
-  coord_flip()+
   scale_fill_viridis_d()+
-  theme_minimal()+
-  labs(x = "",
-       y = "Row Count")+
-  theme(legend.position = "none",
-        # axis.text.y = element_text(size = 6)
-        )
-  
+  theme_minimal()
+
   
 ```
+
+### Event Relationships
+
+This graphic has count of FRESH events on the x axis, and a count of events causing an animal to no longer be in the milking string (died + sold + dry) on the y axis.
+
+```{r}
+
+trend_event_relationships<-trend_events_by_location%>%
+         filter(event_type %in% "lact_parameter")%>%
+         filter(floordate_month>(floor_date((today()-1095), unit = 'months')))%>%
+        pivot_wider(names_from = event, values_from = count_rows)%>%
+  mutate(LEFT = DIED+SOLD,
+         NotMilking = DIED+SOLD+DRY)
+
+ggplot(trend_event_relationships)+
+  geom_abline(yintercept = 1, slope = 1, linetype = 'dashed', color = 'grey')+
+  geom_point(aes(x = FRESH,
+               y = NotMilking, color = location_event), size = .2)+
+   geom_smooth(aes(x = FRESH,
+               y = NotMilking, color = location_event, fill = location_event),
+               alpha = .2, span = 1)+
+
+    #facet_wrap(location_event ~., scales = 'free', nrow = 2)+
+  scale_fill_viridis_d()+
+    scale_color_viridis_d()+
+  #theme_minimal()+
+  theme_bw()+
+  theme(aspect.ratio = 1)
+
+
+```
+
 
 
 ### Other Events
@@ -95,7 +106,7 @@ ggplot(summarize_events2)+
 
 ```{r}
 # order events
-summarize_events2 <- summarize_events %>%
+summarize_events2 <- summarize_events_by_location %>%
   filter(!(event_type %in% c('unknown', 'repro', 'health')))%>%
   mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
 
@@ -103,15 +114,17 @@ summarize_events2 <- summarize_events %>%
 ggplot(summarize_events2)+
   geom_bar(aes(x = event,
                y = count_rows, fill = location_event), stat = "identity")+
-  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
+    facet_wrap(event_type ~., scales = 'free', nrow = 2)+
+
+  # facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
   coord_flip()+
   scale_fill_viridis_d()+
-  theme_minimal()+
-  labs(x = "",
-       y = "Row Count")+
-  theme(legend.position = "none",
-        # axis.text.y = element_text(size = 6)
-        )
+  theme_minimal()#+
+  # labs(x = "",
+  #      y = "Row Count")+
+  # theme(legend.position = "none",
+  #       # axis.text.y = element_text(size = 6)
+  #       )
   
   
 ```
@@ -119,85 +132,39 @@ ggplot(summarize_events2)+
 ### Unclassified Events
 
 
+
 ```{r}
 # order events
-summarize_events2 <- summarize_events %>%
-  filter(event_type %in% 'unknown')%>%
-  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
+summarize_events2 <- summarize_events_by_location %>%
+  filter((event_type %in% c('unknown')))%>%
+  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) %>%
+  filter(count_rows>100)
 
 
 ggplot(summarize_events2)+
   geom_bar(aes(x = event,
                y = count_rows, fill = location_event), stat = "identity")+
-  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
+    facet_wrap(event_type ~., scales = 'free', nrow = 2)+
+
+  # facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
   coord_flip()+
   scale_fill_viridis_d()+
-  theme_minimal()+
-  labs(x = "",
-       y = "Row Count")+
-  theme(legend.position = "none",
-        # axis.text.y = element_text(size = 6)
-        )
+  theme_minimal()#+
+  # labs(x = "",
+  #      y = "Row Count")+
+  # theme(legend.position = "none",
+  #       # axis.text.y = element_text(size = 6)
+  #       )
   
   
 ```
 
-## Events by Location
-
-
-```{r}
-get_locations<-sort(unique(events_formatted$location_event))
-```
-
-Locations reported: `r paste0(get_locations)`
-
-
-<br>
-### Events for each Herd
-
-
-```{r}
-#i=1
-for (i in seq_along(get_locations)){
-  
-  plot_data<-summarize_events%>%
-    filter(location_event %in% get_locations[[i]])
-  
-  
-  facet_order_herd <- plot_data%>%
-  group_by(event_type) %>%
-  summarise(n_y = n_distinct(event)) %>%
-  arrange(desc(n_y)) %>%  # Order by most y categories
-  pull(event_type)
-  
-  
-plot_data2 <- plot_data %>%
-  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
-
-  p<-ggplot(plot_data2)+
-  geom_bar(aes(x = event,
-               y = count_rows, fill = event_type), stat = "identity")+
-  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
-  coord_flip()+
-  scale_fill_viridis_d()+
-  theme_minimal()+
-  labs(x = "",
-       y = "Row Count", 
-       title = paste0(get_locations[[i]]))+
-  theme(legend.position = "none",
-        # axis.text.y = element_text(size = 6)
-        )
-  
-  print(p)
-  
-}
-
-```
 
 # Table of events by Herd
 
 ```{r}
-fxn_DT_base(summarize_events%>%mutate(location_event = factor(location_event)))
+fxn_DT_base(summarize_events_by_location%>%
+              mutate(location_event = factor(location_event)))
 ```
 
 

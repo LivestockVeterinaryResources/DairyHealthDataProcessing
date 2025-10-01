@@ -8,7 +8,7 @@ fxn_assign_event_type_default <- function(df) {
     (event %in% c(
       "ABORT", "BRED", "BULLPEN", "GNRH", "HEAT", "LUT", "RECK", 'RECHK', 'RECHECK',
       "OK", "OPEN", "PREG", "PREV", "PROST", "PG", "DNB",
-      "CIDR"
+      "CIDR", "BLEDOFF", 'MISSHOT'
     
       )) ~ "repro",
     
@@ -23,7 +23,7 @@ fxn_assign_event_type_default <- function(df) {
       "RP", "JOINT",
       "SCOURS", "SEPTIC", "HARDWARE", "HRDWARE", "CULTURE", "FOOTTRIM", "TRIM",
       "TRIMONLY", "FOOTRIM",
-      "TEMP", "TREAT"
+      "TEMP", "TREAT", '3TEAT'
    
        )) ~ "health",
     
@@ -32,13 +32,15 @@ fxn_assign_event_type_default <- function(df) {
     (str_detect(event, 'METR|METR.')) ~ "health",
     
     
-    event %in% c("GOHOME", "MOVE", "TOCLOSE", "TOGROWR", "XID") ~ "management",
-    event %in% c("DIED", "FRESH", "SOLD", "DRY") ~ "lact_parameter",
-    event %in% c("INWEIGH", "MEASURE", "TP", 'TPROT', "WEIGHT", 'HT WT') ~ "measure",
+    event %in% c("GOHOME", "MOVE", "TOCLOSE", "CLOSEUP", "TOGROWR", "XID") ~ "management",
+    event %in% c("DIED", "FRESH", "SOLD", "DRY", "BIRTH") ~ "lact_parameter",
+    event %in% c("INWEIGH", "MEASURE", "TP", 'TPROT', "WEIGHT", 'HT WT', 'WT_HT') ~ "measure",
     
     
     (str_detect(event, 'VAC|.VAC|VAC.|.VAC.'))~'vac',
-    (str_detect(event, 'METRI|METR.'))~'Health',
+    (str_detect(event, 'METRI|METR.'))~'health',
+    (str_detect(event, 'FVER|.FVER|FVER.|.FVER'))~'health',
+    
     (str_detect(event, 'FOOT|.FOOT|FOOT.|.FOOT.|FEET|.FEET|FEET.|.FEET.'))~'health',
     (str_detect(event, 'DIG.|DIAR.')) ~ "health",
     (str_detect(event, 'MAST|.MAST|MAST.|.MAST.')) ~ "health",

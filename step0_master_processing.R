@@ -39,7 +39,7 @@ fxn_event_type<-fxn_assign_event_type_default #event_type options: fxn_assign_ev
 
 fxn_detect_location_lesion<-fxn_detect_location_lesion_default #detect_location_lesion options: fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
 
-fxn_assign_disease<-fxn_assign_disease_mastitis ## make a function to detect what to pick?
+fxn_assign_disease<-fxn_assign_disease_default ## make a function to detect what to pick?
 
 fxn_assign_treatment<-fxn_assign_treatment_template 
 
@@ -87,7 +87,7 @@ if (event_data_exists==TRUE){
   
   ### Step3 Create Denominators ---------------------
   quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
-  quarto::quarto_render('step3_create_denominators_by_custom_group.qmd')
+  quarto::quarto_render('step3_create_denominators_by_group.qmd')
   
 }
 
