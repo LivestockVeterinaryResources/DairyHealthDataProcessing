@@ -76,7 +76,7 @@ rm(list = ls())
 
 ### Step 4 Report Templates------------------------
 # add basic report templates
-# quarto::quarto_render("explore_lame.qmd")
+quarto::quarto_render("explore_lame.qmd")
 
 
 
