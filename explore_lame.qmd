@@ -40,11 +40,11 @@ summarize_events<-events_formatted |>
   ungroup()%>%
   mutate(event_type = factor(protocols_remaining_after_numbers1), 
          Event = factor(event),
-         event_type = if_else(is.na(event_type), "Trim Only", event_type))
+         event_type = if_else(is.na(event_type), "No Protocol Recorded", event_type))
 
 ```
 
-## Check out what Lesion are being reported
+## Check out what Lesions are being reported
 
 ```{r}
 #| fig-height: 8
@@ -451,7 +451,7 @@ les_graph <- df %>%
 #| fig-cap-location: top
 
 
-farms <- "demo"
+farms <- farm_name
 years <- ("2025")
 lesion_labels <- c(
   lesion = "Any Lesion",
