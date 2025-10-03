@@ -26,6 +26,7 @@ fxn_code_lesions <- function(.df, event_var = event,
         # coded so decisions can be made about NA's
         str_contains({{ protocol_var }}, "Trim") ~ 1,
         str_contains({{ protocol_var }}, "NONE") ~ 1,
+        str_contains({{ remark_var }}, "NONE") ~ 1,
         str_contains({{ remark_var }}, "Trim") ~ 1,
         !is.na({{ protocol_var }}) ~ 0,
         !is.na({{ remark_var }}) ~ 0,
