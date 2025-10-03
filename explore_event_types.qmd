@@ -42,6 +42,9 @@ summarize_events<-events_formatted |>
 ```
 
 # Summary Graph
+
+This graphs shows events that occured at each "location" for past 5 years
+
 ```{r}
 #| fig-height: 8
 # count y vars
@@ -59,23 +62,23 @@ facet_order <- summarize_events %>%
 
 ```{r}
 # order events
-summarize_events <- summarize_events %>%
-  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
-
-  ggplot(summarize_events)+
-  geom_bar(aes(x = event,
-               y = count_rows, fill = event_type), stat = "identity")+
-  facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free')+
-  coord_flip()+
-  scale_fill_viridis_d()+
-  theme_minimal()+
-  labs(x = "",
-       y = "Row Count")+
-  theme(legend.position = "none",
-        # axis.text.y = element_text(size = 6)
-        )
-  
-  
+# summarize_events <- summarize_events %>%
+#   mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
+# 
+#   ggplot(summarize_events)+
+#   geom_bar(aes(x = event,
+#                y = count_rows, fill = event_type), stat = "identity")+
+#   facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free')+
+#   coord_flip()+
+#   scale_fill_viridis_d()+
+#   theme_minimal()+
+#   labs(x = "",
+#        y = "Row Count")+
+#   theme(legend.position = "none",
+#         # axis.text.y = element_text(size = 6)
+#         )
+#   
+#   
 ```
 
 
@@ -86,6 +89,8 @@ get_locations<-sort(unique(events_formatted$location_event))
 
 
 ```{r}
+#| fig-height: 11
+
 #i=1
 for (i in seq_along(get_locations)){
   
