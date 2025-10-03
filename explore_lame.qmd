@@ -35,16 +35,25 @@ herd_deno <- read_parquet('data/intermediate_files/herd_denominators.parquet') |
   mutate(farm = farm_name)
  
 summarize_events<-events_formatted |> 
-  group_by(event, protocols_remaining_after_numbers1) |> 
+  group_by(event, protocols_remaining_after_numbers1, 
+           remark_letters1
+           ) |> 
   summarize(count_rows=sum(n()))|>
   ungroup()%>%
   mutate(event_type = factor(protocols_remaining_after_numbers1), 
+         remark_type = factor(remark_letters1), 
          Event = factor(event),
-         event_type = if_else(is.na(event_type), "No Protocol Recorded", event_type))
+         event_type = if_else(is.na(event_type),
+                              "No Protocol Recorded", event_type),
+         remark_type = if_else(is.na(remark_type), "No Remark Recorded",
+                               remark_type)
+         )
 
 ```
 
 ## Check out what Lesions are being reported
+
+### Protocol Data
 
 ```{r}
 #| fig-height: 8
@@ -74,6 +83,46 @@ summarize_events <- summarize_events %>%
         # axis.text.y = element_text(size = 6)
         )
 ```
+
+### Remarks
+
+Description of top 10 remarks recorded, Other is combined remaining remarks
+
+```{r}
+
+
+facet_order <- summarize_events %>%
+  group_by(remark_type) %>%
+  summarise(n_y = n_distinct(event)) %>%
+  arrange(desc(n_y)) %>%  # Order by most y categories
+  pull(remark_type)
+
+# order events
+summarize_events <- summarize_events %>%
+  # mutate(event_type = fct_reorder(remark_type, 
+  #                                 count_rows, .fun = sum, .desc = FALSE)) 
+  mutate(remark_type = fct_lump_n(remark_type,
+                                 n = 10,
+                                 ties.method = "random" ))
+  
+
+  ggplot(summarize_events)+
+  geom_bar(aes(x = remark_type,
+               y = count_rows, fill = remark_type), stat = "identity")+
+  #facet_wrap(factor(event, levels = facet_order) ~., scales = 'free')+
+    facet_wrap(vars(event), ncol = 1, scales = "free")+
+  coord_flip()+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "",
+       y = "Row Count")+
+  theme(legend.position = "none",
+        # axis.text.y = element_text(size = 6)
+        )
+```
+
+
+
 
 ```{r}
 #| label: process_data
@@ -569,42 +618,44 @@ lame_cull <- lame_events2 |>
 
 ```{r}
 
-source("functions/fxn_time_to_cull.R")
+# source("functions/fxn_time_to_cull.R")
+# 
+# library(survival)
+# library(survminer)
+# 
+# life_colours <- c('Never any lesion' = "#440154ff" ,
+#                   'Once' = "#3b528bff",
+#                   'Twice' = "#21908cff",
+#                   '3 or more times' = "#fde725ff"
+#                   )
+# 
+# 
+# years <- "2025"
+# 
+# time_to_cull_non_inf <- lame_cull |> 
+#   mutate(year = year(floordate_year)) |> 
+#   survival_data(years = "2024", 
+#                 disease = noninf, life_x_dz = life_times_noninf)
+#   
+# km <- time_to_cull_non_inf |> 
+#   km_fit(facet_col = farm, facet_row = year)
+# 
+# km
+# 
+# ```
+# 
+# ### Predicted culling risk at specific times for non-infectious lesions
+# 
+# ```{r}
+# 
+# library(gtsummary)
+# library(flextable)
+# 
+# table <- time_to_cull_non_inf |> 
+#   km_fit_table()
+# 
+# table
 
-library(survival)
-library(survminer)
-
-life_colours <- c('Never any lesion' = "#440154ff" ,
-                  'Once' = "#3b528bff",
-                  'Twice' = "#21908cff",
-                  '3 or more times' = "#fde725ff"
-                  )
-
-
-years <- "2025"
-
-time_to_cull_non_inf <- lame_cull |> 
-  mutate(year = year(floordate_year)) |> 
-  survival_data(years = "2024", 
-                disease = noninf, life_x_dz = life_times_noninf)
-  
-km <- time_to_cull_non_inf |> 
-  km_fit(facet_col = farm, facet_row = year)
-
-km
-```
-
-### Predicted culling risk at specific times for non-infectious lesions
-
-```{r}
-
-library(gtsummary)
-library(flextable)
-
-table <- time_to_cull_non_inf |> 
-  km_fit_table()
-
-table
 ```
 
 ## Other graphing options
