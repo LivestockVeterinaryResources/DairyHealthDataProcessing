@@ -358,19 +358,19 @@ risk <- lesion_table |>
 ```{r}
 
 lesion_labels <- c(
-  lesion = "Any Lesion",
-  dd = "Digital Dermatitis",
-  sole_ulcer = "Sole Ulcer",
-  wld = "White Line",
-  other = "Other",
-  footrot = "Footrot",
-  injury = "Injury",
-  inf = "Infectious",
-  noninf = "Non-Infectious",
-  toe = "Any Toe Lesion",
-  thin = "Thin Sole",
-  toe_ulcer = "Toe Ulcer",
-  hemorrhage = "Hemorrhage"
+"Any Lesion" = "lesion",
+  "Digital Dermatitis" = "dd",
+  "Sole Ulcer" = "sole_ulcer",
+  "White Line" = "wld",
+  "Other" = "other",
+  "Footrot" = "footrot",
+  "Injury" = "injury",
+  "Infectious" = "inf",
+  "Non-Infectious" = "noninf",
+  "Any Toe Lesion" = "toe",
+  "Thin Sole" = "thin",
+  "Toe Ulcer" = "toe_ulcer",
+  "Hemorrhage" = "hemorrhage"
 )
 
 risk_gt <- risk |> 
@@ -378,7 +378,9 @@ risk_gt <- risk |>
   filter(risk_all>0) |> 
   select(farm, lesion_type, risk_first, risk_all) |> 
   arrange(desc(risk_first)) |> 
-  mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels)) |> 
+  mutate(lesion_type = as_factor(lesion_type)) |> 
+  mutate(
+    lesion_type = fct_recode(lesion_type, !!!lesion_labels)) |> 
   gt(groupname_col = "farm",
      row_group_as_column = TRUE) |> 
   tab_spanner(label = md("**% Risk for Case Type**"), columns = starts_with("risk")) |> 
@@ -618,43 +620,43 @@ lame_cull <- lame_events2 |>
 
 ```{r}
 
-# source("functions/fxn_time_to_cull.R")
-# 
-# library(survival)
-# library(survminer)
-# 
-# life_colours <- c('Never any lesion' = "#440154ff" ,
-#                   'Once' = "#3b528bff",
-#                   'Twice' = "#21908cff",
-#                   '3 or more times' = "#fde725ff"
-#                   )
-# 
-# 
-# years <- "2025"
-# 
-# time_to_cull_non_inf <- lame_cull |> 
-#   mutate(year = year(floordate_year)) |> 
-#   survival_data(years = "2024", 
-#                 disease = noninf, life_x_dz = life_times_noninf)
-#   
-# km <- time_to_cull_non_inf |> 
-#   km_fit(facet_col = farm, facet_row = year)
-# 
-# km
-# 
-# ```
-# 
-# ### Predicted culling risk at specific times for non-infectious lesions
-# 
-# ```{r}
-# 
-# library(gtsummary)
-# library(flextable)
-# 
-# table <- time_to_cull_non_inf |> 
-#   km_fit_table()
-# 
-# table
+source("functions/fxn_time_to_cull.R")
+
+library(survival)
+library(survminer)
+
+life_colours <- c('Never any lesion' = "#440154ff" ,
+                  'Once' = "#3b528bff",
+                  'Twice' = "#21908cff",
+                  '3 or more times' = "#fde725ff"
+                  )
+
+
+years <- "2025"
+
+time_to_cull_non_inf <- lame_cull |>
+  mutate(year = year(floordate_year)) |>
+  survival_data(years = "2024",
+                disease = noninf, life_x_dz = life_times_noninf)
+
+km <- time_to_cull_non_inf |>
+  km_fit(facet_col = farm, facet_row = year)
+
+km
+
+```
+
+### Predicted culling risk at specific times for non-infectious lesions
+
+```{r}
+
+library(gtsummary)
+library(flextable)
+
+table <- time_to_cull_non_inf |>
+  km_fit_table()
+
+table
 
 ```
 
