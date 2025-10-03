@@ -72,10 +72,13 @@ quarto::quarto_render("data_dictionary.qmd")
 ### Step3 Create Denominators ---------------------
 quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd")
 
+rm(list = ls())
 
 ### Step 4 Report Templates------------------------
 # add basic report templates
-quarto::quarto_render("explore_lame.qmd")
+# quarto::quarto_render("explore_lame.qmd")
+
+
 
 
 
