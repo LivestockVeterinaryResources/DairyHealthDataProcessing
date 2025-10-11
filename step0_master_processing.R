@@ -35,7 +35,6 @@ get_data_from_google_drive<-FALSE #set this to TRUE to pull example data from go
 
 denominator_granularity<-100 #number of days in each denominator count, smaller numbers will be more accurate but take longer
 
-event_data_exists <- TRUE
 milk_data_exists <- FALSE
 
 set_farm_name <- "demo" #this is now obsolete - it should come from a summary of location_event?
