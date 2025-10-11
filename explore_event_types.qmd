@@ -12,18 +12,29 @@ execute:
     warning: false
 ---
 
+
+```{r}
+#todo list
+#fix order on bard to be greatest to least within facet
+#fix Unclassified events
+```
+
+
 ```{r}
 library(tidyverse)
 library(arrow)
 library(dtplyr)
 library(DT)
 
+
+
 source('functions/DT_base.R') #functions to parse remarks and protocols
+source('functions/fxn_disease.R') #functions to parse remarks and protocols
 
-events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet')
+events_parsed<-read_parquet('data/intermediate_files/events_parsed.parquet')
 
 
-summarize_events_by_location<-events_formatted |> 
+summarize_events_by_location<-events_parsed |> 
   group_by(event_type, location_event,  event) |> 
   summarize(count_rows=sum(n()))|>
   ungroup()%>%
@@ -33,7 +44,7 @@ summarize_events_by_location<-events_formatted |>
   rowid_to_column()%>%
   rename(plot_order = rowid)
 
-trend_events_by_location<-events_formatted |> 
+trend_events_by_location<-events_parsed |> 
   mutate(floordate_month = floor_date(date_event, unit = 'months'))%>%
   group_by(event_type, location_event, floordate_month, event) |> 
   summarize(count_rows=sum(n()))|>
@@ -47,7 +58,12 @@ trend_events_by_location<-events_formatted |>
 ```
 
 
+
 ### Trend Lactation Parameter Events
+
+# Summary Graph
+
+This graphs shows fundamental events that occured at each "location" for past 5 years
 
 ```{r}
 
@@ -57,9 +73,9 @@ ggplot(trend_events_by_location%>%
          filter(floordate_month>(floor_date((today()-1095), unit = 'months')))
        )+
   geom_point(aes(x = floordate_month,
-               y = count_rows, color = event))+
+               y = count_rows, color = event), size = .2)+
     geom_smooth(aes(x = floordate_month,
-               y = count_rows, color = event, group = event), stat = "identity")+
+               y = count_rows, color = event, group = event), span = .2, se = FALSE)+
 
     facet_wrap(location_event ~., scales = 'free', nrow = 2)+
   scale_fill_viridis_d()+
@@ -68,9 +84,10 @@ ggplot(trend_events_by_location%>%
   
 ```
 
-### Event Relationships
+### Event Relationships - (just for fun)
 
-This graphic has count of FRESH events on the x axis, and a count of events causing an animal to no longer be in the milking string (died + sold + dry) on the y axis.
+Each dot is a  floordate month in the trend data.  This graphic plots the count of FRESH events on the x axis, and the count of events causing an animal to no longer be in the milking string (died + sold + dry) on the y axis.
+
 
 ```{r}
 
@@ -100,14 +117,51 @@ ggplot(trend_event_relationships)+
 ```
 
 
+### Health Events
+
+```{r}
+# order events
+health_details<-events_parsed%>% 
+  filter((event_type %in% c('health')))%>%
+  group_by(event, disease, protocols, location_event)%>%
+  summarize(ct_row = sum(n()), 
+            ct_animals = n_distinct(id_animal), 
+            list_remarks = paste0(sort(unique(remark_letters1)), collapse = ',')
+            )%>%
+  ungroup()
+
+list_dz<-paste0(sort(unique(health_details$disease)))
+  
+#i=1
+for (i in seq_along(list_dz)){
+ggplot(health_details%>%filter(disease %in% list_dz[[i]]))+
+  geom_bar(aes(x = event,y = ct_row,
+                fill = location_event), stat = 'identity')+
+    facet_grid(protocols~., scales = 'free')+
+
+  # facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
+  coord_flip()+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  theme(legend.position = "none",
+         axis.text.x = element_text(angle = 45, hjust = 1)
+        )+
+    labs(title = paste0(list_dz[[i]]))
+  
+  
+}
+
+```
+
 
 ### Other Events
 
 
 ```{r}
 # order events
+
 summarize_events2 <- summarize_events_by_location %>%
-  filter(!(event_type %in% c('unknown', 'repro', 'health')))%>%
+  filter(!(event_type %in% c('unknown', 'repro', 'health', 'lact_parameter')))%>%
   mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
 
 
@@ -127,6 +181,25 @@ ggplot(summarize_events2)+
   #       )
   
   
+#old code----------------
+# summarize_events <- summarize_events %>%
+#   mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
+# 
+#   ggplot(summarize_events)+
+#   geom_bar(aes(x = event,
+#                y = count_rows, fill = event_type), stat = "identity")+
+#   facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free')+
+#   coord_flip()+
+#   scale_fill_viridis_d()+
+#   theme_minimal()+
+#   labs(x = "",
+#        y = "Row Count")+
+#   theme(legend.position = "none",
+#         # axis.text.y = element_text(size = 6)
+#         )
+#   
+#   
+
 ```
 
 ### Unclassified Events
@@ -135,18 +208,41 @@ ggplot(summarize_events2)+
 
 ```{r}
 # order events
-summarize_events2 <- summarize_events_by_location %>%
+summarize_events <- summarize_events_by_location %>%
   filter((event_type %in% c('unknown')))%>%
   mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) %>%
   filter(count_rows>100)
 
+```
 
-ggplot(summarize_events2)+
+
+```{r}
+#| fig-height: 11
+
+get_locations<-sort(unique(summarize_events$location_event))
+#i=1
+for (i in seq_along(get_locations)){
+  
+  plot_data<-summarize_events%>%
+    filter(location_event %in% get_locations[[i]])
+  
+  
+  facet_order_herd <- plot_data%>%
+  group_by(event_type) %>%
+  summarise(n_y = n_distinct(event)) %>%
+  arrange(desc(n_y)) %>%  # Order by most y categories
+  pull(event_type)
+  
+  
+plot_data2 <- plot_data %>%
+  mutate(event = fct_reorder(event, count_rows, .fun = sum, .desc = FALSE)) 
+
+
+ggplot(summarize_events)+
   geom_bar(aes(x = event,
                y = count_rows, fill = location_event), stat = "identity")+
     facet_wrap(event_type ~., scales = 'free', nrow = 2)+
 
-  # facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
   coord_flip()+
   scale_fill_viridis_d()+
   theme_minimal()#+
@@ -155,7 +251,7 @@ ggplot(summarize_events2)+
   # theme(legend.position = "none",
   #       # axis.text.y = element_text(size = 6)
   #       )
-  
+}
   
 ```
 
@@ -164,7 +260,8 @@ ggplot(summarize_events2)+
 
 ```{r}
 fxn_DT_base(summarize_events_by_location%>%
-              mutate(location_event = factor(location_event)))
+              mutate(location_event = factor(location_event))%>%
+              select(-plot_order))
 ```
 
 

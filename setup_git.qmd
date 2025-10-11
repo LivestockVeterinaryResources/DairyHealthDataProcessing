@@ -1,0 +1,56 @@
+---
+title: "Setting Up Github"
+format: html
+editor: visual
+---
+
+Further Resources
+
+<https://rfortherestofus.com/2021/02/how-to-use-git-github-with-r>
+
+or
+
+<https://happygitwithr.com/>
+
+Install Git for Windows
+
+<https://github.com/git-for-windows/git/releases/tag/v2.49.0.windows.1>
+
+or Mac
+
+Install Github Desktop
+
+<https://github.com/apps/desktop>
+
+Install and load packages to set up git
+
+```{r}
+
+if (!require("usethis")) install.packages("usethis")
+library(usethis)
+```
+
+Tell Git who you are
+
+enter your user.name and user.email information
+
+```{r}
+use_git_config(user.name = "enter_your_user_name",
+               user.email = "enter_your_email.com")
+```
+
+Get PAT,
+
+Go to the bottom of the screen that show up and press generate
+
+Then copy the PAT
+
+```{r}
+usethis::create_github_token()
+```
+
+register git using the PAT from Above
+
+```{r}
+gitcreds::gitcreds_set()
+```

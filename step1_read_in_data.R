@@ -79,7 +79,7 @@ events2 <- events|>
   mutate(dim_event = parse_number(DIM), 
        lact_number = parse_number(LACT))|>
   arrange(id_animal, date_event)|>
-  # dedups to get but ignores source file
+  # dedups to get but ignores source file - Nora thinks we want this later in a formated version rather than the main one
   distinct(across(-c(source_file_path)),
            .keep_all = TRUE)|>
   ##replace missing values in remark and protocols to allow grouping later----------------
@@ -196,8 +196,9 @@ write_parquet(qc_animal_enrollment, 'data/qc_files/qc_animal_enrollment.parquet'
 
 qc_event_type<-events2|>
   filter(event_type %in% 'Unknown')|>
-  group_by(Event, Protocols, event_type)|>
-  summarize(count = sum(n()))|>
+  group_by(location_event, Event, Protocols, event_type)|>
+  summarize(count = sum(n()), 
+            list_remark_letters1 = paste0(remark_letters1))|>
   ungroup()
 
 write_parquet(qc_event_type, 'data/qc_files/qc_event_type.parquet')

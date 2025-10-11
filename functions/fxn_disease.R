@@ -30,10 +30,11 @@ fxn_assign_disease_lameness<-function(df){
 fxn_assign_disease_default<-function(df){
   df%>%
     mutate(disease = case_when(
-      (!(event_type %in% health))~'non-disease event',
+      (!(event_type %in% 'health'))~'non-disease event',
       str_detect(event, 'MAST|.MAST|MAST.|.MAST.')~'mastitis', 
       str_detect(event, 'TRIM|.TRIM|TRIM.|.TRIM.')~'trim', 
       str_detect(event, 'LAME|.LAME|LAME.|.LAME.|FEET|.FEET|FEET.|.FEET.||FOOT|.FOOT|FOOT.|.FOOT.')~'lame',
+      
       TRUE~'other'
     ))
 }
