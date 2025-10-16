@@ -1,0 +1,101 @@
+---
+title: Read and Visualize
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load your packages here
+
+library(tidyverse)
+
+```
+
+## Read and Visualize
+
+In this milestone, you'll use ggplot2 to visualize the distribution of GFR for a subset of the data. But before you begin, you'll need to import the mdrd data set. Unlike with Milestone 1, the mdrd data set has not been pre-loaded for you to use in R.
+
+
+## Recreation
+
+### Part 1 - Import
+
+In the code chunk below, use a command from the readr package to read in the mdrd data set.
+
+* The mdrd data set lives in the file `mdrd.csv`, which is stored in the `data/` folder in your working directory.
+* Save the data set as an object named `mdrd`.
+
+
+```{r}
+#| label: recreation-import
+# DO NOT INSTALL TIDYVERSE PACKAGES. 
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+
+mdrd<-read_csv("data/mdrd.csv")
+
+sk_mdrd<-skimr::skim(mdrd)
+```
+
+### Part 2 - Visualize
+
+Run the code chunk below to see a plot. Your task is to recreate this plot.
+
+
+```{r}
+#| label: recreate-this
+#| message: false
+knitr::include_graphics("images/milestone02.png")
+```
+
+Use `ggplot()` in the chunk below to re-create the plot above. Before plotting, you will first need to filter your data set to only include observations from patients who did not drop out of the study.
+
+
+```{r}
+#| label: recreation-visualize
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+
+mdrd_2<-mdrd%>%
+  filter(dropout==0)
+
+ggplot(data = mdrd_2)+
+  geom_histogram(aes(x = gfr))
+```
+
+### What does this plot tell us?
+
+In this histogram, we can see the distribution of GFR for patients who did not drop out of the study. 
+
+The x axis is divided into bins (30 by default), with the bars representing the number of observations that fall into each bin. For this subset of the data, GFR ranges between 0 and 60, with most observations having a GFR around 18. The tail on the right side of the histogram tells us that the distribution is right skewed.
+
+
+## Extension
+
+Using the code chunk below, investigate a research question about this data, using the visualization skills you learned this week. Some ideas:
+
+1. How does the distribution of GFR differ between patients who dropped out of the study and those who did not? Consider exploring these distributions with other geoms.
+2. What does the distribution of GFR values look like within individual treatment groups?
+3. What relationships do you see between GFR and other variables of interest in the data set?
+4. [any other research question of interest]
+
+Alternately, working with a data set of your own, complete the following: 
+
+1. Read in your data
+2. Filter your data using a logical test/condition 
+3. Graph this data subset using at least one geom 
+
+
+
+```{r}
+#| label: extension
+
+```
+

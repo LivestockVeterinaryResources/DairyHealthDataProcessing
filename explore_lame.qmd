@@ -35,16 +35,25 @@ herd_deno <- read_parquet('data/intermediate_files/herd_denominators.parquet') |
   mutate(farm = farm_name)
  
 summarize_events<-events_formatted |> 
-  group_by(event, protocols_remaining_after_numbers1) |> 
+  group_by(event, protocols_remaining_after_numbers1, 
+           remark_letters1
+           ) |> 
   summarize(count_rows=sum(n()))|>
   ungroup()%>%
   mutate(event_type = factor(protocols_remaining_after_numbers1), 
+         remark_type = factor(remark_letters1), 
          Event = factor(event),
-         event_type = if_else(is.na(event_type), "Trim Only", event_type))
+         event_type = if_else(is.na(event_type),
+                              "No Protocol Recorded", event_type),
+         remark_type = if_else(is.na(remark_type), "No Remark Recorded",
+                               remark_type)
+         )
 
 ```
 
-## Check out what Lesion are being reported
+## Check out what Lesions are being reported
+
+### Protocol Data
 
 ```{r}
 #| fig-height: 8
@@ -74,6 +83,46 @@ summarize_events <- summarize_events %>%
         # axis.text.y = element_text(size = 6)
         )
 ```
+
+### Remarks
+
+Description of top 10 remarks recorded, Other is combined remaining remarks
+
+```{r}
+
+
+facet_order <- summarize_events %>%
+  group_by(remark_type) %>%
+  summarise(n_y = n_distinct(event)) %>%
+  arrange(desc(n_y)) %>%  # Order by most y categories
+  pull(remark_type)
+
+# order events
+summarize_events <- summarize_events %>%
+  # mutate(event_type = fct_reorder(remark_type, 
+  #                                 count_rows, .fun = sum, .desc = FALSE)) 
+  mutate(remark_type = fct_lump_n(remark_type,
+                                 n = 10,
+                                 ties.method = "random" ))
+  
+
+  ggplot(summarize_events)+
+  geom_bar(aes(x = remark_type,
+               y = count_rows, fill = remark_type), stat = "identity")+
+  #facet_wrap(factor(event, levels = facet_order) ~., scales = 'free')+
+    facet_wrap(vars(event), ncol = 1, scales = "free")+
+  coord_flip()+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "",
+       y = "Row Count")+
+  theme(legend.position = "none",
+        # axis.text.y = element_text(size = 6)
+        )
+```
+
+
+
 
 ```{r}
 #| label: process_data
@@ -309,19 +358,19 @@ risk <- lesion_table |>
 ```{r}
 
 lesion_labels <- c(
-  lesion = "Any Lesion",
-  dd = "Digital Dermatitis",
-  sole_ulcer = "Sole Ulcer",
-  wld = "White Line",
-  other = "Other",
-  footrot = "Footrot",
-  injury = "Injury",
-  inf = "Infectious",
-  noninf = "Non-Infectious",
-  toe = "Any Toe Lesion",
-  thin = "Thin Sole",
-  toe_ulcer = "Toe Ulcer",
-  hemorrhage = "Hemorrhage"
+"Any Lesion" = "lesion",
+  "Digital Dermatitis" = "dd",
+  "Sole Ulcer" = "sole_ulcer",
+  "White Line" = "wld",
+  "Other" = "other",
+  "Footrot" = "footrot",
+  "Injury" = "injury",
+  "Infectious" = "inf",
+  "Non-Infectious" = "noninf",
+  "Any Toe Lesion" = "toe",
+  "Thin Sole" = "thin",
+  "Toe Ulcer" = "toe_ulcer",
+  "Hemorrhage" = "hemorrhage"
 )
 
 risk_gt <- risk |> 
@@ -329,7 +378,9 @@ risk_gt <- risk |>
   filter(risk_all>0) |> 
   select(farm, lesion_type, risk_first, risk_all) |> 
   arrange(desc(risk_first)) |> 
-  mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels)) |> 
+  mutate(lesion_type = as_factor(lesion_type)) |> 
+  mutate(
+    lesion_type = fct_recode(lesion_type, !!!lesion_labels)) |> 
   gt(groupname_col = "farm",
      row_group_as_column = TRUE) |> 
   tab_spanner(label = md("**% Risk for Case Type**"), columns = starts_with("risk")) |> 
@@ -451,7 +502,7 @@ les_graph <- df %>%
 #| fig-cap-location: top
 
 
-farms <- "demo"
+farms <- farm_name
 years <- ("2025")
 lesion_labels <- c(
   lesion = "Any Lesion",
@@ -583,15 +634,16 @@ life_colours <- c('Never any lesion' = "#440154ff" ,
 
 years <- "2025"
 
-time_to_cull_non_inf <- lame_cull |> 
-  mutate(year = year(floordate_year)) |> 
-  survival_data(years = "2024", 
+time_to_cull_non_inf <- lame_cull |>
+  mutate(year = year(floordate_year)) |>
+  survival_data(years = "2024",
                 disease = noninf, life_x_dz = life_times_noninf)
-  
-km <- time_to_cull_non_inf |> 
+
+km <- time_to_cull_non_inf |>
   km_fit(facet_col = farm, facet_row = year)
 
 km
+
 ```
 
 ### Predicted culling risk at specific times for non-infectious lesions
@@ -601,10 +653,11 @@ km
 library(gtsummary)
 library(flextable)
 
-table <- time_to_cull_non_inf |> 
+table <- time_to_cull_non_inf |>
   km_fit_table()
 
 table
+
 ```
 
 ## Other graphing options

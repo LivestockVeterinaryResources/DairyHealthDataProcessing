@@ -1,0 +1,119 @@
+---
+title: Summarize data
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+.groups <-  c("class", "groups")
+
+# Load your packages here
+
+```
+
+## Summarize data
+
+In this milestone you'll create, visualize, and compare summary statistics for the 255 patients included in the data set.
+
+
+## Recreation
+
+### Part 1 - Import
+
+Before you begin, you will need to import your data set. Use the code chunk below to read the data from the data file `mdrd.csv`, which is stored in the `data/` folder in your working directory. Be sure to save the data to an object named `mdrd`.
+
+
+```{r}
+#| label: recreation-import
+# DO NOT INSTALL TIDYVERSE PACKAGES
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+```
+
+### Part 2 - Summarize data
+
+This week, we'd like to analyze the change in GFR (glomerular filtration rate) over time for each patient in the MDRD study. Specifically, we'll calculate a `gfr_slope` variable, which is computed as follows, for each patient:
+
+> (last GFR - first GFR) / time elapsed
+
+Run the code below to see a table.
+
+
+```{r}
+#| label: recreate-this
+#| message: false
+solution <- readr::read_csv("data/milestone03.csv")
+solution
+```
+
+Your task is to use what you've learned about the dplyr package to transform `mdrd` into this table. You will need to:
+
+1. Group the data by `ptid`. 
+2. Summarize the `gfr_slope` for each patient.
+
+Work in the code chunk below. Save the result as `patient_summary`. We will use the result in Part 3.
+
+
+```{r}
+#| label: recreation-summary
+# DO NOT INSTALL TIDYVERSE PACKAGES
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+```
+
+Run the following code chunk to test whether you have the same answer as the solution:
+
+
+```{r}
+#| label: compare
+#| eval: false
+waldo::compare(patient_summary, solution, tolerance = 1e-4, ignore_attr = .groups)
+```
+
+### Part 3 - Visualize
+
+Let's display our results visually. Run the chunk below to see a plot.
+
+
+```{r}
+#| label: recreate-plot
+#| message: false
+knitr::include_graphics("images/milestone03.png")
+```
+
+Use the code chunk below to create the plot above. Begin with the `patient_summary` table. *Hint: you can adjust the width of the bins with the `binwidth` argument.*
+
+
+```{r}
+#| label: recreation-plot
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+```
+
+## Extension
+
+## Extension
+
+Using the code chunk below, investigate a research question about this data, using the data wrangling skills you learned this week. Some ideas:
+
+1. How does change in GFR over time differ for patients patients who dropped out of the study compared to those who didn't drop out?
+2. Most patients have more than two GFR measurements taken -- how else can you compute and visualize change in GFR over time other than calculating the difference between the first and last GFR values?
+3. How much variation is there in the number of months between GFR measurements across patients? How does this relate to change in GFR over time?
+4. [any other research question of interest]
+
+Alternately, working with a data set of your own, complete the following:
+
+1. Read in your data
+2. Use `group_by()` and `summarize()` to produce simple a table from some subset of your data 
+3. Create a related graph of this data subset using ggplot 
+
+
+
