@@ -51,8 +51,8 @@ FIRST - Pull the data and save in the **event_files folder**
                 "step00_get_example_data_from_google_drive.R" to
                 download example farms
 
-NEXT  - if you want to look at production data, pull the data and save
-in the **milk_files folder**
+NEXT - if you want to look at production data, pull the data and save in
+the **milk_files folder**
 
 -   EVENTS #1 #11 #29 #6 #13\\4S2000H
 
@@ -68,7 +68,8 @@ to make sure
 
 LAST - Run step0_MasterProcessing.R
 
-FINALLY - View or create report files. Standard reports created include
+FINALLY - View or create report files in the **reports** folder.
+Standard reports created include
 
 -   data_dictionary.html to show info about files and variables created
 
