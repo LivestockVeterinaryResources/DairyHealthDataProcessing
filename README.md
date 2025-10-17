@@ -12,7 +12,13 @@ due to both their size and privacy. For this reason any files you put in
 the Data/ subfolders will not be shared to git unless they are in the
 Data/SharedFiles folder.
 
-Step 1 - Pull the data and save in the **event_files folder**
+More details about the data structure can be found in the resources folder: DataProcessingDocumentation.pptx 
+
+
+********************************************************************************
+
+
+FIRST - Pull the data and save in the **event_files folder**
 
 -   We need the following items from Dairy Comp along with the columns
     always generated with an events2 command in DC305 "ID" "PEN" "REG"
@@ -24,21 +30,25 @@ Step 1 - Pull the data and save in the **event_files folder**
 
 -   Pull events from dairy comp using one option from the code below.
 
--   Option 1 Pull 5 years in one file: EVENTS\\2S2000CH #1 #2 #4 #5 #6
-    #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
+    -   Option 1 Pull 5 years in one file: 
+    EVENTS\\2S2000CH #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
 
-Option 2 pull smaller time frames using "days back" starting with
-"S""days back" and ending with "L""days back": EVENTS\\2S99L0CH #1 #2 #4
-#5 #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
+    -   Option 2 pull smaller time frames using "days back" starting with "S""days back" and ending with "L""days back": 
+    EVENTS\\2S99L0CH #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
+    
+    -   Option 3 automate the pull from a google drive location.  
+    Use the R script named "step00_get_data_from_google_drive.R", or for example data use the R script named "step00_get_example_data_from_google_drive.R"
 
-Step 2 - Open the file names "step0_MasterProcessing.Rmd" in Rstudio.
+NEXT - Open the file names "step0_MasterProcessing.Rmd" in Rstudio.
 Check to make sure that all farm specific functions are set up
 correctly.
 
-Step 3 - Run step0_MasterProcessing.Rmd
+LAST - Run step0_MasterProcessing.Rmd
 
-Step 4 - View the report files. If files are written to shiny apps, open
+FINALLY - View or create report files. If files are written to shiny apps, open
 the app code and deploy them.
+
+********************************************************************************
 
 Code structure details and reference documents: tidyverse style guide
 <https://style.tidyverse.org/files.html>.\
