@@ -134,7 +134,7 @@ list_dz<-paste0(sort(unique(health_details$disease)))
   
 #i=1
 for (i in seq_along(list_dz)){
-ggplot(health_details%>%filter(disease %in% list_dz[[i]]))+
+p<-ggplot(health_details%>%filter(disease %in% list_dz[[i]]))+
   geom_bar(aes(x = event,y = ct_row,
                 fill = location_event), stat = 'identity')+
     facet_grid(protocols~., scales = 'free')+
@@ -147,7 +147,7 @@ ggplot(health_details%>%filter(disease %in% list_dz[[i]]))+
          axis.text.x = element_text(angle = 45, hjust = 1)
         )+
     labs(title = paste0(list_dz[[i]]))
-  
+  print(p)
   
 }
 
