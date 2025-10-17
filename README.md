@@ -72,7 +72,7 @@ FINALLY - View or create report files. Standard reports created include
 
 -   data_dictionary.html to show info about files and variables created
 
--   explore_event_type.html to do Quality control on how events are
+-   explore_event_types.html to do Quality control on how events are
     processed. If events aren't in categories you expect they can be
     manually coded to be in correct categories
 
