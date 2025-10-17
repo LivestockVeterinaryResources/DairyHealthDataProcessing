@@ -74,6 +74,10 @@ if (get_data_from_google_drive == TRUE) {
 ### Step 1 Read in data-------------
 source("step1_read_in_data.R")
 
+## process milk data ---------------------
+if (milk_data_exists == TRUE) {
+  source("step1a_read_in_production_data.R")
+}
 ### Step 2 create Intermediate Files----------------------
 source("step2_create_intermediate_files.R") # fundamental files
 # source('step2disease_create_intermediate_files.R') #under development #disease files
@@ -92,12 +96,9 @@ quarto::quarto_render("step3_create_denominators_by_group.qmd")
 ### Step 4 Report Templates------------------------
 rm(list = ls()) # clean environment
 # add basic report templates
-quarto::quarto_render("explore_lame.qmd")
+# quarto::quarto_render("explore_lame.qmd")
 
-## process milk data ---------------------
-if (milk_data_exists == TRUE) {
-  source("step1a_read_in_production_data.R")
-}
+
 
 # FUTURE STUFF ---------------------------
 # disease report (under development)
