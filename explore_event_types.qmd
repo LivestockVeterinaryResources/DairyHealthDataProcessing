@@ -63,7 +63,7 @@ trend_events_by_location<-events_parsed |>
 
 # Summary Graph
 
-This graphs shows fundamental events that occured at each "location" for past 5 years
+This graphs shows fundamental events that occurred at each "location" for past 5 years
 
 ```{r}
 
@@ -78,7 +78,7 @@ ggplot(trend_events_by_location%>%
                y = count_rows, color = event, group = event), span = .2, se = FALSE)+
 
     facet_wrap(location_event ~., scales = 'free', nrow = 2)+
-  scale_fill_viridis_d()+
+  scale_color_viridis_d()+
   theme_minimal()
 
   
