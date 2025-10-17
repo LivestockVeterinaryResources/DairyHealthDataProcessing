@@ -31,7 +31,7 @@ source('functions/fxn_treatment.R')
 
 #Set up processing -------------------------------
 #****Modify This Section***
-get_data_from_google_drive<-FALSE #set this to TRUE to pull example data from google drive. if you already have the data that you want in data/event_files set it to false to save time
+get_data_from_google_drive<-TRUE #set this to TRUE to pull example data from google drive. if you already have the data that you want in data/event_files set it to false to save time
 
 denominator_granularity<-100 #number of days in each denominator count, smaller numbers will be more accurate but take longer
 
