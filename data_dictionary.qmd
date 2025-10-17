@@ -38,7 +38,8 @@ fxn_graph_file_skim<-function(){
   geom_bar(aes(x = skim_variable, y = complete_rate, fill = skim_type), stat = 'identity')+
   facet_wrap(parquet_file_name~.)+
   coord_flip()+
-    theme_bw()
+    theme_bw()+
+    scale_fill_viridis_d()
   
   print(p)
 }
