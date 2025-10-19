@@ -10,11 +10,13 @@ source('functions/fxn_parse_free_text.R') #functions to parse remarks and protoc
 
 # read in file-----------------
 
-events_formatted <- read_parquet("data/intermediate_files/events_formatted.parquet") |>
+events_formatted <- read_parquet("data/intermediate_files/events_all_columns.parquet") |>
   # filter(!(is.na(bdat)))|>
   mutate(data_pull_date_min = min(date_event, na.rm = TRUE)) |>
   mutate(data_pull_date_max = max(date_event, na.rm = TRUE)) |>
-  rowid_to_column()
+  rowid_to_column()%>%
+  mutate(rc_num = parse_number(RC))
+  
 
 
 
@@ -28,8 +30,15 @@ animals <- events_formatted |>
     # source_farm, source_state, #optional
     data_pull_date_min, data_pull_date_max
   ) |>
-  summarize(breed = paste0(sort(unique(breed)), collapse = ",")) |>
-  ungroup()
+  summarize(breed = paste0(sort(unique(breed)), collapse = ","), 
+            sex = max(RC), 
+            location_list = paste0(sort(unique(location_event)), collapse = ',')) |>
+  ungroup()%>%
+  mutate(sex = case_when(
+    (sex==8)~'male',
+    TRUE~'female'
+  ))
+  
 
 ## enrolled - each row is an animal------------
 enrolls <- events_formatted |>
