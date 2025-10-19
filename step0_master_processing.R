@@ -1,19 +1,21 @@
 # loads packages for set up ------------
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
-  tidyverse,
-  dtplyr,
-  gt,
   arrow,
-  rmarkdown,
+  DT,
+  dtplyr,
+  flextable,
+  glue,
+  gt,
+  gtsummary,
   lubridate,
   quarto,
-  arrow,
-  zoo,
-  DT,
-  gtsummary,
+  rmarkdown,
+  scales,
   survminer,
-  flextable
+  stringr,
+  tidyverse,
+  zoo
 )
 
 
