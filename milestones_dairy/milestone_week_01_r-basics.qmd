@@ -9,6 +9,7 @@ format: html
 library(tidyverse)
 library(arrow)
 library(skimr)
+library(waldo)
 
 # We will learn what this code does in Milestone 2
 animals <- read_parquet("../data/intermediate_files/animals.parquet")%>%
@@ -28,9 +29,8 @@ The data we will use in our investigation is saved as an R object named `animals
 
 -   Display the contents of `animals`
 -   Use `nrow()` to find the number of observations in `animals`. Name this "number_of_rows". (hint: you should see "number_of_rows" in your environment)
--   Use `mean()` to find the average age and animal left (hint: use the variable named "age_left").  Name this "average_age_left".
+-   Use `mean()` to find the average age and animal left (hint: use the variable named "age_left"). Name this "average_age_left".
 -   Use `count()` from the dplyr package to count the number of observations associated with each location, breed and sex (hint: variable names should be "breed", "sex", "location_list". Name this 'counts'.
-
 
 *Hint: you may want to look up the help pages for each of these functions.*
 
@@ -45,23 +45,50 @@ number_of_rows<-nrow(animals)
 
 age_left<-mean(animals$age_left)
 
-counts<-count(breed, sex)
+
+counts<-animals%>%count(breed, sex, location_list)
+# 
+# 
+# write_rds(counts, 'data_milestones/solutions_week_01_counts.rds')
+# write_rds(age_left, 'data_milestones/solutions_week_01_age_left.rds')
+# write_rds(number_of_rows, 'data_milestones/solutions_week_01_number_of_rows.rds')
 
 ```
 
+#### Check your answers
 
-##Check your answers
+To check your answers run the code chunks below. If your answer exactly matches the solution it will say "No differences". If you like your answer, but it is different we can discuss in class. There are many ways to do things that work.
 
-To check your answers run this code
-```{r}
+Check number_of_rows:
 
-solutions<-read_csv('solutions_week_01.csv')
+```{r, echo=FALSE}
+
+waldo::compare(number_of_rows, read_rds('data_milestones/solutions_week_01_number_of_rows.rds'))
 
 ```
 
-Now summarize the data: 
+Check age_left:
+
+```{r, echo=FALSE}
+
+waldo::compare(age_left, read_rds('data_milestones/solutions_week_01_age_left.rds'))
+
+```
+
+Check counts:
+
+```{r, echo=FALSE}
+
+waldo::compare(counts, read_rds('data_milestones/solutions_week_01_counts.rds'))
+
+```
+
+### Part 2
+
+Now summarize the data:
+
 -   Use `summary()` to generate a summary of the data set
--   Use `skim()` to see a different type of summary of the data set (warning: this function may take some time)
+-   Use `skim()` to see a different type of summary of the data set (warning: this function may take some time) - Bonus: save the output of your skim function to your environment. Name it "skim_animals".
 
 Write your code in the following chunk:
 
@@ -70,9 +97,17 @@ Write your code in the following chunk:
 
 summary(animals)
 
-skim(animals)
+skim_animals<-skim(animals)
+
+#write_rds(skim_animals, 'data_milestones/solutions_week_01_skim_animals.rds')
+
 ```
 
+Check your answer to `skim()`
+
+```{r}
+waldo::compare(skim_animals, read_rds('data_milestones/solutions_week_01_skim_animals.rds'))
+```
 
 ## Extension
 
