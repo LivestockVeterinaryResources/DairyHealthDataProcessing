@@ -49,9 +49,15 @@ if (nrow(selected_files) > 0) {
 #read in file------------
 df<-read_parquet("data/standardization_files/mySYNCH_outreach_event_details.parquet")%>%
   mutate(event = Event)%>%
-  fxn_assign_event_type_default()%>%
-  filter(event_type %in% 'unknown')
+  fxn_assign_event_type_default()#%>%
+  # select(event, event_type)%>%
+  # filter(event_type %in% 'unknown')%>%
+  # distinct()
 
+health_events<-df%>%
+  filter(event_type %in% 'health')
+
+sort(unique(health_events$event))
 
 
 

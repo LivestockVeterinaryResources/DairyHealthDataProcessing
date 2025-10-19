@@ -42,6 +42,6 @@ fxn_assign_disease_default<-function(df){
   df%>%
     mutate(disease = case_when(
       (!(event_type %in% 'health'))~'non-disease event',
-      TRUE~remark_letters1
+      TRUE~event
     ))
 }

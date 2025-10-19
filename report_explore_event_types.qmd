@@ -61,13 +61,11 @@ trend_events_by_location<-events_parsed |>
 
 ### Trend Lactation Parameter Events
 
-# Summary Graph
+# Trend Graph
 
-This graphs shows fundamental events that occured at each "location" for past 5 years
+This graphs shows fundamental events that occurred at each "location" for past 5 years
 
 ```{r}
-
-
 ggplot(trend_events_by_location%>%
          filter(event_type %in% "lact_parameter")%>% #only look at lactation parameter events
          filter(floordate_month>(floor_date((today()-1095), unit = 'months')))%>% #only look back 3 years
@@ -80,7 +78,28 @@ ggplot(trend_events_by_location%>%
 
     facet_wrap(location_event ~., scales = 'free', nrow = 2)+
   scale_fill_viridis_d()+
-  theme_minimal()
+  theme_bw()
+```
+
+
+## Proportion Graph
+
+This graph deomnostrates the proportion of events each month by event type.  Exploration of this allows detection of changes in system
+
+
+```{r}
+ggplot(trend_events_by_location%>%
+         filter(event_type %in% "lact_parameter")%>% #only look at lactation parameter events
+         filter(floordate_month>(floor_date((today()-1095), unit = 'months')))%>% #only look back 3 years
+         filter(floordate_month<(floor_date(today(), unit = 'months'))) #don't include the current month because it isn't complete
+       )+
+  geom_bar(aes(x = floordate_month,
+               y = count_rows, fill = event), stat = 'identity', position = position_fill())+
+    facet_wrap(location_event ~., scales = 'free', nrow = 2)+
+  scale_fill_viridis_d()+
+  theme_bw()+
+  ylab('Proportion of Rows')
+
 
   
 ```

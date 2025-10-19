@@ -1,5 +1,26 @@
 library(tidyverse)
 
+fxn_assign_disease_template<-function(df){
+  df%>%
+    mutate(disease = remark_letters1)
+}
+
+fxn_assign_disease_remark_letters1<-function(df){
+  df%>%
+    mutate(disease = remark_letters1)
+}
+
+fxn_assign_disease_protocols<-function(df){
+  df%>%
+    mutate(disease = protocols)
+}
+
+
+fxn_assign_disease_bred<-function(df){
+  df%>%
+    mutate(disease = event)
+}
+
 fxn_assign_disease_mastitis<-function(df){
   df%>%
     mutate(disease = case_when(
@@ -17,10 +38,10 @@ fxn_assign_disease_lameness<-function(df){
     ))
 }
 
-fxn_assign_disease_bred<-function(df){
+fxn_assign_disease_default<-function(df){
   df%>%
     mutate(disease = case_when(
-      event %in% 'BRED' ~ 'BRED',
-      TRUE ~ 'Not BRED'
+      (!(event_type %in% 'health'))~'non-disease event',
+      TRUE~event
     ))
 }
