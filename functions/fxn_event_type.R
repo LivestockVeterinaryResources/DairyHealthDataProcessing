@@ -6,9 +6,9 @@ fxn_assign_event_type_default <- function(df) {
     # define event types------------------------------------
   mutate(event_type = case_when(
     (event %in% c(
-      "ABORT", "BRED", "BULLPEN", "GNRH", "HEAT", "LUT", "RECK", 'RECHK', 'RECHECK',
+      "ABORT", "BRED", "BULLPEN", "GNRH", "HEAT", "LUT", 'LUT1', 'LUT2', 'LUT3', 'LUTE', 'ESTROPL',  "RECK", 'RECHK', 'RECHECK',
       "OK", "OPEN", "PREG", "PREV", "PROST", "PG", "DNB",
-      "CIDR", "BLEDOFF", 'MISSHOT'
+      "CIDR", "BLEDOFF", 'MISSHOT', 'LUTE', 'SYNCPRG', 'OV', 'SCRHEAT', 'ESTRO', 'CHECK', 'CYSTIC', 'CYST'
     
       )) ~ "repro",
     
@@ -18,12 +18,14 @@ fxn_assign_event_type_default <- function(df) {
     
     (event %in% c(
       "ASSIST", "BLOAT", "DIPTHRA", "FEVER", "ILLMISC", "INDIG",
-      "INJURY", "MF", "MLKFVR", "DA", "METR", "KETOSIS",
+      "INJURY", "MF", "MLKFVR", 'MFEVER', "DA", "METR", "KETOSIS",
       "LAME", "MAST", "NAVEL", "OTHER", "OTITIS", "PINKEYE", "PNEU",
       "RP", "JOINT",
-      "SCOURS", "SEPTIC", "HARDWARE", "HRDWARE", "CULTURE", "FOOTTRIM", "TRIM",
+      "SCOURS", "SEPTIC", "HARDWARE", "HRDWARE", "CULTURE", "FOOTTRIM", "TRIM", 'HOOFTRM',
       "TRIMONLY", "FOOTRIM",
-      "TEMP", "TREAT", '3TEAT'
+      "TEMP", "TREAT", '3TEAT', 
+      'HITEMP', 'ILL', 'IV', 
+      'MAGNET', 'DOWN', 'TREATED'
    
        )) ~ "health",
     
@@ -32,15 +34,20 @@ fxn_assign_event_type_default <- function(df) {
     (str_detect(event, 'METR|METR.')) ~ "health",
     
     
-    event %in% c("GOHOME", "MOVE", "TOCLOSE", "CLOSEUP", "TOGROWR", "XID") ~ "management",
-    event %in% c("DIED", "FRESH", "SOLD", "DRY", "BIRTH") ~ "lact_parameter",
-    event %in% c("INWEIGH", "MEASURE", "TP", 'TPROT', "WEIGHT", 'HT WT', 'WT_HT') ~ "measure",
+    event %in% c("GOHOME", "MOVE", "TOCLOSE", 'CLOSE', "CLOSEUP", "TOGROWR", 'TONFORK',  "XID", 'WELL', 'HOME', 'HOSP', 'TEAT3') ~ "management",
+    event %in% c("DIED", "FRESH", "SOLD", "DRY", 'EARLYD' ) ~ "lact_parameter",
+    event %in% c("BIRTH",'BORN', 'WEANED', 'WEAN', 'INVTORY' ) ~ "phase_parameter",
+    
+    event %in% c("INWEIGH", "MEASURE", "TP", 'TPROT', "WEIGHT", 'HT WT', 'WT_HT', 'TBTEST', 'PCRTEST') ~ "measure",
+    event %in% c('J5', 'FRESHOT', 'BANGS', 'EXPRESS', 'SRP', 'EXP10')~'vac',
     
     
     (str_detect(event, 'VAC|.VAC|VAC.|.VAC.'))~'vac',
+    (str_detect(event, 'TEST|.TEST|TEST.|.TEST.'))~'measure',
+    
+    
     (str_detect(event, 'METRI|METR.'))~'health',
     (str_detect(event, 'FVER|.FVER|FVER.|.FVER'))~'health',
-    
     (str_detect(event, 'FOOT|.FOOT|FOOT.|.FOOT.|FEET|.FEET|FEET.|.FEET.'))~'health',
     (str_detect(event, 'DIG.|DIAR.')) ~ "health",
     (str_detect(event, 'MAST|.MAST|MAST.|.MAST.')) ~ "health",
