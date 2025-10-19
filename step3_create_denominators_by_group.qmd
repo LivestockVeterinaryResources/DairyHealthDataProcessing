@@ -255,8 +255,19 @@ fxn_DT_base(denominator_time_period)
 ```
 
 
+### Plot time period denominators
 
-## Denominators by day of phase
+```{r}
+
+ggplot(denominator_time_period)+
+  
+
+```
+
+
+
+
+## Denominators by day of phase (under development)
 
 ### Count cows on each calendar day for different dim groups
 

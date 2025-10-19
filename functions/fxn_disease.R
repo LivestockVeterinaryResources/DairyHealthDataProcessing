@@ -5,6 +5,17 @@ fxn_assign_disease_template<-function(df){
     mutate(disease = remark_letters1)
 }
 
+fxn_assign_disease_remark_letters1<-function(df){
+  df%>%
+    mutate(disease = remark_letters1)
+}
+
+fxn_assign_disease_protocols<-function(df){
+  df%>%
+    mutate(disease = protocols)
+}
+
+
 fxn_assign_disease_bred<-function(df){
   df%>%
     mutate(disease = event)
@@ -31,10 +42,6 @@ fxn_assign_disease_default<-function(df){
   df%>%
     mutate(disease = case_when(
       (!(event_type %in% 'health'))~'non-disease event',
-      str_detect(event, 'MAST|.MAST|MAST.|.MAST.')~'mastitis', 
-      str_detect(event, 'TRIM|.TRIM|TRIM.|.TRIM.')~'trim', 
-      str_detect(event, 'LAME|.LAME|LAME.|.LAME.|FEET|.FEET|FEET.|.FEET.||FOOT|.FOOT|FOOT.|.FOOT.')~'lame',
-      
-      TRUE~'other'
+      TRUE~remark_letters1
     ))
 }

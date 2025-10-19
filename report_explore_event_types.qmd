@@ -69,8 +69,9 @@ This graphs shows fundamental events that occured at each "location" for past 5 
 
 
 ggplot(trend_events_by_location%>%
-         filter(event_type %in% "lact_parameter")%>%
-         filter(floordate_month>(floor_date((today()-1095), unit = 'months')))
+         filter(event_type %in% "lact_parameter")%>% #only look at lactation parameter events
+         filter(floordate_month>(floor_date((today()-1095), unit = 'months')))%>% #only look back 3 years
+         filter(floordate_month<(floor_date(today(), unit = 'months'))) #don't include the current month because it isn't complete
        )+
   geom_point(aes(x = floordate_month,
                y = count_rows, color = event), size = .2)+
@@ -119,6 +120,7 @@ ggplot(trend_event_relationships)+
 
 ### Health Events
 
+List of diseases
 ```{r}
 # order events
 health_details<-events_parsed%>% 
@@ -131,13 +133,17 @@ health_details<-events_parsed%>%
   ungroup()
 
 list_dz<-paste0(sort(unique(health_details$disease)))
-  
+list_dz
+```
+
+
+```{r}
 #i=1
 for (i in seq_along(list_dz)){
-ggplot(health_details%>%filter(disease %in% list_dz[[i]]))+
-  geom_bar(aes(x = event,y = ct_row,
+p<-ggplot(health_details%>%filter(disease %in% list_dz[[i]]))+
+  geom_bar(aes(x = protocols,y = ct_row,
                 fill = location_event), stat = 'identity')+
-    facet_grid(protocols~., scales = 'free')+
+    facet_grid(event~., scales = 'free')+
 
   # facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
   coord_flip()+
@@ -147,7 +153,7 @@ ggplot(health_details%>%filter(disease %in% list_dz[[i]]))+
          axis.text.x = element_text(angle = 45, hjust = 1)
         )+
     labs(title = paste0(list_dz[[i]]))
-  
+  print(p)
   
 }
 

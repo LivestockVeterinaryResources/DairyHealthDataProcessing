@@ -57,7 +57,7 @@ deno <- animal_lactations |>
   
   select(id_animal, 
          id_animal_lact, 
-         lact_number, lact_group, lact_group_basic, #lact_group_5,
+         lact_number, lact_group, lact_group_basic, lact_group_5,
          date_fresh, #date_left, 
          date_archive, date_archive_max) |> 
   # get cull date
@@ -65,19 +65,19 @@ deno <- animal_lactations |>
   
   #***Lets discuss if it works to do this by joing to animals, it keeps it cleaner to not calculate the same value in 2 locations, see addition on line 56***
   mutate(date_left = max(date_archive_max)) |>
-  ungroup() |>
+  ungroup()  |>
   
   
-  #***create 5 lact groupp - his now happens in step 1 to put it in the same place as all the other lactation group assignments***
-  mutate (lact_group_5 = case_when(
-      (lact_number == 0) ~ 'Heifer',
-      (lact_number == 1) ~ 'LACT 1',
-      (lact_number == 2) ~ 'LACT 2',
-      (lact_number == 3) ~ 'LACT 3',
-      (lact_number == 4) ~ 'LACT 4',
-      (lact_number >4) ~ 'LACT 5+',
-      .default = 'Unknown')
-  ) |>
+  # #***create 5 lact groupp - his now happens in step 1 to put it in the same place as all the other lactation group assignments***
+  # mutate (lact_group_5 = case_when(
+  #     (lact_number == 0) ~ 'Heifer',
+  #     (lact_number == 1) ~ 'LACT 1',
+  #     (lact_number == 2) ~ 'LACT 2',
+  #     (lact_number == 3) ~ 'LACT 3',
+  #     (lact_number == 4) ~ 'LACT 4',
+  #     (lact_number >4) ~ 'LACT 5+',
+  #     .default = 'Unknown')
+  # ) |>
   #this works for test, but we need to come back to it to see if can integrate into workflow
   mutate(time_period = time_period_text) |> 
   # removes heifers
