@@ -47,6 +47,7 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+tools/
 
 data/standardization_files/*.csv
 data/intermediate_files/*.csv

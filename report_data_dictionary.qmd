@@ -59,6 +59,14 @@ fxn_graph_file_skim()
 
 ```
 
+## Events parsed
+```{r, fig.height=12}
+
+select_df<-"events_parsed.parquet" # from list_intermediate_files
+fxn_graph_file_skim()
+
+```
+
 ## Animals
 
 This file lists each animal as a row. id_animal is the unique identifier of each animal. There should be one unique date for each date in this table, but sometimes there is not. Thus there are date_XXX_max variables.
@@ -75,49 +83,6 @@ This file lists each animal lactation as a row. id_animal_lact is the unique ide
 ```{r animal lact}
 
 select_df<-"animal_lactations.parquet" # from list_intermediate_files
-fxn_graph_file_skim()
-              
-```
-# Disease - Animal Level Wide
-
-Each row is an animal. Columns are dates when each disease event occured. Column names are the number of disease events.
-
-```{r}
-
-select_df<-"disease_animal_level_wide.parquet"  # from list_intermediate_files
-fxn_graph_file_skim()
-              
-```
-
-# Disease - Lactation Level Wide
-
-Each row is an animal lactation. Columns are dates when each disease event occured. Column names are the number of disease events.
-
-```{r}
-
-select_df<-"disease_lactation_level_wide.parquet"  # from list_intermediate_files
-fxn_graph_file_skim()
-              
-```
-
-# Disease - Animal Level long
-
-Each row is an animal disease event. The unique identifier is gap1_key. 
-
-```{r}
-
-select_df<-"disease_animal_level_long.parquet"  # from list_intermediate_files
-fxn_graph_file_skim()
-              
-```
-
-# Disease - Lactation Level long
-
-Each row is an animal lactation disease event. The unique identifier is gap1_key. 
-
-```{r}
-
-select_df<-"disease_lactation_level_long.parquet"  # from list_intermediate_files
 fxn_graph_file_skim()
               
 ```
