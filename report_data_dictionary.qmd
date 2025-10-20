@@ -89,7 +89,7 @@ This is in active development and not yet finalized. Currently there are 3 denom
 ## Herd Denominators
 
 ``` {r}
-#| fig.height: 12
+#| fig.height: 3
 
 fxn_graph_file_skim("herd_denominators.parquet") 
 
@@ -100,7 +100,7 @@ fxn_graph_file_skim("herd_denominators.parquet")
 Inventory for past year in 13 30 DIM windows for
 
 ``` {r}
-#| fig.height: 12
+#| fig.height: 3
 
 fxn_graph_file_skim("herd_dim_denominators.parquet") 
 
@@ -111,7 +111,7 @@ fxn_graph_file_skim("herd_dim_denominators.parquet")
 Monthly inventory for the past year
 
 ``` {r}
-#| fig.height: 12
+#| fig.height: 3
 
 fxn_graph_file_skim("herd_season_denominators.parquet") 
 
