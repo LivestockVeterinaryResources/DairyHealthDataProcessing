@@ -83,7 +83,7 @@ ggplot(active_animals)+
   facet_wrap(location_event~., scales = 'free_x')+
   coord_flip()+
   theme_bw()+
-  custom_location_fill()
+  scale_fill_viridis_d()
 ```
 
 
@@ -155,8 +155,8 @@ ggplot(trend_event_relationships)+
                alpha = .2, span = 1)+
 
     #facet_wrap(location_event ~., scales = 'free', nrow = 2)+
-  custom_location_fill()+
-  custom_location_color()+
+  scale_fill_viridis_d()+
+    scale_color_viridis_d()+
   #theme_minimal()+
   theme_bw()+
   theme(aspect.ratio = 1)
@@ -200,7 +200,7 @@ health_details %>%
   geom_col(aes(x = reorder(disease, plot_order), y = ct_row, fill = location_event)) +
   facet_wrap(. ~ location_event, scales = 'free_x') +
   coord_flip()+
-  custom_location_fill()+
+  scale_fill_viridis_d()+
   theme_bw()
 
 
@@ -231,7 +231,7 @@ p<-ggplot(health_details_fixed %>% filter(disease %in% list_dz[[i]])) +
   scale_size_identity() +
   facet_grid(. ~ location_event, scales = 'free') +
   coord_flip() +
-  custom_location_fill() +  
+  scale_fill_viridis_d() +  
   theme_bw() +
   theme(
     legend.position = "none",
@@ -269,8 +269,8 @@ ggplot(summarize_events2)+
 
   # facet_wrap(factor(event_type, levels = facet_order) ~., scales = 'free', nrow = 2)+
   coord_flip()+
-  #scale_fill_viridis_d()+
-  custom_location_fill()+
+  scale_fill_viridis_d()+
+  #custom_location_fill()+
   theme_minimal()#+
   # labs(x = "",
   #      y = "Row Count")+
