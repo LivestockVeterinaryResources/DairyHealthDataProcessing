@@ -39,19 +39,7 @@ Write your code in the following chunk:
 ```{r}
 #| label: recreation
 
-animals
 
-number_of_rows<-nrow(animals)
-
-age_left<-mean(animals$age_left)
-
-
-counts<-animals%>%count(breed, sex, location_list)
-# 
-# 
-# write_rds(counts, 'data_milestones/solutions_week_01_counts.rds')
-# write_rds(age_left, 'data_milestones/solutions_week_01_age_left.rds')
-# write_rds(number_of_rows, 'data_milestones/solutions_week_01_number_of_rows.rds')
 
 ```
 
@@ -95,11 +83,7 @@ Write your code in the following chunk:
 ```{r}
 #| label: recreation of summary
 
-summary(animals)
 
-skim_animals<-skim(animals)
-
-#write_rds(skim_animals, 'data_milestones/solutions_week_01_skim_animals.rds')
 
 ```
 
