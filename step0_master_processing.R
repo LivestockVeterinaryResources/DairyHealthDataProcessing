@@ -110,7 +110,7 @@ if (milk_data_exists == TRUE) {
   
   ## quick check data reports--------------------------------
   quarto::quarto_render('report_explore_event_types.qmd') 
-  quarto::quarto_render('data_dictionary.qmd')
+  quarto::quarto_render('report_data_dictionary.qmd')
 
   ## Gerard's lameness report ---------------------------
   quarto::quarto_render("report_explore_lame.qmd")
@@ -130,3 +130,6 @@ if (milk_data_exists == TRUE) {
 #old stuff
 # source('step2disease_create_intermediate_files.R') #under development #disease files
   
+  
+#TODO List --------------------------------------------
+  #add milk data for example farms
