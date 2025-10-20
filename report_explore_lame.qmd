@@ -410,6 +410,7 @@ risk_gt
 
 region_les_graph <- function(.data, 
                              facet_col = farm,
+                             facet_row = time_period,
                              plot_var = lesion_type,
                              lesions = all_lesions,
                              years,
@@ -488,7 +489,8 @@ les_graph <- df %>%
   title.hjust = 0.5)
   )+
   theme(legend.position = "top")+
-  facet_wrap(vars({{facet_col}}), ncol = 1,
+  facet_grid(cols = vars ({{facet_col}}), 
+             rows = vars({{facet_row}}),
              labeller = labeller(lesion_type = lesion_labels))+
   theme(strip.text = element_text(face = "bold"))
 }
@@ -500,6 +502,7 @@ les_graph <- df %>%
 #| label: fig_any
 #| fig-cap: "**A lot of repeat lesions**"
 #| fig-cap-location: top
+#| fig-height: 8
 
 
 farms <- farm_name
@@ -540,7 +543,8 @@ graph_overall
 
 graph_lact <- risk |> 
   filter(lact_group_5 != "LACT > 0") |> 
-  region_les_graph(years = years, farms = farms, facet_col = lact_group_5)
+  region_les_graph(years = years, farms = farms, facet_col = farm,
+                   facet_row = lact_group_5)
 
 graph_lact
 
@@ -636,7 +640,7 @@ years <- "2025"
 
 time_to_cull_non_inf <- lame_cull |>
   mutate(year = year(floordate_year)) |>
-  survival_data(years = "2024",
+  survival_data(years = years,
                 disease = noninf, life_x_dz = life_times_noninf)
 
 km <- time_to_cull_non_inf |>
@@ -648,15 +652,16 @@ km
 
 ### Predicted culling risk at specific times for non-infectious lesions
 
+# not functional at this point for multiple farms
 ```{r}
 
-library(gtsummary)
-library(flextable)
-
-table <- time_to_cull_non_inf |>
-  km_fit_table()
-
-table
+# library(gtsummary)
+# library(flextable)
+# 
+# table <- time_to_cull_non_inf |>
+#   km_fit_table()
+# 
+# table
 
 ```
 
