@@ -671,7 +671,7 @@ ggplot()+
       fill = month)+
   geom_col()+
   scale_fill_viridis_d()+
-facet_grid(rows = vars(location_lact_list), cols = vars(`Lactation Group`)
+  facet_grid(rows = vars(location_lact_list), cols = vars(`Lactation Group`)
              )+
   theme_minimal()+
   theme(legend.position = "",
