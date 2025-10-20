@@ -551,27 +551,26 @@ count_active_by_month <- function(month, data = data) {
                 values_fill = 0) |> 
     ungroup()
   
-    # active_counts_lact_group <- active_animals |>
-    # group_by(location_lact_list, lact_group) |>
-    # summarise(cows_active = n(), .groups = "drop") |>
-    #  pivot_wider(names_from = lact_group,
-    #              values_from = cows_active,
-    #              values_fill = 0) |>
-    # ungroup() |>
-    #   select(location_lact_list, 'LACT 3+')
-    # 
-    # active_counts_lact_group_5 <- active_animals |>
-    # group_by(location_lact_list, lact_group_5) |>
-    # summarise(cows_active = n(), .groups = "drop") |>
-    #  pivot_wider(names_from = lact_group_5,
-    #              values_from = cows_active,
-    #              values_fill = 0) |>
-    # ungroup()
-    # 
-    active_counts <- bind_cols(active_counts_all, 
-                               active_counts_lact_group_5,
-                               active_counts_lact_group
-                               )
+    active_counts_lact_group <- active_animals |>
+    group_by(location_lact_list, lact_group) |>
+    summarise(cows_active = n(), .groups = "drop") |>
+     pivot_wider(names_from = lact_group,
+                 values_from = cows_active,
+                 values_fill = 0) |>
+    ungroup() |>
+      select(location_lact_list, 'LACT 3+')
+
+    active_counts_lact_group_5 <- active_animals |>
+    group_by(location_lact_list, lact_group_5) |>
+    summarise(cows_active = n(), .groups = "drop") |>
+     pivot_wider(names_from = lact_group_5,
+                 values_from = cows_active,
+                 values_fill = 0) |>
+    ungroup()
+
+    active_counts <- active_counts_all |> 
+      left_join(active_counts_lact_group_5) |> 
+      left_join(active_counts_lact_group)
     
   # Add the month column
   active_counts$month <- month
