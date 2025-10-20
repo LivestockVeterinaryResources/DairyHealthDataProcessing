@@ -153,7 +153,7 @@ km_fit <- function(data, censor_time = censor_time,
 
 # function for table
 km_fit_table <- function(data, censor_time = censor_time,
-                         censor_event = culled,
+                         censor_event = culled_ever,
                          over_var = life_x_disease_cat,
                          farms) {
   data_surv <- data |>
