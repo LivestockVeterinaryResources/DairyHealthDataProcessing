@@ -103,7 +103,6 @@ ggplot(trend_events_by_location%>%
                y = count_rows, color = event, group = event), span = .2, se = FALSE)+
 
     facet_wrap(location_event ~., scales = 'free', nrow = 2)+
-  scale_color_viridis_d()+
    scale_fill_viridis_d()+
   theme_bw()
 ```
@@ -242,6 +241,7 @@ p<-ggplot(health_details_fixed %>% filter(disease %in% list_dz[[i]])) +
     title = paste0(list_dz[[i]]),
     caption = 'Text on the bars are examples of remarks for each protocol'
   )
+
   print(p)
   
 }

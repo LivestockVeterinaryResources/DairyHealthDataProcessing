@@ -8,12 +8,10 @@ execute:
 embed-resources: true
 ---
 
-
 ```{r}
 library(tidyverse)
 library(arrow)
 ```
-
 
 ```{r file list}
 master_sk<-NULL
@@ -31,7 +29,6 @@ for (i in seq_along(list_intermediate_files)){
   master_sk<-bind_rows(sk_df, master_sk)
 }
 ```
-
 
 ```{r fxn_graph}
 # fxn_graph_file_skim<-function(){
@@ -56,6 +53,8 @@ fxn_graph_file_skim<-function(){
 }
 ```
 
+
+
 ## Events Formatted
 
 This is the main fundamental file driving the values in all other files. This file was created using the EVENTS\2S2000C #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43 command in Dairy Comp 305.
@@ -64,6 +63,8 @@ Each row is an "event" which specifies the animal, phase (lactation), date, and 
 
 The events_formated files drops the original column names and uses standard ones which have been formatted.  If there is a problem with the formatting the events_all_columns file can be used to chase any issues.  
 
+
+
 ```{r}
 
 select_df<-"events_formatted.parquet" # from list_intermediate_files
@@ -71,7 +72,11 @@ fxn_graph_file_skim()
 
 ```
 
+
+
 ## Events parsed
+
+
 ```{r, fig.height=12}
 
 select_df<-"events_parsed.parquet" # from list_intermediate_files
@@ -79,9 +84,13 @@ fxn_graph_file_skim()
 
 ```
 
+
+
 ## Animals
 
 This file lists each animal as a row. id_animal is the unique identifier of each animal. There should be one unique date for each date in this table, but sometimes there is not. Thus there are date_XXX_max variables.
+
+
 ```{r animals}
 
 select_df<-"animals.parquet" # from list_intermediate_files
@@ -89,16 +98,17 @@ fxn_graph_file_skim()
               
 ```
 
+
+
 ## Animal Lactations
 
 This file lists each animal lactation as a row. id_animal_lact is the unique identifier of each animal lactation. There should be one unique date for each date in this table, but sometimes there is not. Thus there are date_XXX_max variables.
+
+
 ```{r animal lact}
 
 select_df<-"animal_lactations.parquet" # from list_intermediate_files
 fxn_graph_file_skim()
               
 ```
-
-
-
 

@@ -6,29 +6,29 @@ pacman::p_load(
   dtplyr,
   flextable,
   glue,
+  googledrive,
   gt,
   gtsummary,
   lubridate,
   quarto,
   rmarkdown,
   scales,
-  survminer,
   stringr,
+  survminer,
   tidyverse,
   zoo
 )
 
+# read in functions -------------------
 
-#read in functions -------------------
+source("functions/fxn_location.R") # function to specify event location
+source("functions/fxn_assign_id_animal.R") # parameters to use in animal id
 
-source('functions/fxn_location.R') #function to specify event location
-source('functions/fxn_assign_id_animal.R') #parameters to use in animal id
+source("functions/fxn_parse_free_text.R") # functions to parse remarks and protocols
+source("functions/fxn_event_type.R") # c function to categorize events
 
-source('functions/fxn_parse_free_text.R') #functions to parse remarks and protocols
-source('functions/fxn_event_type.R') #c function to categorize events
-
-source('functions/fxn_disease.R')
-source('functions/fxn_treatment.R')
+source("functions/fxn_disease.R")
+source("functions/fxn_treatment.R")
 
 #SETUP-----------------------------
 
@@ -120,6 +120,7 @@ if (milk_data_exists == TRUE) {
 
 #FUTURE STUFF ---------------------------
 # quarto::quarto_render('step3_create_denominators_by_group.qmd') #(under developemnt)
+
 # quarto::quarto_render('step3_report_disease_template.qmd')
 # quarto::quarto_render('animal_counts.qmd')
 # cohort disease incidence (Location, Lactation, Breed, etc)

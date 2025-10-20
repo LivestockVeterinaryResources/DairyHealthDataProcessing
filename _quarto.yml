@@ -1,0 +1,4 @@
+# _quarto_yml settup
+project:
+  type: default 
+  output-dir: reports
