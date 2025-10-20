@@ -18,6 +18,8 @@ library(arrow)
 library(dtplyr)
 library(DT)
 library(gt)
+library(flextable)
+library(gtsummary)
 
 source('functions/DT_base.R') #functions to parse remarks and protocols
 
@@ -652,18 +654,41 @@ km
 
 ### Predicted culling risk at specific times for non-infectious lesions
 
-# not functional at this point for multiple farms
-```{r}
 
-# library(gtsummary)
-# library(flextable)
-# 
-# table <- time_to_cull_non_inf |>
-#   km_fit_table()
-# 
-# table
+```{r}
+#| label: surv-table
+
+# iterate over farms
+# non infectious
+non_inf_table <- map(farms, \(.x) km_fit_table(data = time_to_cull_non_inf,
+                                     farms = .x)
+           )
+
+# label list
+names(non_inf_table) <- farms
 
 ```
+
+Tables with cumulative predicted % risk of cow being culled after a lesion occurence at specific time points.
+
+:::: panel-tabset
+```{r}
+#| results: asis
+#| label: non_inf_surv
+
+# this creates tab for each farm
+
+iwalk(non_inf_table, ~ {
+  cat('## ', .y, '\n\n')
+  
+  # needed as a flextable
+  cat(knitr::knit_print(.x), '\n\n')
+  
+})
+
+```
+::::
+
 
 ## Other graphing options
 
