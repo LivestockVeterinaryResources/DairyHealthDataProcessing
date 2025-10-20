@@ -104,6 +104,7 @@ ggplot(trend_events_by_location%>%
 
     facet_wrap(location_event ~., scales = 'free', nrow = 2)+
    scale_fill_viridis_d()+
+  scale_color_viridis_d()+
   theme_bw()
 ```
 
