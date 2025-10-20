@@ -34,16 +34,6 @@ for (i in seq_along(list_intermediate_files)){
 
 
 ```{r fxn_graph}
-# fxn_graph_file_skim<-function(){
-#   p<-ggplot(master_sk|>filter(parquet_file_name %in% select_df))+
-#   geom_bar(aes(x = skim_variable, y = complete_rate, fill = skim_type), stat = 'identity')+
-#   facet_wrap(parquet_file_name~.)+
-#   coord_flip()+
-#     theme_bw()
-#   
-#   print(p)
-# }
-
 fxn_graph_file_skim<-function(){
   p<-ggplot(master_sk|>filter(parquet_file_name %in% select_df))+
   geom_bar(aes(x = skim_variable, y = complete_rate, fill = skim_type), stat = 'identity')+
@@ -51,9 +41,20 @@ fxn_graph_file_skim<-function(){
   coord_flip()+
     theme_bw()+
     scale_fill_viridis_d()
-  
+
   print(p)
 }
+# 
+# fxn_graph_file_skim<-function(){
+#   p<-ggplot(master_sk|>filter(parquet_file_name %in% select_df))+
+#   geom_bar(aes(x = skim_variable, y = complete_rate, fill = skim_type), stat = 'identity')+
+#   facet_wrap(parquet_file_name~.)+
+#   coord_flip()+
+#     theme_bw()+
+#     scale_fill_viridis_d()
+#   
+#   print(p)
+# }
 ```
 
 ## Events Formatted
