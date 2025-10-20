@@ -104,7 +104,8 @@ if (milk_data_exists == TRUE) {
   ### Step 3 Create Denominators ---------------------
   rm(list = ls()) #clean environment
   quarto::quarto_render('step3_create_denominators_lact_dim_season.qmd')
-
+  quarto::quarto_render('step3_create_denominators_by_group.qmd') #(under developemnt)
+  
 # Step 4 Report Templates------------------------
   rm(list = ls()) #clean environment
   
@@ -119,7 +120,6 @@ if (milk_data_exists == TRUE) {
   
 
 #FUTURE STUFF ---------------------------
-# quarto::quarto_render('step3_create_denominators_by_group.qmd') #(under developemnt)
 
 # quarto::quarto_render('step3_report_disease_template.qmd')
 # quarto::quarto_render('animal_counts.qmd')

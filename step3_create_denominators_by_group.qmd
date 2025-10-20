@@ -58,8 +58,8 @@ calendar<-tibble(date_calendar = seq.Date(from = data_pull_max-1200, to = data_p
 ## define list of animals
 
 This is the base data for denominator calculations.  
-Each row is a unique animal lactation (id_animal). 
-This is then joined to the animal data to make sure all dates for eligibility are availible if needed.  
+Each row is a unique animal lactation (id_animal_lact). 
+This is then joined to the animal data to make sure all dates for eligibility are available if needed.  
 
 In this base version of denominators, an animal is eligible to be counted if she exists on the reference day.  
 Code can easily be modified to accept other eligiblity criteria.
@@ -115,7 +115,6 @@ ggplot(sk_deno)+
 This loops over the list of calendar days and counts the number of eligible cows each date.  It prints out the date as it does it so you can see progress.  The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  The speed is limited by the length of the list of calendar dates until very very large herds are used.
 
 ```{r, message = FALSE}
-
 #make a place to put the results
 deno_dataframe<-NULL
 
@@ -155,14 +154,27 @@ for (i in seq_along(calendar$date_calendar)){
   df10<-bind_rows(df2, df3, df4)%>%
     distinct()
   
-  deno_dataframe <-bind_rows(deno_dataframe, df10) 
+  deno_dataframe <-bind_rows(deno_dataframe, df10) %>%
+    distinct()
   
   #print(calendar$date_calendar[[i]])
     
 }
-  
+```
 
 
+## Test Comparison to Old Gerard Deno
+
+```{r, message = FALSE}
+gerard_deno<-read_parquet('data/intermediate_files/herd_denominators.parquet')%>%
+  rename(ct_animals = count_animals)%>%
+  mutate(date_ref = lubridate::ymd(paste0(time_period, '/01/01')))
+
+waldo::compare(deno_dataframe%>%
+                 select(`Lactation Group`,  ct_animals, date_ref, everything())%>%
+                 filter(date_ref>=lubridate::ymd('2025/01/01')),
+               gerard_deno%>%
+                 select(`Lactation Group`,  ct_animals, date_ref, everything()))
 
 
 ```
