@@ -569,8 +569,8 @@ count_active_by_month <- function(month, data = data) {
     ungroup()
 
     active_counts <- active_counts_all |> 
-      left_join(active_counts_lact_group_5) |> 
-      left_join(active_counts_lact_group)
+      left_join(active_counts_lact_group_5, by = "location_lact_list") |> 
+      left_join(active_counts_lact_group, by = "location_lact_list")
     
   # Add the month column
   active_counts$month <- month
