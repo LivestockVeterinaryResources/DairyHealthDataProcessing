@@ -11,18 +11,17 @@ source('functions/fxn_parse_free_text.R') #functions to parse remarks and protoc
 source('functions/fxn_event_type.R') #c function to categorize events
 source('functions/fxn_location.R') #custom function to specify event location
 
-
-#set custom functions
-fxn_parse_remark<-fxn_parse_remark_default # parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom
-
-fxn_parse_protocols<-fxn_parse_protocols_default #parse_free_text options: fxn_parse_protocols_default, fxn_parse_protocols_custom
-
-fxn_assign_location_event<-fxn_assign_location_event_default #location_event options: fxn_assign_location_event_default, fxn_assign_location_event_custom
-
-fxn_event_type<-fxn_assign_event_type_default #event_type options: fxn_assign_event_type_default, fxn_assign_event_type_custom
-
-fxn_detect_location_lesion<-fxn_detect_location_lesion_default #detect_location_lesion options: fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
-
+# #set custom functions - moved this to step0
+# fxn_parse_remark<-fxn_parse_remark_default # parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom
+# 
+# fxn_parse_protocols<-fxn_parse_protocols_default #parse_free_text options: fxn_parse_protocols_default, fxn_parse_protocols_custom
+# 
+# fxn_assign_location_event<-fxn_assign_location_event_parnell_ANON #location_event options: fxn_assign_location_event_default, fxn_assign_location_event_custom
+# 
+# fxn_event_type<-fxn_assign_event_type_default #event_type options: fxn_assign_event_type_default, fxn_assign_event_type_custom
+# 
+# fxn_detect_location_lesion<-fxn_detect_location_lesion_default #detect_location_lesion options: fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
+# 
 
 #read in files-----------------
 
@@ -39,24 +38,26 @@ for (i in seq_along(list_files)){
            source_file_path = paste0('data/event_files/', list_files[i])
     ) 
   
+  #check colnames ------------------
+  event_columns<-colnames(df)
+  source('functions/fxn_fix_item_names.R') #standardize column names for known variation in column names
+  
   events<-bind_rows(events, df)
 }
 
-#check colnames ------------------
-event_columns<-colnames(events)
 
-#fix column names----------------------
-source('functions/fxn_fix_item_names.R')
 
 #add a stop function here if all expected columns do not exist
+
 
 #initial cleanup ---------------------------
 events2 <- events|>
   lazy_dt() |> 
   select(-starts_with('...')) |> #get rid of extra columns created by odd parsing in the original csv file, there is a better fix to the parsing issue, someday we should improve this
   ##create unique cow id--------------------------------------- 
-  mutate(id_animal = paste0(ID, '_', BDAT), 
-       id_animal_lact = paste0(ID, '_', BDAT, '_', LACT), 
+  fxn_assign_id_animal()%>%
+  mutate(#id_animal = paste0(ID, '_', BDAT), 
+         #id_animal_lact = paste0(ID, '_', BDAT, '_', LACT), 
        breed = CBRD)|>
   ##format dates--------------------------------------- 
   mutate(date_event = lubridate::mdy(Date), 
@@ -78,7 +79,7 @@ events2 <- events|>
   mutate(dim_event = parse_number(DIM), 
        lact_number = parse_number(LACT))|>
   arrange(id_animal, date_event)|>
-  # dedups to get but ignores source file
+  # dedups to get but ignores source file - Nora thinks we want this later in a formated version rather than the main one
   distinct(across(-c(source_file_path)),
            .keep_all = TRUE)|>
   ##replace missing values in remark and protocols to allow grouping later----------------
@@ -89,7 +90,7 @@ events2 <- events|>
   ##add standard event types-----------------
   fxn_assign_event_type_default()|>
   ##add event location --------------
-  fxn_assign_location_event_default()|>
+  fxn_assign_location_event()|>
   ##parse remarks and protocols-----------------
   fxn_parse_remark()|>
   fxn_parse_protocols()|>
@@ -195,8 +196,9 @@ write_parquet(qc_animal_enrollment, 'data/qc_files/qc_animal_enrollment.parquet'
 
 qc_event_type<-events2|>
   filter(event_type %in% 'Unknown')|>
-  group_by(Event, Protocols, event_type)|>
-  summarize(count = sum(n()))|>
+  group_by(location_event, Event, Protocols, event_type)|>
+  summarize(count = sum(n()), 
+            list_remark_letters1 = paste0(remark_letters1))|>
   ungroup()
 
 write_parquet(qc_event_type, 'data/qc_files/qc_event_type.parquet')

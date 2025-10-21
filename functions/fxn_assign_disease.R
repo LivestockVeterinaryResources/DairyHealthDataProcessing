@@ -1,26 +1,35 @@
 library(tidyverse)
 
-fxn_assign_disease_mastitis<-function(df){
+## use default - event = disease----------------------------
+fxn_assign_disease_default<-function(df){
   df%>%
     mutate(disease = case_when(
-      event %in% 'MAST' ~ 'MASTITIS',
-      TRUE ~ 'OTHER'
+      (!(event_type %in% 'health'))~'non-disease event',
+      TRUE~event
     ))
+
+
+## use template---------------------------------
+fxn_assign_disease_template<-function(df){
+   
+  dz_std<-read_csv('data/standardardization_files/disease_standards.csv')
+  
+  df%>%
+    left_join(dz_std)
 }
 
-fxn_assign_disease_lameness<-function(df){
+## use remark letters 1--------------------------
+fxn_assign_disease_remark_letters1<-function(df){
   df%>%
-    mutate(disease = case_when(
-      str_detect(remark, 'FOOTROT')~'footrot',
-      str-detect(remark, 'WL|.WL|WL.|.WL.')~'white line',
-      TRUE ~ 'OTHER'
-    ))
+    mutate(disease = remark_letters1)
 }
 
-fxn_assign_disease_bred<-function(df){
+
+## use protocols --------------------------------
+fxn_assign_disease_protocols<-function(df){
   df%>%
-    mutate(disease = case_when(
-      event %in% 'BRED' ~ 'BRED',
-      TRUE ~ 'Not BRED'
-    ))
+    mutate(disease = protocols)
+}
+
+
 }

@@ -55,29 +55,29 @@ date_end <- ymd(date_end)
 deno <- animal_lactations |>
   #left_join(animals%>%select(id_animal, date_left)) |> #nora added this, feel free to delete if it causes problems
   
-  select(id_animal, 
+  select(location_lact_list, id_animal, 
          id_animal_lact, 
-         lact_number, lact_group, lact_group_basic, #lact_group_5,
+         lact_number, lact_group, lact_group_basic, lact_group_5,
          date_fresh, #date_left, 
          date_archive, date_archive_max) |> 
   # get cull date
-  group_by(id_animal) |> 
+  group_by(location_lact_list, id_animal) |> 
   
   #***Lets discuss if it works to do this by joing to animals, it keeps it cleaner to not calculate the same value in 2 locations, see addition on line 56***
   mutate(date_left = max(date_archive_max)) |>
-  ungroup() |>
+  ungroup()  |>
   
   
-  #***create 5 lact groupp - his now happens in step 1 to put it in the same place as all the other lactation group assignments***
-  mutate (lact_group_5 = case_when(
-      (lact_number == 0) ~ 'Heifer',
-      (lact_number == 1) ~ 'LACT 1',
-      (lact_number == 2) ~ 'LACT 2',
-      (lact_number == 3) ~ 'LACT 3',
-      (lact_number == 4) ~ 'LACT 4',
-      (lact_number >4) ~ 'LACT 5+',
-      .default = 'Unknown')
-  ) |>
+  # #***create 5 lact groupp - his now happens in step 1 to put it in the same place as all the other lactation group assignments***
+  # mutate (lact_group_5 = case_when(
+  #     (lact_number == 0) ~ 'Heifer',
+  #     (lact_number == 1) ~ 'LACT 1',
+  #     (lact_number == 2) ~ 'LACT 2',
+  #     (lact_number == 3) ~ 'LACT 3',
+  #     (lact_number == 4) ~ 'LACT 4',
+  #     (lact_number >4) ~ 'LACT 5+',
+  #     .default = 'Unknown')
+  # ) |>
   #this works for test, but we need to come back to it to see if can integrate into workflow
   mutate(time_period = time_period_text) |> 
   # removes heifers
@@ -97,7 +97,7 @@ deno <- animal_lactations |>
 
 # test example
 denominators <- fxn_create_deno()%>%
-  arrange(id_animal, id_animal_lact)
+  arrange(location_lact_list, id_animal, id_animal_lact)
 
 
 
@@ -122,7 +122,7 @@ date_end <- ymd(date_end)
 deno <- animal_lactations |>
   left_join(animals%>%select(id_animal, date_left)) |> #nora added this, feel free to delete if it causes problems
   
-  select(id_animal, 
+  select(location_lact_list, id_animal, 
          id_animal_lact, 
          lact_number, lact_group, lact_group_basic, lact_group_5,
          date_fresh, date_left, date_archive, date_archive_max) |> 
@@ -190,14 +190,14 @@ fxn_calc_deno <- function(data = denominators){
   
 # create lactation groups denominators
 deno_all_lacts <- data |> 
-  group_by(time_period, lact_group_basic) |>  
+  group_by(location_lact_list, time_period, lact_group_basic) |>  
   summarize(count_animals = n_distinct(id_animal), 
             count_lactations = n_distinct(id_animal_lact))|>
   ungroup()%>%
  rename(`Lactation Group` = lact_group_basic )
 
 deno_by_lact_group <- data |>
-  group_by(time_period,  lact_group)|>
+  group_by(location_lact_list, time_period,  lact_group)|>
   summarize(count_animals = n_distinct(id_animal), 
             count_lactations = n_distinct(id_animal_lact)) |>
   ungroup() %>%
@@ -205,7 +205,7 @@ deno_by_lact_group <- data |>
 
 # create more lact groups
 deno_by_lact_group_5 <- data |>
-  group_by(time_period,  lact_group_5)|>
+  group_by(location_lact_list, time_period,  lact_group_5)|>
   summarize(count_animals = n_distinct(id_animal), 
             count_lactations = n_distinct(id_animal_lact)) |>
   ungroup() %>%
@@ -261,7 +261,7 @@ ggplot(data = deno_2yrs, aes(x = `Lactation Group`, y = count_animals,
                              fill = `Lactation Group`))+
   geom_col()+
   scale_fill_viridis_d()+
-  facet_wrap(vars(time_period))+
+  facet_wrap(vars(time_period, location_lact_list))+
   theme_minimal()+
   theme(legend.position = "",
         axis.text.x = element_text(angle = 45, hjust = 1)
@@ -334,10 +334,11 @@ fxn_deno_dim <- function(data = deno_dim, lact_group_var){
   
   data <- data |> 
   select(-c(dim_start, dim_end, dim_end_cat, dim_start_cat)) |> 
-  group_by(time_period, {{ lact_group_var }}) |> 
+  group_by(location_lact_list, time_period, {{ lact_group_var }}) |> 
   summarise(across(contains("dim_"), ~ sum(. == 1, na.rm = TRUE))) |> 
   ungroup() |> 
-  pivot_longer(cols = -c(time_period, {{ lact_group_var }}), 
+  pivot_longer(cols = -c(location_lact_list ,
+                         time_period, {{ lact_group_var }}), 
                names_to = "DIM", 
                values_to = "count") |> 
   rename(`Lactation Group` = {{ lact_group_var }} )
@@ -381,7 +382,8 @@ ggplot(data = herd_deno_dim)+
       fill = DIM)+
   geom_col()+
   scale_fill_viridis_d()+
-  facet_wrap(vars(`Lactation Group`))+
+  facet_grid(rows = vars(location_lact_list), cols = vars(`Lactation Group`)
+             )+
   theme_minimal()+
   theme(legend.position = "",
         axis.text.x = element_text(angle = 45, hjust = 1)
@@ -487,10 +489,10 @@ data_class <- data |>
 
 data_class_count <- data_class |> 
   select(-c(unit_start, unit_end, unit_start_cat, unit_end_cat)) |> 
-  group_by(time_period, lact_group_basic) |> 
+  group_by(location_lact_list, time_period, lact_group_basic) |> 
   summarise(across(contains("unit_"), ~ sum(. == 1, na.rm = TRUE))) |> 
   ungroup() |> 
-  pivot_longer(cols = -c(time_period, lact_group_basic), 
+  pivot_longer(cols = -c(location_lact_list, time_period, lact_group_basic), 
                names_to = "Month", 
                values_to = "count") |> 
   rename(`Lactation Group` = lact_group_basic) 
@@ -542,27 +544,33 @@ count_active_by_month <- function(month, data = data) {
   
   # Count the cows in each lactation group for this month
   active_counts_all <- active_animals |> 
-    group_by(lact_group_basic) |> 
+    group_by(location_lact_list, lact_group_basic) |> 
     summarise(cows_active = n(), .groups = "drop") |> 
-    spread(key = lact_group_basic, value = cows_active, fill = 0) |> 
+    pivot_wider(names_from = lact_group_basic, 
+                values_from = cows_active, 
+                values_fill = 0) |> 
     ungroup()
   
-    active_counts_lact_group <- active_animals |> 
-    group_by(lact_group) |> 
-    summarise(cows_active = n(), .groups = "drop") |> 
-    spread(key = lact_group, value = cows_active, fill = 0) |> 
-    ungroup() |> 
-      select('LACT 3+')
-    
-    active_counts_lact_group_5 <- active_animals |> 
-    group_by(lact_group_5) |> 
-    summarise(cows_active = n(), .groups = "drop") |> 
-    spread(key = lact_group_5, value = cows_active, fill = 0) |> 
+    active_counts_lact_group <- active_animals |>
+    group_by(location_lact_list, lact_group) |>
+    summarise(cows_active = n(), .groups = "drop") |>
+     pivot_wider(names_from = lact_group,
+                 values_from = cows_active,
+                 values_fill = 0) |>
+    ungroup() |>
+      select(location_lact_list, 'LACT 3+')
+
+    active_counts_lact_group_5 <- active_animals |>
+    group_by(location_lact_list, lact_group_5) |>
+    summarise(cows_active = n(), .groups = "drop") |>
+     pivot_wider(names_from = lact_group_5,
+                 values_from = cows_active,
+                 values_fill = 0) |>
     ungroup()
-  
-    active_counts <- bind_cols(active_counts_all, 
-                               active_counts_lact_group_5, 
-                               active_counts_lact_group)
+
+    active_counts <- active_counts_all |> 
+      left_join(active_counts_lact_group_5, by = "location_lact_list") |> 
+      left_join(active_counts_lact_group, by = "location_lact_list")
     
   # Add the month column
   active_counts$month <- month
@@ -663,7 +671,8 @@ ggplot()+
       fill = month)+
   geom_col()+
   scale_fill_viridis_d()+
-  facet_wrap(vars(`Lactation Group`))+
+  facet_grid(rows = vars(location_lact_list), cols = vars(`Lactation Group`)
+             )+
   theme_minimal()+
   theme(legend.position = "",
         axis.text.x = element_text(angle = 45, hjust = 1)
