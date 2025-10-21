@@ -18,6 +18,8 @@ library(arrow)
 library(dtplyr)
 library(DT)
 library(gt)
+library(flextable)
+library(gtsummary)
 
 source('functions/DT_base.R') #functions to parse remarks and protocols
 
@@ -32,10 +34,10 @@ pull_date <- max(events_formatted$date_event)
 farm_name <- unique(events_formatted$location_event)
 
 herd_deno <- read_parquet('data/intermediate_files/herd_denominators.parquet') |> 
-  mutate(farm = farm_name)
+  mutate(farm = location_lact_list)
  
 summarize_events<-events_formatted |> 
-  group_by(event, protocols_remaining_after_numbers1, 
+  group_by(farm = location_event, event, protocols_remaining_after_numbers1, 
            remark_letters1
            ) |> 
   summarize(count_rows=sum(n()))|>
@@ -56,11 +58,11 @@ summarize_events<-events_formatted |>
 ### Protocol Data
 
 ```{r}
-#| fig-height: 8
+#| fig-height: 12
 # count y vars
 
 facet_order <- summarize_events %>%
-  group_by(event_type) %>%
+  group_by(farm, event_type) %>%
   summarise(n_y = n_distinct(event)) %>%
   arrange(desc(n_y)) %>%  # Order by most y categories
   pull(event_type)
@@ -73,7 +75,7 @@ summarize_events <- summarize_events %>%
   geom_bar(aes(x = event_type,
                y = count_rows, fill = event_type), stat = "identity")+
   #facet_wrap(factor(event, levels = facet_order) ~., scales = 'free')+
-    facet_wrap(vars(event), ncol = 1, scales = "free")+
+    facet_wrap(vars(farm, event), ncol = 2 , scales = "free")+
   coord_flip()+
   scale_fill_viridis_d()+
   theme_minimal()+
@@ -89,10 +91,10 @@ summarize_events <- summarize_events %>%
 Description of top 10 remarks recorded, Other is combined remaining remarks
 
 ```{r}
-
+#| fig-height: 8
 
 facet_order <- summarize_events %>%
-  group_by(remark_type) %>%
+  group_by(farm, remark_type) %>%
   summarise(n_y = n_distinct(event)) %>%
   arrange(desc(n_y)) %>%  # Order by most y categories
   pull(remark_type)
@@ -110,7 +112,7 @@ summarize_events <- summarize_events %>%
   geom_bar(aes(x = remark_type,
                y = count_rows, fill = remark_type), stat = "identity")+
   #facet_wrap(factor(event, levels = facet_order) ~., scales = 'free')+
-    facet_wrap(vars(event), ncol = 1, scales = "free")+
+    facet_wrap(vars(farm, event), ncol = 2, scales = "free")+
   coord_flip()+
   scale_fill_viridis_d()+
   theme_minimal()+
@@ -138,7 +140,7 @@ all_lesions <- c("dd", "footrot", 'wld', "sole_ulcer","injury",
 
 # create variables
 lame_events <- events_formatted |> 
-  mutate(farm = farm_name) |> 
+  mutate(farm = location_event) |> 
   # create lesion vars
   fxn_code_lesions(protocol_var = protocols,
                    remark_var = remark) |> 
@@ -410,6 +412,7 @@ risk_gt
 
 region_les_graph <- function(.data, 
                              facet_col = farm,
+                             facet_row = time_period,
                              plot_var = lesion_type,
                              lesions = all_lesions,
                              years,
@@ -488,7 +491,8 @@ les_graph <- df %>%
   title.hjust = 0.5)
   )+
   theme(legend.position = "top")+
-  facet_wrap(vars({{facet_col}}), ncol = 1,
+  facet_grid(cols = vars ({{facet_col}}), 
+             rows = vars({{facet_row}}),
              labeller = labeller(lesion_type = lesion_labels))+
   theme(strip.text = element_text(face = "bold"))
 }
@@ -500,6 +504,7 @@ les_graph <- df %>%
 #| label: fig_any
 #| fig-cap: "**A lot of repeat lesions**"
 #| fig-cap-location: top
+#| fig-height: 8
 
 
 farms <- farm_name
@@ -540,7 +545,8 @@ graph_overall
 
 graph_lact <- risk |> 
   filter(lact_group_5 != "LACT > 0") |> 
-  region_les_graph(years = years, farms = farms, facet_col = lact_group_5)
+  region_les_graph(years = years, farms = farms, facet_col = farm,
+                   facet_row = lact_group_5)
 
 graph_lact
 
@@ -636,7 +642,7 @@ years <- "2025"
 
 time_to_cull_non_inf <- lame_cull |>
   mutate(year = year(floordate_year)) |>
-  survival_data(years = "2024",
+  survival_data(years = years,
                 disease = noninf, life_x_dz = life_times_noninf)
 
 km <- time_to_cull_non_inf |>
@@ -648,17 +654,41 @@ km
 
 ### Predicted culling risk at specific times for non-infectious lesions
 
+
 ```{r}
+#| label: surv-table
 
-library(gtsummary)
-library(flextable)
+# iterate over farms
+# non infectious
+non_inf_table <- map(farms, \(.x) km_fit_table(data = time_to_cull_non_inf,
+                                     farms = .x)
+           )
 
-table <- time_to_cull_non_inf |>
-  km_fit_table()
-
-table
+# label list
+names(non_inf_table) <- farms
 
 ```
+
+Tables with cumulative predicted % risk of cow being culled after a lesion occurence at specific time points.
+
+:::: panel-tabset
+```{r}
+#| results: asis
+#| label: non_inf_surv
+
+# this creates tab for each farm
+
+iwalk(non_inf_table, ~ {
+  cat('## ', .y, '\n\n')
+  
+  # needed as a flextable
+  cat(knitr::knit_print(.x), '\n\n')
+  
+})
+
+```
+::::
+
 
 ## Other graphing options
 

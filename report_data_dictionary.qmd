@@ -1,5 +1,5 @@
 ---
-title: "File Descriptions"
+title: "Data Dictionary"
 format: html
 execute:
   echo: false
@@ -20,41 +20,43 @@ master_sk<-NULL
 
 list_intermediate_files<-list.files('data/intermediate_files')
 
-#i=1
-for (i in seq_along(list_intermediate_files)){
-  df<-read_parquet(paste0('data/intermediate_files/', list_intermediate_files[i]))
-  
-  sk_df<-skimr::skim(df)|>
-    mutate(parquet_file_name = paste0(list_intermediate_files[i]))|>
+fxn_graph_file_skim <- function(file_name) {
+  df <- read_parquet(file.path('data/intermediate_files', file_name))
+  sk_df <- skimr::skim(df) %>%
+    mutate(parquet_file_name = file_name) %>%
     arrange(skim_variable)
   
-  master_sk<-bind_rows(sk_df, master_sk)
+  ggplot(sk_df) +
+    geom_bar(aes(x = skim_variable, y = complete_rate, fill = skim_type), stat = 'identity') +
+    facet_wrap(~parquet_file_name) +
+    coord_flip() +
+    theme_bw() +
+    scale_fill_viridis_d()
 }
+
 ```
 
 
-```{r fxn_graph}
-fxn_graph_file_skim<-function(){
-  p<-ggplot(master_sk|>filter(parquet_file_name %in% select_df))+
-  geom_bar(aes(x = skim_variable, y = complete_rate, fill = skim_type), stat = 'identity')+
-  facet_wrap(parquet_file_name~.)+
-  coord_flip()+
-    theme_bw()+
-    scale_fill_viridis_d()
+This report contains a list of variable names for the files in that are created after the data is processed. Most are self explanatory.  Location of the files are in data/intermediate_files/ folder.
+In all tables the variable that starts with location indicates the farm/site of the event or calculation.
 
-  print(p)
-}
-# 
-# fxn_graph_file_skim<-function(){
-#   p<-ggplot(master_sk|>filter(parquet_file_name %in% select_df))+
-#   geom_bar(aes(x = skim_variable, y = complete_rate, fill = skim_type), stat = 'identity')+
-#   facet_wrap(parquet_file_name~.)+
-#   coord_flip()+
-#     theme_bw()+
-#     scale_fill_viridis_d()
-#   
-#   print(p)
-# }
+## Animals
+
+This file lists each animal as a row. id_animal is the unique identifier of each animal. There should be one unique date for each date in this table, but sometimes there is not. Thus there are date_XXX_max variables.
+```{r animals}
+
+fxn_graph_file_skim("animals.parquet")
+
+              
+```
+
+## Animal Lactations
+
+This file lists each animal lactation as a row. id_animal_lact is the unique identifier of each animal lactation. There should be one unique date for each date in this table, but sometimes there is not. Thus there are date_XXX_max variables.
+```{r animal lact}
+
+fxn_graph_file_skim("animal_lactations.parquet")
+              
 ```
 
 ## Events Formatted
@@ -66,40 +68,53 @@ Each row is an "event" which specifies the animal, phase (lactation), date, and 
 The events_formated files drops the original column names and uses standard ones which have been formatted.  If there is a problem with the formatting the events_all_columns file can be used to chase any issues.  
 
 ```{r}
-
-select_df<-"events_formatted.parquet" # from list_intermediate_files
-fxn_graph_file_skim()
+fxn_graph_file_skim("events_formatted.parquet") 
 
 ```
 
 ## Events parsed
+
+This file is a further processed file from events_formatted where disease and treatment information has been parsed out into separate columns.
+
 ```{r, fig.height=12}
 
-select_df<-"events_parsed.parquet" # from list_intermediate_files
-fxn_graph_file_skim()
+fxn_graph_file_skim("events_parsed.parquet")
 
 ```
 
-## Animals
+# Denominators (in Development) 
 
-This file lists each animal as a row. id_animal is the unique identifier of each animal. There should be one unique date for each date in this table, but sometimes there is not. Thus there are date_XXX_max variables.
-```{r animals}
+This is in active development and not yet finalized. Currently there are 3 denominator files that give denominator values for the past year.  The are overall, by DIM and by month. We plan to give you more customized options in the future.
 
-select_df<-"animals.parquet" # from list_intermediate_files
-fxn_graph_file_skim()
-              
+## Herd Denominators
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("herd_denominators.parquet") 
+
 ```
 
-## Animal Lactations
+## Herd DIM Denominators
 
-This file lists each animal lactation as a row. id_animal_lact is the unique identifier of each animal lactation. There should be one unique date for each date in this table, but sometimes there is not. Thus there are date_XXX_max variables.
-```{r animal lact}
+Inventory for past year in 13 30 DIM windows for
 
-select_df<-"animal_lactations.parquet" # from list_intermediate_files
-fxn_graph_file_skim()
-              
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("herd_dim_denominators.parquet") 
+
 ```
 
+## Herd Denominators by month
 
+Monthly inventory for the past year
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("herd_season_denominators.parquet") 
+
+```
 
 

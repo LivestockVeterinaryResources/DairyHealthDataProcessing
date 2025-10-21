@@ -50,9 +50,12 @@ survival_data <- function(data = lame_cull,
       )
     ) |>
     filter(!is.na(life_x_disease)) |>
-    mutate(life_x_disease_cat = fct_reorder(life_x_disease_cat,
-      life_x_disease,
-      .na_rm = TRUE
+    mutate(life_x_disease_cat = factor(life_x_disease_cat,
+      levels = c(
+        "Never any lesion",
+        "Once", "Twice",
+        "3 or more times"
+      )
     )) |>
     # needs to be dataframe due to surv below otherwise factors get messed up
     as.data.frame()
@@ -85,25 +88,25 @@ km_fit <- function(data, censor_time = censor_time,
     "3 or more times"
   )
 
-  # 2. Get the actual levels of 'life_x_disease_cat' from the data
-  actual_levels <- levels(factor(data_surv$life_x_disease_cat))
-
-  # 3. Create a named vector mapping the factor levels to the desired labels
-  #    This step ensures the labels are correctly matched even if the levels
-  #    are factors with predefined internal ordering.
-
-  # A simple check: if the number of levels matches the number of labels
-  if (length(actual_levels) != length(custom_legend_labs)) {
-    warning("The number of levels in 'life_x_disease_cat' does not match the number of custom legend labels. Using factor levels directly.")
-    final_legend_labs <- actual_levels
-  } else {
-    # If the levels are in the same order as the desired labels:
-    final_legend_labs <- custom_legend_labs[match(actual_levels, unique(data_surv$life_x_disease_cat))]
-    # Note: Using match() assumes a specific ordering of 'life_x_disease_cat'
-    # levels in relation to 'custom_legend_labs'.
-    # If 'life_x_disease_cat' is a factor, use:
-    # final_legend_labs <- custom_legend_labs[match(levels(data_surv$life_x_disease_cat), actual_levels)]
-  }
+  # # 2. Get the actual levels of 'life_x_disease_cat' from the data
+  # actual_levels <- levels(factor(data_surv$life_x_disease_cat))
+  #
+  # # 3. Create a named vector mapping the factor levels to the desired labels
+  # #    This step ensures the labels are correctly matched even if the levels
+  # #    are factors with predefined internal ordering.
+  #
+  # # A simple check: if the number of levels matches the number of labels
+  # if (length(actual_levels) != length(custom_legend_labs)) {
+  #   warning("The number of levels in 'life_x_disease_cat' does not match the number of custom legend labels. Using factor levels directly.")
+  #   final_legend_labs <- actual_levels
+  # } else {
+  #   # If the levels are in the same order as the desired labels:
+  #   final_legend_labs <- custom_legend_labs[match(actual_levels, unique(data_surv$life_x_disease_cat))]
+  #   # Note: Using match() assumes a specific ordering of 'life_x_disease_cat'
+  #   # levels in relation to 'custom_legend_labs'.
+  #   # If 'life_x_disease_cat' is a factor, use:
+  #   # final_legend_labs <- custom_legend_labs[match(levels(data_surv$life_x_disease_cat), actual_levels)]
+  # }
 
 
   # Calculate the number of facets based on 'facet.by'
@@ -134,7 +137,7 @@ km_fit <- function(data, censor_time = censor_time,
       palette = life_colours,
       legend = "bottom",
       legend.title = "Lifetime Lesion #",
-      legend.labs = final_legend_labs,
+      legend.labs = custom_legend_labs,
       xlab = "Days to Cull after Lesion",
       ylab = "% of Cows Alive",
       xlim = c(0, 180),
@@ -147,8 +150,51 @@ km_fit <- function(data, censor_time = censor_time,
 
 
 # function for table
+
+# function for table
 km_fit_table <- function(data, censor_time = censor_time,
-                         censor_event = culled_ever) {
+                         censor_event = culled_ever,
+                         over_var = life_x_disease_cat,
+                         farms) {
+  data_surv <- data |>
+    filter(farm == {{ farms }}) |>
+    mutate(
+      surv_object = Surv(
+        time = {{ censor_time }},
+        event = {{ censor_event }}
+      ),
+      over = {{ over_var }}
+    )
+
+  fit_table <- survfit(surv_object ~ over, data = data_surv)
+  fit_table |>
+    tbl_survfit(
+      times = c(30, 120, 180),
+      label = " ",
+      type = "risk",
+      label_header = "{time} Days"
+    ) %>%
+    as_flex_table() %>% # makes formatting and pdf better
+    add_header_row(
+      top = TRUE,
+      values = c(
+        "Lifetime Lesion History",
+        "% Culled (Confidence Interval) at",
+        "", ""
+      )
+    ) %>%
+    bold(i = 1, bold = TRUE, part = "header") %>% # bolds headers
+    bold(i = 2, bold = TRUE, part = "header") %>%
+    merge_at(i = 1:2, j = 1, part = "header") %>% # merges 1st row
+    merge_at(i = 1, j = 2:4, part = "header") %>% # merges top columns
+    delete_rows(i = 1, part = "body") |>
+    fit_to_width(max_width = 6.5) |>
+    hline_bottom(part = "body")
+}
+
+
+km_fit_table_single <- function(data, censor_time = censor_time,
+                                censor_event = culled_ever) {
   data_surv <- data |>
     mutate(surv_object = Surv(
       time = {{ censor_time }},

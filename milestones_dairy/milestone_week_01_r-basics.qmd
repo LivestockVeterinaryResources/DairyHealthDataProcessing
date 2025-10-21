@@ -29,7 +29,7 @@ The data we will use in our investigation is saved as an R object named `animals
 
 -   Display the contents of `animals`
 -   Use `nrow()` to find the number of observations in `animals`. Name this "number_of_rows". (hint: you should see "number_of_rows" in your environment)
--   Use `mean()` to find the average age and animal left (hint: use the variable named "age_left"). Name this "average_age_left".
+-   Use `mean()` to find the average age an animal left (hint: use the variable named "age_left"). Name this "average_age_left".
 -   Use `count()` from the dplyr package to count the number of observations associated with each location, breed and sex (hint: variable names should be "breed", "sex", "location_list". Name this 'counts'.
 
 *Hint: you may want to look up the help pages for each of these functions.*
