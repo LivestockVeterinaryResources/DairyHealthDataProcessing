@@ -4,6 +4,7 @@ pacman::p_load(
   arrow,
   DT,
   dtplyr,
+  cardx,
   flextable,
   glue,
   googledrive,
