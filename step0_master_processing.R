@@ -16,6 +16,7 @@ pacman::p_load(
   stringr,
   survminer,
   tidyverse,
+  waldo,
   zoo
 )
 
