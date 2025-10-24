@@ -585,7 +585,8 @@ lame_cull <- lame_events2 |>
          ## don't need first one as only applies to trimonly to lame 
          # days_to_next_lame = lead(days_from_trim, n = 1),
          days_to_next_lame = if_else(type_next_trim == 0, 
-                                          days_to_next_trim, NA)
+                                     as.numeric(days_to_next_trim),
+                                     NA_real_)
          ) |> 
   ungroup() |> 
   # set days to censor when trimmed again for time_to_event graphs
