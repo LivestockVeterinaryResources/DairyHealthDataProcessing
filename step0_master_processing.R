@@ -15,6 +15,7 @@ pacman::p_load(
   rmarkdown,
   scales,
   stringr,
+  survival,
   survminer,
   tidyverse,
   waldo,
