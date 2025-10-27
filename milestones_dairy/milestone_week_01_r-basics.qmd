@@ -59,7 +59,7 @@ Check age_left:
 
 ```{r, echo=FALSE}
 
-waldo::compare(age_left, read_rds('data_milestones/solutions_week_01_age_left.rds'))
+waldo::compare(average_age_left, read_rds('data_milestones/solutions_week_01_age_left.rds'))
 
 ```
 
