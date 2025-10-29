@@ -1,0 +1,94 @@
+---
+title: Read and Visualize
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load your packages here
+
+library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
+library(arrow) #this package handles parquet files
+library(skimr) #this is particularly helpful when looking at new data or finding NA values
+library(waldo) #we use this to create answer keys for these exercises
+
+
+```
+
+## Read and Visualize
+
+In this milestone, you'll use ggplot2 to visualize the distribution of age_left for a subset of the data. But before you begin, you'll need to import the animals data set. Unlike with Milestone 1, the animals data set has not been pre-loaded for you to use in R.
+
+
+## Recreation
+
+### Part 1 - Import
+
+In the code chunk below, use a command from the arrow package to read in the animals data set.
+
+* The animals data set lives in the file `animals.parquet` (think of parquet as just another file extension like .csv, or .doc), which is stored in the `data/intermediate_files` folder in your working directory.  However, this quarto document lives in a folder below the working directory, so when you call the file path you need to use "../" at the beginning of the path to tell it to look for the path beginning one level higher than where this quarto document is stored. 
+
+* Save the data set as an object in your environment named `animals`.
+
+
+```{r}
+#| label: recreation-import
+#hint the function to read in a parquet file is the same as the code to read a csv file except replace 'csv' with 'parquet'
+
+
+
+
+```
+
+### Part 2 - Visualize
+
+Run the code chunk below to see a plot. Your task is to recreate this plot. 
+
+
+```{r}
+#| label: recreate-this
+#| message: false
+
+knitr::include_graphics("images/milestone02.png")
+```
+
+Use `ggplot()` in the chunk below to re-create the plot above. Before plotting, you will first need to filter your data set to only include observations from cattle where age_left is more than 1 year.
+
+
+```{r}
+#| label: recreation-visualize
+
+
+
+```
+
+
+
+
+## Extension
+
+Using the code chunk below, investigate a research question about this data, using the visualization skills you learned this week. Some ideas:
+
+1. How does the distribution of age_left differ between breeds? Consider exploring these distributions with other geoms.
+2. What relationships do you see between age_left and other variables of interest in the data set?
+3. [any other research question of interest]
+
+Alternately, working with a data set of your own, complete the following: 
+
+1. Read in your data
+2. Filter your data using a logical test/condition 
+3. Graph this data subset using at least one geom 
+
+
+
+```{r}
+#| label: extension
+
+
+
+
+```
+
