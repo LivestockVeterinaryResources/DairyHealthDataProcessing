@@ -18,6 +18,7 @@ library(arrow)
 library(dtplyr)
 
 source('functions/DT_base.R')
+source('functions/fxn_denominator_eligibility.R')
 
 ```
 
@@ -62,35 +63,22 @@ Each row is a unique animal lactation (id_animal).
 This is then joined to the animal data to make sure all dates for eligibility are availible if needed.  
 
 In this base version of denominators, an animal is eligible to be counted if she exists on the reference day.  
-Code can easily be modified to accept other eligiblity criteria.
+Code can easily be modified to accept other eligibility criteria.
 
 ```{r}
 #base data frame for denominator.  Each row is an animal lactation, joined to animal data so that all important dates are available
 deno_base<-animal_lactations |> 
   left_join(animals) %>%
-  left_join(animal_event_existance)%>%
-  mutate(
-    #Define start legitimate start date for each row
-    date_elig_start = case_when(
-      ((lact_number >0)&((is.na(date_fresh))<1))~date_fresh, #fresh date is not missing
-      ((lact_number >0)&((is.na(date_fresh))>0))~data_pull_min, #fresh date is missing for a lactation, this is usually because the lactation started prior to the data pull date
-      lact_number == 0~date_birth, #remember that heifers are different . . . there might be a better way to handle this
-      TRUE~lubridate::ymd(NA) #if none of the above are true, the minium data pull date is the date first eligible, this could also use some validation
-      ), 
-    
-    #Define legitimate end date.  Use date_archive except for active cows. 
-    # date_elig_end = case_when(
-    #   is.na(date_archive)~data_pull_max,
-    #   TRUE~date_archive)
-    
-    #Get lactating cows. Define dry_date end date.  Use date_archive except for active cows. 
-    date_elig_end = case_when(
-     (is.na(date_next_fresh)<1)~date_next_fresh,
-      (is.na(date_archive)<1)~date_archive, #if no date dry end with date_archive
-      (is.na(date_archive)>0)~data_pull_max, #if no archive date end with data_pull_max date
-      TRUE~lubridate::ymd(NA)) #this should be modified so that it throws an error notifying us that we missed something in the logic
-    
-)
+  left_join(animal_event_existance)
+
+deno_all_lact<-deno_base%>%
+  fxn_deno_eligible_entire_lactation() #animals are eligible the entire lactation
+
+deno_milking<-deno_base%>%
+  fxn_deno_eligible_milking() #animals are eligible only when milking
+
+deno_dry<-deno_base%>%
+  fxn_deno_eligible_dry() #animals are eligible only when dry
 
 ```
 
@@ -116,6 +104,10 @@ This loops over the list of calendar days and counts the number of eligible cows
 
 ```{r, message = FALSE}
 
+#set_deno_base_type<-deno_all_lact
+set_deno_base_type<-deno_dry
+#set_deno_base_type<-deno_dry
+
 #make a place to put the results
 deno_dataframe<-NULL
 
@@ -124,7 +116,7 @@ deno_dataframe<-NULL
 for (i in seq_along(calendar$date_calendar)){
   
   #faster------------------------------------------
-  df<-deno_base%>%
+  df<-set_deno_base_type%>%
     #test%>%
     mutate(date_ref = calendar$date_calendar[[i]])%>%
     mutate(eligible = case_when(
@@ -157,7 +149,7 @@ for (i in seq_along(calendar$date_calendar)){
   
   deno_dataframe <-bind_rows(deno_dataframe, df10) 
   
-  #print(calendar$date_calendar[[i]])
+  print(calendar$date_calendar[[i]])
     
 }
   
