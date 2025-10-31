@@ -27,6 +27,8 @@ fxn_assign_event_type_default <- function(df) {
     
     (str_detect(event, 'SYNCH|.SYNCH|SYNCH.|.SYNCH.')) ~ "repro",
     (str_detect(event, 'OV.')) ~ "repro",
+    (str_detect(event, 'CIDR|.CIDR|CIDR.|.CIDR.')) ~ "repro",
+    
     
     ## health------------------------------------
     (event %in% c(
@@ -34,15 +36,15 @@ fxn_assign_event_type_default <- function(df) {
       "INJURY", "MF", "MLKFVR", 'MFEVER', 'MILKFVR', "DA", "METR", "KETOSIS",
       "LAME", "MAST", "NAVEL", "OTHER", "OTITIS", "PINKEYE", "PNEU",
       "RP", 'RETAINP', 'INFUSED', 'MET', 'PROLAPS',
-      "JOINT",
+      "JOINT", 'JOHNES',
       "SCOURS", "SEPTIC", "HARDWARE", "HRDWARE", "CULTURE", "FOOTTRIM", "TRIM", 'HOOFTRM',
       "TRIMONLY", "FOOTRIM",
-      "TEMP", "TREAT", '3TEAT', 
+      "TEMP", "TREAT", '3TEAT', 'TRT',
       'HITEMP', 'ILL', 'IV', 'SICK','OFFEED', 'OFFEED', 'RESP', 
       'MAGNET', 'DOWN', 'TREATED', 'SCRILL', 'BIRDFLU', 'BRDFLU', 'HPAI', 'EDEMA',
       'DEHYDR', 'DRENCH', 'PUMP',
       'ULCER',
-      'EXCEDE', 
+      'EXCEDE', 'EARS',
       'BADLEG', 'BADLEGS', 'BADSTOM'
    
        )) ~ "health",
@@ -55,6 +57,9 @@ fxn_assign_event_type_default <- function(df) {
      (str_detect(event, 'FOOT|.FOOT|FOOT.|.FOOT.|FEET|.FEET|FEET.|.FEET.'))~'health',
      (str_detect(event, 'TRIM|.TRIM|TRIM.|.TRIM.')) ~ "health",
      (str_detect(event, 'DIG.|DIAR.')) ~ "health",
+    (str_detect(event, 'BLD.|BLOOD|BLOOD.|.BLOOD|.BLOOD.')) ~ "health",
+    (str_detect(event, 'CANCER.|CANCER|.CANCER.|.CANCER')) ~ "health",
+
     
     
     ##management-----------------------------------
@@ -62,7 +67,7 @@ fxn_assign_event_type_default <- function(df) {
                  'WELL', 'HOME', 'HOSP', 'TEAT3', 'BEEF', 'DEHORN', 'BSTOP', 'CULL', 'ATRISK') ~ "management",
 
     ###vac----------------------
-    event %in% c('J5', 'FRESHOT', 'BANGS', 'EXPRESS', 'SRP', 'EXP10', 'INFORCE', 'PYRAMID', 'ALPHA7')~'vac',
+    event %in% c('J5', 'FRESHOT', 'BANGS', 'EXPRESS', 'SRP', 'EXP10', 'INFORCE', 'PYRAMID', 'ALPHA7', 'CITADEL')~'vac',
     
     (str_detect(event, 'VAC|.VAC|VAC.|.VAC.|BANGS|BANGS.'))~'vac',
     
@@ -73,6 +78,10 @@ fxn_assign_event_type_default <- function(df) {
                  'MEASURD', 'IGG') ~ "measure",
     
     (str_detect(event, 'TEST|.TEST|TEST.|.TEST.'))~'measure',
+    (str_detect(event, 'BCS|.BCS|BCS.|.BCS.'))~'measure',
+    (str_detect(event, 'BHB|.BHB|BHB.|.BHB.'))~'measure',
+    (str_detect(event, 'SCORE|.SCORE|SCORE.|.SCORE.'))~'measure',
+    
     
     
     
