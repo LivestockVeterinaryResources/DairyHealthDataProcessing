@@ -130,7 +130,10 @@ source("step2_create_intermediate_files.R") # fundamental files
 
 ### Step 3 Create Denominators ---------------------
 rm(list = ls()) # clean environment
-quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd")
+quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") #denominators for lameness report
+quarto::quarto_render('step3_create_denominators_by_group.qmd') #standard denominators by lactation group, calender time, phase time
+quarto::quarto_render('step3_create_denominators_by_breed.qmd') #example of custom variable for denominators
+
 
 # Step 4 Report Templates------------------------
 rm(list = ls()) # clean environment

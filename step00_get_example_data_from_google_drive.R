@@ -7,8 +7,8 @@ library(glue)
 drive_deauth() # this disables authentication notifications for a publicly shared folder
 
 set_herds_to_download <- c( # "Example Herd 1",
-  "Example Herd 2" # ,
-  # "Example Herd 3"#,
+  "Example Herd 2" #,
+   #"Example Herd 3",
   # "Example Herd 4"#,
   # "Example Herd 5"#,
   # "Example Herd 6"#,
