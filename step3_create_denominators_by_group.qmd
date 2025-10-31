@@ -20,6 +20,8 @@ library(dtplyr)
 source('functions/DT_base.R')
 source('functions/fxn_denominator_eligibility.R')
 
+
+
 ```
 
 ```{r}
@@ -79,6 +81,14 @@ deno_milking<-deno_base%>%
 
 deno_dry<-deno_base%>%
   fxn_deno_eligible_dry() #animals are eligible only when dry
+```
+
+#set base type used for calculations
+
+```{r}
+set_deno_base_type<-deno_all_lact
+#set_deno_base_type<-deno_dry
+#set_deno_base_type<-deno_dry
 
 ```
 
@@ -103,10 +113,6 @@ ggplot(sk_deno)+
 This loops over the list of calendar days and counts the number of eligible cows each date.  It prints out the date as it does it so you can see progress.  The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  The speed is limited by the length of the list of calendar dates until very very large herds are used.
 
 ```{r, message = FALSE}
-
-#set_deno_base_type<-deno_all_lact
-set_deno_base_type<-deno_dry
-#set_deno_base_type<-deno_dry
 
 #make a place to put the results
 deno_dataframe<-NULL
@@ -191,7 +197,7 @@ denominator_granular<-deno_dataframe%>%
          floordate_calendar_season = floor_date(date_calendar, unit = 'seasons'),
          floordate_calendar_month = floor_date(date_calendar, unit = 'months'),
          floordate_calendar_week = floor_date(date_calendar, unit = 'weeks') )%>%
-  select(`Lactation Group`, ct_animals, contains('date'))
+  select(animal_location_event_list, `Lactation Group`, ct_animals, contains('date'))
 
 write_parquet(denominator_granular, 'data/intermediate_files/denominator_granular_lactation_groups.parquet')
 
@@ -211,7 +217,7 @@ Any option is available, the time period start an end dates just need to be defi
 
 fxn_create_deno<-function(time_period){
   denominator_granular%>%
-    group_by(`Lactation Group`, {{time_period}})%>%
+    group_by(animal_location_event_list, `Lactation Group`, {{time_period}})%>%
     #group_by(`Lactation Group`, floordate_calendar_year)%>%
     summarize(time_period_start = min(date_calendar), 
               time_period_end = max(date_calendar), 
@@ -252,6 +258,8 @@ fxn_DT_base(denominator_time_period)
 ```{r}
 
 ggplot(denominator_time_period)+
+  geom_linerange(aes(y = animal_count_mean, xmin = time_period_start, xmax = time_period_end ))+
+  facet_grid(`Lactation Group`~animal_location_event_list)
   
 
 ```
@@ -267,9 +275,7 @@ This loops over the list of calendar days and counts the number of eligible cows
 
 ```{r, message = FALSE}
 
-set_deno_base_type<-deno_all_lact
-#set_deno_base_type<-deno_dry
-#set_deno_base_type<-deno_dry
+
 
 #set_dim_breaks<-30
 set_dim_breaks<-seq(0, 400, by = 30)
