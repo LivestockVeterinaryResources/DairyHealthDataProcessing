@@ -34,7 +34,7 @@ animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parqu
 animal_event_existance<-read_parquet('data/intermediate_files/events_all_columns.parquet')%>% #add a few parameters to animal
   mutate(lact = parse_number(LACT))%>%
   group_by(id_animal)%>%
-  summarize(animal_location_event_list = paste0(sort(unique(location_event)), collapse = ','), 
+  summarize(location_lact_list = paste0(sort(unique(location_event)), collapse = ','), 
             animal_lact_min = min(lact), 
             animal_lact_max = max(lact), 
             animal_date_event_min = min(date_event, na.rm = TRUE), 
@@ -135,19 +135,19 @@ for (i in seq_along(calendar$date_calendar)){
     ))
   
   df2<-df%>%
-    group_by(animal_location_event_list, lact_group_basic, breed_simple, date_ref) |>  #add custom grouping variable here
+    group_by(location_lact_list, lact_group_basic, breed_simple, date_ref) |>  #add custom grouping variable here
     summarize(ct_animals = sum(eligible))%>%
     ungroup() |> 
     rename(`Lactation Group` = lact_group_basic)
   
   df3<-df%>%
-    group_by(animal_location_event_list, lact_group, breed_simple, date_ref) |> #add custom grouping variable here
+    group_by(location_lact_list, lact_group, breed_simple, date_ref) |> #add custom grouping variable here
     summarize(ct_animals = sum(eligible))%>%
     ungroup()|> 
     rename(`Lactation Group` = lact_group)
   
   df4<-df%>%
-    group_by(animal_location_event_list, lact_group_5, breed_simple, date_ref) |> #add custom grouping variable here
+    group_by(location_lact_list, lact_group_5, breed_simple, date_ref) |> #add custom grouping variable here
     summarize(ct_animals = sum(eligible))%>%
     ungroup()|> 
     rename(`Lactation Group` = lact_group_5)
@@ -181,7 +181,7 @@ This is a plot of the granular dataframe.  It displays the count of cows on each
 ggplot(deno_dataframe)+
   geom_point(aes(x = date_ref, y = ct_animals, color = `Lactation Group`))+
   ylim(c(0, NA))+
-  facet_grid(animal_location_event_list~breed_simple)+
+  facet_grid(location_lact_list~breed_simple)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
@@ -202,7 +202,7 @@ denominator_granular<-deno_dataframe%>%
          floordate_calendar_season = floor_date(date_calendar, unit = 'seasons'),
          floordate_calendar_month = floor_date(date_calendar, unit = 'months'),
          floordate_calendar_week = floor_date(date_calendar, unit = 'weeks') )%>%
-  select(animal_location_event_list, `Lactation Group`, breed_simple, ct_animals, contains('date'))
+  select(location_lact_list, `Lactation Group`, breed_simple, ct_animals, contains('date'))
 
 write_parquet(denominator_granular, 'data/intermediate_files/denominator_calendar_time_custom_breed.parquet')
 
@@ -222,7 +222,7 @@ Any option is available, the time period start an end dates just need to be defi
 
 fxn_create_deno<-function(time_period){
   denominator_granular%>%
-    group_by(animal_location_event_list, `Lactation Group`, breed_simple, {{time_period}})%>% #add custom grouping variable here
+    group_by(location_lact_list, `Lactation Group`, breed_simple, {{time_period}})%>% #add custom grouping variable here
     #group_by(`Lactation Group`, floordate_calendar_year)%>%
     summarize(time_period_start = min(date_calendar), 
               time_period_end = max(date_calendar), 
@@ -239,7 +239,7 @@ denominator_month<-fxn_create_deno(time_period = floordate_calendar_month)
 denominator_week<-fxn_create_deno(time_period = floordate_calendar_week)
 
 denominator_time_period<-bind_rows(denominator_year, denominator_season, denominator_month, denominator_week)%>%
-  select(`Lactation Group`, breed_simple, contains('time_period'), contains('animal'), contains('floordate'))%>% #add custom grouping variable here
+  select(location_lact_list, `Lactation Group`, breed_simple, contains('time_period'), contains('animal'), contains('floordate'))%>% #add custom grouping variable here
   mutate(time_period_type = case_when(
     (is.na(floordate_calendar_year)<1)~'year', 
     (is.na(floordate_calendar_season)<1)~'season', 
@@ -266,7 +266,7 @@ ggplot(denominator_time_period)+
                      xmin = time_period_start, 
                      xmax = time_period_end, 
                      color = breed_simple))+
-  facet_grid(`Lactation Group`~animal_location_event_list)
+  facet_grid(`Lactation Group`~location_lact_list)
   
 
 ```
@@ -307,7 +307,7 @@ for (i in seq_along(calendar$date_calendar)){
 
   df3<-df%>%
     filter(!(is.na(dim_categories)))%>%
-    group_by(animal_location_event_list, lact_group, breed_simple, date_ref, dim_categories) |> #add custom grouping variable here
+    group_by(location_lact_list, lact_group, breed_simple, date_ref, dim_categories) |> #add custom grouping variable here
     summarize(ct_animal_lacts = n_distinct(id_animal_lact)
               )%>%
     ungroup()|> 
@@ -339,7 +339,7 @@ for (i in seq_along(list_custom_var)){
 p<-ggplot(deno_dataframe_phase%>%filter(breed_simple %in% list_custom_var[[i]]))+
   geom_point(aes(x = date_ref, y = ct_animal_lacts, color = dim_categories, shape = breed_simple))+
   ylim(c(0, NA))+
-  facet_grid(animal_location_event_list~`Lactation Group`)+
+  facet_grid(location_lact_list~`Lactation Group`)+
   labs(title = paste0('Breed = ', list_custom_var[[i]]))
 print(p)
 }
