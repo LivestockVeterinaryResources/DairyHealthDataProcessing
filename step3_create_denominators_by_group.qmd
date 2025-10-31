@@ -267,6 +267,13 @@ This loops over the list of calendar days and counts the number of eligible cows
 
 ```{r, message = FALSE}
 
+set_deno_base_type<-deno_all_lact
+#set_deno_base_type<-deno_dry
+#set_deno_base_type<-deno_dry
+
+#set_dim_breaks<-30
+set_dim_breaks<-seq(0, 400, by = 30)
+
 
 #make a place to put the results
 deno_dataframe_phase<-NULL
@@ -275,86 +282,42 @@ deno_dataframe_phase<-NULL
 for (i in seq_along(calendar$date_calendar)){
   
   #faster------------------------------------------
-  df<-deno_base%>%
+  df<-set_deno_base_type%>%
     #test%>%
     mutate(date_ref = calendar$date_calendar[[i]])%>%
-    mutate(
-      eligible_0_30 = case_when(
-      ((date_elig_start<=date_ref)&(date_dim30>date_ref))~1, #inclusive at begining but not end
-      TRUE~0), 
-      
-      eligible_31_60 = case_when(
-      ((date_dim30<=date_ref)&(date_dim60>date_ref))~1, #inclusive at begining but not end
-      TRUE~0), 
-      
-      eligible_61_90 = case_when(
-      ((date_dim60<=date_ref)&(date_dim90>date_ref))~1, #inclusive at begining but not end
-      TRUE~0), 
-      
-      eligible_91_120 = case_when(
-      ((date_dim90<=date_ref)&(date_dim120>date_ref))~1, #inclusive at begining but not end
-      TRUE~0), 
-      
-      eligible_121_150 = case_when(
-      ((date_dim120<=date_ref)&(date_dim150>date_ref))~1, #inclusive at begining but not end
-      TRUE~0), 
-      
-      eligible_151_200 = case_when(
-      ((date_dim150<=date_ref)&(date_dim200>date_ref))~1, #inclusive at begining but not end
-      TRUE~0), 
-      
-      eligible_201_305 = case_when(
-      ((date_dim200<=date_ref)&(date_dim305>date_ref))~1, #inclusive at begining but not end
-      TRUE~0)
-      )
-  
-  
-  
-  
-  
+    mutate(dim_at_date_ref = case_when(
+      ((date_ref>=date_elig_start)&(date_ref<date_elig_end))~as.numeric(date_ref-date_fresh), 
+      TRUE~as.numeric(NA))
+      )%>%
+        mutate(dim_categories = cut(dim_at_date_ref, breaks = set_dim_breaks))
+    
+
   df3<-df%>%
-    group_by(animal_location_event_list, lact_group, date_ref) |> 
-    summarize(ct_animals_0_30 = sum(eligible_0_30), 
-              ct_animals_31_60 = sum(eligible_31_60), 
-              ct_animals_61_90 = sum(eligible_61_90), 
-              ct_animals_91_120 = sum(eligible_91_120), 
-              ct_animals_121_150 = sum(eligible_121_150), 
-              ct_animals_151_200 = sum(eligible_151_200), 
-              ct_animals_201_305 = sum(eligible_201_305)
+    filter(!(is.na(dim_categories)))%>%
+    group_by(animal_location_event_list, lact_group, date_ref, dim_categories) |> 
+    summarize(ct_animal_lacts = n_distinct(id_animal_lact)
               )%>%
     ungroup()|> 
     rename(`Lactation Group` = lact_group)
   
-  df4<-df%>%
-    group_by(animal_location_event_list, lact_group_5, date_ref) |> 
-    summarize(ct_animals_0_30 = sum(eligible_0_30, na.rm = TRUE), 
-              ct_animals_31_60 = sum(eligible_31_60, na.rm = TRUE), 
-              ct_animals_61_90 = sum(eligible_61_90, na.rm = TRUE), 
-              ct_animals_91_120 = sum(eligible_91_120, na.rm = TRUE), 
-              ct_animals_121_150 = sum(eligible_121_150, na.rm = TRUE), 
-              ct_animals_151_200 = sum(eligible_151_200, na.rm = TRUE), 
-              ct_animals_201_305 = sum(eligible_201_305, na.rm = TRUE)
-              )%>%
-    ungroup()|> 
-    rename(`Lactation Group` = lact_group_5)
-  
+ 
  
   #final df---------------------------
   df10<-bind_rows(df3, df4)%>%
     distinct()
   
-  deno_dataframe_phase <-bind_rows(deno_dataframe, df10) 
+  deno_dataframe_phase <-bind_rows(deno_dataframe_phase, df3)
   
   print(calendar$date_calendar[[i]])
     
 }
 
-deno_dataframe_phase_long<-deno_dataframe_phase%>%
-  pivot_longer(cols = c("ct_animals_0_30", "ct_animals_31_60", "ct_animals_61_90", 
-                        "ct_animals_91_120", "ct_animals_121_150", "ct_animals_151_200", "ct_animals_201_305"),
-               names_to = 'phase_category', 
-               values_to = 'ct_animals_in_phase')
-  
+# deno_dataframe_phase_long<-deno_dataframe_phase%>%
+#   pivot_longer(cols = c("ct_animals_0_30", "ct_animals_31_60", "ct_animals_61_90",
+#                         "ct_animals_91_120", "ct_animals_121_150", "ct_animals_151_200", "ct_animals_201_305"),
+#                names_to = 'phase_category',
+#                values_to = 'ct_animals_in_phase')
+# #   
 
 ```
 
@@ -364,10 +327,10 @@ deno_dataframe_phase_long<-deno_dataframe_phase%>%
 
 ```{r}
 
-ggplot(deno_dataframe_phase_long)+
-  geom_point(aes(x = date_ref, y = ct_animals_in_phase, color = `Lactation Group`))+
+ggplot(deno_dataframe_phase)+
+  geom_point(aes(x = date_ref, y = ct_animal_lacts, color = dim_categories))+
   ylim(c(0, NA))+
-  facet_wrap(animal_location_event_list~.)
+  facet_grid(animal_location_event_list~`Lactation Group`)
 
 ```
 
