@@ -48,7 +48,7 @@ data_pull_max<-max(animals$data_pull_date_max)
 ```
 
 
-## define calendar days 
+## define calendar days for calculations 
 
 This creates a list of calendar days from 1200 days prior to the most recent event date
 
@@ -65,7 +65,9 @@ Each row is a unique animal lactation (id_animal).
 This is then joined to the animal data to make sure all dates for eligibility are availible if needed.  
 
 In this base version of denominators, an animal is eligible to be counted if she exists on the reference day.  
-Code can easily be modified to accept other eligibility criteria.
+
+There are example functions for all_lactation, milking, dry. Code can easily be modified to accept other eligibility criteria.
+
 
 ```{r}
 #base data frame for denominator.  Each row is an animal lactation, joined to animal data so that all important dates are available
@@ -83,7 +85,7 @@ deno_dry<-deno_base%>%
   fxn_deno_eligible_dry() #animals are eligible only when dry
 ```
 
-#set base type used for calculations
+### set base type used for calculations
 
 ```{r}
 set_deno_base_type<-deno_all_lact
@@ -93,6 +95,7 @@ set_deno_base_type<-deno_all_lact
 ```
 
 
+### plot variables in base data
 ```{r, fig.height=12}
 sk_deno<-skimr::skim(deno_base)
 
@@ -168,7 +171,7 @@ for (i in seq_along(calendar$date_calendar)){
 
 
 
-## Plot Counts by Lactation Groups
+### Plot Counts by Lactation Groups
 
 This is a plot of the granular dataframe.  It displays the count of cows on each reference date.
 
@@ -258,7 +261,9 @@ fxn_DT_base(denominator_time_period)
 ```{r}
 
 ggplot(denominator_time_period)+
-  geom_linerange(aes(y = animal_count_mean, xmin = time_period_start, xmax = time_period_end ))+
+  geom_linerange(aes(y = animal_count_mean, 
+                     xmin = time_period_start, 
+                     xmax = time_period_end ))+
   facet_grid(`Lactation Group`~animal_location_event_list)
   
 
