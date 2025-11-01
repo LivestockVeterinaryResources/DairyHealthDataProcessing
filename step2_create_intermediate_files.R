@@ -26,7 +26,7 @@ events_formatted <- read_parquet("data/intermediate_files/events_all_columns.par
 ## animals - each row is an animal------------
 animals <- events_formatted |>
   group_by(
-    id_animal, date_birth,
+    id_animal, date_birth, ID,
     # source_farm, source_state, #optional
     data_pull_date_min, data_pull_date_max
   ) |>
@@ -99,7 +99,7 @@ write_parquet(master_animals, "data/intermediate_files/animals.parquet")
 ## animal_lactations - each row is an animal/lactation----------
 animal_lactations <- events_formatted |>
   group_by(
-    id_animal, id_animal_lact, lact_number,
+    id_animal, id_animal_lact, lact_number, ID,
     lact_group, lact_group_basic, lact_group_repro, lact_group_5
   ) |>
   summarize(
