@@ -80,16 +80,15 @@ set_outcome_gap_lactation <- 1
 ## Set up processing -------------------------------
 #**** Modify This Section***
 
-### your google drive-----------
-# set this to TRUE to pull data from google drive. You must modify the function
-#  to pull from the google drive folder you specify.  if you already have the
-#   data that you want in data/event_files set it to false to save time
+### YOUR google drive-----------
+# set this to TRUE to pull data from YOUR google drive. You must modify the function
+#  to pull from the google drive folder you specify, and authenticate appropriately.  
+#  If you are manually adding data to event_files this should be set to false
 get_data_from_google_drive <- FALSE
 
-### example data google drive-----------
+### EXAMPLE data google drive-----------
 # set this to TRUE to pull EXAMPLE data from google drive.
-# if you already have the data that you want in data/event_files
-# set it to false to save time
+# if you already have the data that you want in data/event_files set it to false
 get_EXAMPLE_data_from_google_drive <- TRUE
 
 ### denomiantor settings----------
