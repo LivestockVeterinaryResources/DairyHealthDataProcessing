@@ -118,3 +118,60 @@ fxn_graph_file_skim("herd_season_denominators.parquet")
 ```
 
 
+## Standard Denominators
+
+### Calendar Time
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("denominator_calendar_time.parquet") 
+
+```
+
+### Time Period
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("denominator_time_period.parquet") 
+
+```
+
+### Phase Time
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("denominator_phase_time.parquet") 
+
+```
+
+## Custom Variable Denominator Template (breed_simple)
+
+### Calendar Time (custom variable "breed_simple")
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("denominator_calendar_time_custom_breed.parquet") 
+
+```
+
+### Time Period (custom variable "breed_simple")
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("denominator_time_period_custom_breed.parquet") 
+
+```
+
+### Phase Time (custom variable "breed_simple")
+
+``` {r}
+#| fig.height: 3
+
+fxn_graph_file_skim("denominator_phase_time_custom_breed.parquet") 
+
+```
