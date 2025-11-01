@@ -1,6 +1,7 @@
 ---
 title: Read and Visualize
 format: html
+embed_resources: true
 ---
 
 ```{r}
