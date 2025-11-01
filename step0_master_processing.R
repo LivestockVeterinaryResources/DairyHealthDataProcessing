@@ -35,37 +35,35 @@ source("functions/fxn_treatment.R")
 
 # SETUP-----------------------------
 
+
 ## Set custom functions----
 #**** Modify This Section***
+##Note: you can build your own custom functions for any of these.  
+##If you choose to use custom functions you must source them when you assign them
 
-### animal id---------
-# fxn_assign_id_animal options:
-# fxn_assign_id_animal_default, fxn_assign_id_animal_parnell
+### animal id  (turn on only one of these lines) ---------
+#fxn_assign_id_animal <- fxn_assign_id_animal_default
 fxn_assign_id_animal <- fxn_assign_id_animal_parnell
 
 ### parsing---------
-# parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom
+## parse_free_text options: 
 fxn_parse_remark <- fxn_parse_remark_default
 
-# parse_free_text options: fxn_parse_protocols_default, fxn_parse_protocols_custom
+## parse_free_text options: 
 fxn_parse_protocols <- fxn_parse_protocols_default
 
-### locations----------
-# location_event options:
-# fxn_assign_location_event_default, fxn_assign_location_event_custom
+### locations  ((turn on only one of these lines) ----------
+set_farm_name <- 'Example Herd'  #if you are not using the default location function this name will never be used
+#fxn_assign_location_event <- fxn_assign_location_event_default
 fxn_assign_location_event <- fxn_assign_location_event_parnell_ANON
 
 # detect_location_lesion options:
-# fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
 fxn_detect_location_lesion <- fxn_detect_location_lesion_default
 
 ### event_types------------
-# event_type options:
-# fxn_assign_event_type_default, fxn_assign_event_type_custom
 fxn_event_type <- fxn_assign_event_type_default
 
 ### disease and treatments---------------
-# disease assignment options: fxn_assign_disease_template
 fxn_assign_disease <- fxn_assign_disease_default
 
 # under development
