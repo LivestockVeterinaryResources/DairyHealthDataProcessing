@@ -9,6 +9,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+
+library(tidyverse)
+library(arrow)
+
+
 source('dev_parnel_parse_events.R')
 source('functions/fxn_event_type.R')
 source('functions/fxn_parse_free_text.R')
