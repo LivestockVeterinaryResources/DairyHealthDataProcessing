@@ -24,6 +24,7 @@ pacman::p_load(
 )
 
 # read in functions -------------------
+source('functions/fxn_delete_files_clean_slate.R')
 
 source("functions/fxn_location.R") # function to specify event location
 source("functions/fxn_assign_id_animal.R") # parameters to use in animal id
@@ -81,6 +82,11 @@ set_outcome_gap_lactation <- 1
 
 ## Set up processing -------------------------------
 #**** Modify This Section***
+#*
+
+### clean up old data ---------------------------------
+#***DANGER*** make sure you understand this setting if you change it to TRUE
+clean_slate <- FALSE #this will delete all data in data/event_files and data/intermediate files
 
 ### YOUR google drive-----------
 # set this to TRUE to pull data from YOUR google drive. You must modify the function
@@ -111,6 +117,11 @@ auto_de_duplicate <- TRUE
 # PROCESS FILES--------------------------
 #*** Do NOT modify this section*** unless you are very sure you understand what you want
 #*
+## start with clean slate ------
+if (clean_slate == TRUE){
+  fxn_delete_files_clean_slate()
+}
+
 ## process milk data ---------------------
 if (milk_data_exists == TRUE) {
   source("step1a_read_in_production_data.R")
