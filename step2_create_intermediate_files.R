@@ -88,7 +88,10 @@ master_animals <- animals |>
     TRUE ~ lubridate::mdy(NA)
   )) |>
   mutate(age_left = as.numeric(date_left - date_birth)) |>
-  mutate(age_enrolled = as.numeric(date_enrolled - date_birth))
+  mutate(
+    age_enrolled = as.numeric(date_enrolled - date_birth)
+  ) |>
+  rename(id = ID)
 
 write_parquet(master_animals, "data/intermediate_files/animals.parquet")
 
