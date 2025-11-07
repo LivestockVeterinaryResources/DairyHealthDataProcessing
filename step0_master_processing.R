@@ -36,36 +36,36 @@ source("functions/fxn_treatment.R")
 
 # SETUP-----------------------------
 
+
 ## Set custom functions----
 
-### animal id---------
-# fxn_assign_id_animal options:
-# fxn_assign_id_animal_default, fxn_assign_id_animal_parnell
+#**** Modify This Section***
+##Note: you can build your own custom functions for any of these.  
+##If you choose to use custom functions you must source them when you assign them
+
+### animal id  (turn on only one of these lines) ---------
+#fxn_assign_id_animal <- fxn_assign_id_animal_default
 fxn_assign_id_animal <- fxn_assign_id_animal_parnell
 
 ### parsing---------
-# parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom
+## parse_free_text options: 
 fxn_parse_remark <- fxn_parse_remark_default
 
-# parse_free_text options: fxn_parse_protocols_default, fxn_parse_protocols_custom
+## parse_free_text options: 
 fxn_parse_protocols <- fxn_parse_protocols_default
 
-### locations----------
-# location_event options:
-# fxn_assign_location_event_default, fxn_assign_location_event_custom
+### locations  ((turn on only one of these lines) ----------
+set_farm_name <- 'Example Herd'  #if you are not using the default location function this name will never be used
+#fxn_assign_location_event <- fxn_assign_location_event_default
 fxn_assign_location_event <- fxn_assign_location_event_parnell_ANON
 
 # detect_location_lesion options:
-# fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
 fxn_detect_location_lesion <- fxn_detect_location_lesion_default
 
 ### event_types------------
-# event_type options:
-# fxn_assign_event_type_default, fxn_assign_event_type_custom
 fxn_event_type <- fxn_assign_event_type_default
 
 ### disease and treatments---------------
-# disease assignment options: fxn_assign_disease_template
 fxn_assign_disease <- fxn_assign_disease_default
 
 # under development
@@ -82,16 +82,15 @@ set_outcome_gap_lactation <- 1
 ## Set up processing -------------------------------
 #**** Modify This Section***
 
-### your google drive-----------
-# set this to TRUE to pull data from google drive. You must modify the function
-#  to pull from the google drive folder you specify.  if you already have the
-#   data that you want in data/event_files set it to false to save time
+### YOUR google drive-----------
+# set this to TRUE to pull data from YOUR google drive. You must modify the function
+#  to pull from the google drive folder you specify, and authenticate appropriately.  
+#  If you are manually adding data to event_files this should be set to false
 get_data_from_google_drive <- FALSE
 
-### example data google drive-----------
+### EXAMPLE data google drive-----------
 # set this to TRUE to pull EXAMPLE data from google drive.
-# if you already have the data that you want in data/event_files
-# set it to false to save time
+# if you already have the data that you want in data/event_files set it to false
 get_EXAMPLE_data_from_google_drive <- TRUE
 
 ### denomiantor settings----------
