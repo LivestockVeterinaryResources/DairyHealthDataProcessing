@@ -38,6 +38,7 @@ source("functions/fxn_treatment.R")
 
 
 ## Set custom functions----
+
 #**** Modify This Section***
 ##Note: you can build your own custom functions for any of these.  
 ##If you choose to use custom functions you must source them when you assign them
@@ -127,8 +128,12 @@ source("step1_read_in_data.R")
 source("step2_create_intermediate_files.R") # fundamental files
 
 ### Step 3 Create Denominators ---------------------
+#standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
-quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd")
+quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") #denominators for lameness report
+quarto::quarto_render('step3_create_denominators_by_group.qmd') #standard denominators by lactation group, calender time, phase time
+quarto::quarto_render('step3_create_denominators_by_breed.qmd') #example of custom variable for denominators
+
 
 # Step 4 Report Templates------------------------
 rm(list = ls()) # clean environment
@@ -144,7 +149,7 @@ quarto::quarto_render("report_explore_lame.qmd")
 
 
 # FUTURE STUFF ---------------------------
-# quarto::quarto_render('step3_create_denominators_by_group.qmd') #(under developemnt)
+# quarto::quarto_render('step3_create_denominators_by_group.qmd') #(under development)
 
 # quarto::quarto_render('step3_report_disease_template.qmd')
 # quarto::quarto_render('animal_counts.qmd')
