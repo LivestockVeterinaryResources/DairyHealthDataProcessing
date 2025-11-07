@@ -118,9 +118,9 @@ if (milk_data_exists == TRUE) {
 
 ## process event data -----------------
 
-if (get_data_from_google_drive == TRUE) {
-  source("step00_get_data_from_google_drive.R")
-}
+# if (get_data_from_google_drive == TRUE) {
+#   source("step00_get_data_from_my_google_drive.R") #note you must set this up with your google drive path and authentication
+# }
 
 if (get_EXAMPLE_data_from_google_drive == TRUE) {
   source("step00_get_example_data_from_google_drive.R")
