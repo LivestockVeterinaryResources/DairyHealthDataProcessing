@@ -102,6 +102,11 @@ denominator_granularity <- 100
 # if you also want to pull in milk data set this to true
 milk_data_exists <- FALSE
 
+### deduplicate automatically---------
+# deduplicate at original file creation
+# if this is true it will run a function to deduplicate rows - this usually makes sense but not always.
+auto_de_duplicate <- TRUE
+
 
 # PROCESS FILES--------------------------
 #*** Do NOT modify this section*** unless you are very sure you understand what you want
