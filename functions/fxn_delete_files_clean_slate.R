@@ -1,6 +1,6 @@
 library(tidyverse)
 
-
+fxn_delete_files_clean_slate <- function(){}
   ## Event files---------------------------
   # Define the directory
   dir_path <- file.path("data/event_files")
@@ -37,5 +37,5 @@ library(tidyverse)
     message("Some files could not be deleted.")
   }
   
-  
+  }
   
