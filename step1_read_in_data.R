@@ -10,18 +10,8 @@ library(arrow)
 source('functions/fxn_parse_free_text.R') #functions to parse remarks and protocols
 source('functions/fxn_event_type.R') #c function to categorize events
 source('functions/fxn_location.R') #custom function to specify event location
+source('functions/fxn_de_duplicate.R')
 
-# #set custom functions - moved this to step0
-# fxn_parse_remark<-fxn_parse_remark_default # parse_free_text options: fxn_parse_remark_default, fxn_parse_remark_custom
-# 
-# fxn_parse_protocols<-fxn_parse_protocols_default #parse_free_text options: fxn_parse_protocols_default, fxn_parse_protocols_custom
-# 
-# fxn_assign_location_event<-fxn_assign_location_event_parnell_ANON #location_event options: fxn_assign_location_event_default, fxn_assign_location_event_custom
-# 
-# fxn_event_type<-fxn_assign_event_type_default #event_type options: fxn_assign_event_type_default, fxn_assign_event_type_custom
-# 
-# fxn_detect_location_lesion<-fxn_detect_location_lesion_default #detect_location_lesion options: fxn_detect_location_lesion_default, fxn_detect_location_lesion_custom
-# 
 
 #read in files-----------------
 
@@ -60,28 +50,35 @@ events2 <- events|>
          #id_animal_lact = paste0(ID, '_', BDAT, '_', LACT), 
        breed = CBRD)|>
   ##format dates--------------------------------------- 
-  mutate(date_event = lubridate::mdy(Date), 
+   mutate(
+    across(
+      .cols = matches("(Date|DAT)$"),  # columns ending with Date or DAT
+      .fns = ~ parse_date_time(., orders = c("mdy", "ymd", "dmy")),
+      .names = "{.col}"  # keep same names
+     )
+    )%>%
+  mutate(date_event = Date, 
        
-       date_birth = lubridate::mdy(BDAT), 
+       date_birth = BDAT, 
        
-       date_fresh = lubridate::mdy(FDAT), 
-       date_dry = lubridate::mdy(DDAT),
+       date_fresh = FDAT, 
+       date_dry = DDAT,
        
-       date_enrolled = lubridate::mdy(EDAT), 
-       date_archived = lubridate::mdy(ARDAT),
+       date_enrolled = EDAT, 
+       date_archived = ARDAT#,
        
-       date_heat = lubridate::mdy(HDAT), #unnecessary to pull
-       date_concieved = lubridate::mdy(CDAT), #unnecessary to pull
-       date_aborted = lubridate::mdy(ABDAT), #unnecessary to pull
-       date_repro_dx = lubridate::mdy(PODAT) #unnecessary to pull
+       # Am taking these out of main processing, they can be added to a repro function later
+       # date_heat = HDAT, #unnecessary to pull
+       # date_concieved = CDAT, #unnecessary to pull
+       # date_aborted = ABDAT, #unnecessary to pull
+       # date_repro_dx = PODAT #unnecessary to pull
        )|>
   ##parse numbers -------------------
   mutate(dim_event = parse_number(DIM), 
        lact_number = parse_number(LACT))|>
   arrange(id_animal, date_event)|>
-  # dedups to get but ignores source file - Nora thinks we want this later in a formated version rather than the main one
-  distinct(across(-c(source_file_path)),
-           .keep_all = TRUE)|>
+  ## de deuplicates rows (or not) according to setting--------------
+  fxn_de_duplicate()|>
   ##replace missing values in remark and protocols to allow grouping later----------------
   mutate(protocols = str_replace_na(Protocols, 'BLANK_UNKNOWN'), 
        remark = str_replace_na(Remark, 'BLANK_UNKNOWN'),
@@ -173,13 +170,15 @@ write_parquet(events2, 'data/intermediate_files/events_all_columns.parquet') # t
 # formatted file -----------------------
 write_parquet(events2%>%
                 select(source_file_path, 
-                       id_animal, date_birth, breed, eid, date_enrolled, qc_diff_bdat_edat,
+                       id_animal, 
+                       date_birth, breed, #eid, 
+                       date_enrolled, qc_diff_bdat_edat,
                        id_animal_lact, date_archived, 
                        lact_number, lact_group_basic, lact_group, lact_group_repro, lact_group_5,
                        event_type, event, remark, contains('remark'), protocols, contains('protocols'), 
                        technician, date_event, dim_event, location_event, locate_lesion, 
-                       R, `T`, B, date_heat, date_concieved, date_aborted, date_repro_dx
-                       ), 
+                       R, `T`, B, #date_heat, date_concieved, date_aborted, date_repro_dx,
+                       contains('custom_')), 
               'data/intermediate_files/events_formatted.parquet')
 
 
