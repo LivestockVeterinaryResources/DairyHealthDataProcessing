@@ -25,6 +25,8 @@ pacman::p_load(
 
 # read in functions -------------------
 source('functions/fxn_delete_files_clean_slate.R')
+source('functions/fxn_de_duplicate.R') #removes duplicated rows
+
 
 source("functions/fxn_location.R") # function to specify event location
 source("functions/fxn_assign_id_animal.R") # parameters to use in animal id
@@ -86,7 +88,7 @@ set_outcome_gap_lactation <- 1
 
 ### clean up old data ---------------------------------
 #***DANGER*** make sure you understand this setting if you change it to TRUE
-clean_slate <- TRUE #this will delete all data in data/event_files and data/intermediate files
+clean_slate <- FALSE #this will delete all data in data/event_files and data/intermediate files
 
 ### YOUR google drive-----------
 # set this to TRUE to pull data from YOUR google drive. You must modify the function
@@ -139,6 +141,8 @@ if (get_EXAMPLE_data_from_google_drive == TRUE) {
 
 ### Step 1 Read in data-------------
 source("step1_read_in_data.R")
+#source("step1_read_in_data_old.R")
+
 
 ### Step 2 create Intermediate Files----------------------
 source("step2_create_intermediate_files.R") # fundamental files

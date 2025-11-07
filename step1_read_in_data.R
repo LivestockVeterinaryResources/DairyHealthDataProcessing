@@ -46,14 +46,13 @@ events2 <- events|>
   select(-starts_with('...')) |> #get rid of extra columns created by odd parsing in the original csv file, there is a better fix to the parsing issue, someday we should improve this
   ##create unique cow id--------------------------------------- 
   fxn_assign_id_animal()%>%
-  mutate(#id_animal = paste0(ID, '_', BDAT), 
-         #id_animal_lact = paste0(ID, '_', BDAT, '_', LACT), 
-       breed = CBRD)|>
+  ## name the breed variable--------------------
+  mutate(breed = CBRD)|>
   ##format dates--------------------------------------- 
    mutate(
     across(
       .cols = matches("(Date|DAT)$"),  # columns ending with Date or DAT
-      .fns = ~ parse_date_time(., orders = c("mdy", "ymd", "dmy")),
+      .fns = ~ parse_date_time(., orders = c("mdy")),
       .names = "{.col}"  # keep same names
      )
     )%>%
