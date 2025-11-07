@@ -175,7 +175,8 @@ master_animal_lactations <- animal_lactations |>
     date_dim200 = date_fresh + 200,
     date_dim305 = date_fresh + 305,
     dim_at_archive = as.numeric(date_archive - date_fresh)
-  )
+  ) |>
+  rename(id = ID)
 
 write_parquet(master_animal_lactations, "data/intermediate_files/animal_lactations.parquet")
 
