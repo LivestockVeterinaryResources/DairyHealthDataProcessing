@@ -156,7 +156,9 @@ Use the code chunk below to create the plot above. Hint: if your geom_smooth lin
 ggplot(dim_at_bred)+
   geom_point(aes(x = floordate_month, y = q97, color = lact_group, fill = lact_group), size = .5)+
   geom_smooth(aes(x = floordate_month, y = q97, color = lact_group, fill = lact_group), alpha = .2, span = .2)+
-  facet_wrap(lact_group~., scales = 'free')
+  facet_wrap(vars(lact_group, location_event), 
+             scales = 'free'
+             )
 
 ggsave("images/milestone03.png")
 
