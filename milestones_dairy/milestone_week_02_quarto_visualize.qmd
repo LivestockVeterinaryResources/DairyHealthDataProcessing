@@ -1,7 +1,12 @@
 ---
 title: Read and Visualize
-format: html
-embed_resources: true
+date: "`r Sys.Date()`"
+format:
+  html:
+    default: true
+    embed-resources: true
+  docx: default
+  pdf: default
 ---
 
 ```{r}
@@ -10,7 +15,6 @@ embed_resources: true
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load your packages here
-
 library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
 library(arrow) #this package handles parquet files
 library(skimr) #this is particularly helpful when looking at new data or finding NA values

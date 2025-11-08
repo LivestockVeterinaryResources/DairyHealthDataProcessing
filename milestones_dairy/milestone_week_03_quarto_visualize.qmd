@@ -1,0 +1,149 @@
+---
+title: Read and Visualize
+date: "`r Sys.Date()`"
+embed-resources: true
+
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# This chunck is already finished for you, you don't need to modify anything here
+library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
+library(arrow) #this package handles parquet files
+library(skimr) #this is particularly helpful when looking at new data or finding NA values
+library(waldo) #we use this to create answer keys for these exercises
+
+
+#add some extra functions
+source('data_milestones/fxn_floor_dates.R')
+
+```
+
+## Summarize data
+
+In this milestone you'll create, visualize, and compare summary statistics for the animals included in the data set.
+
+## Recreation
+
+### Part 1 - Import
+
+Before you begin, you will need to import your data set. Use the code chunk below to read the data from the data file **`events_formatted.parquet`**, which is stored in the **`../data/intermediate_files`** folder in your working directory. Be sure to save the data to an object in your environment named **`events_formatted`**.
+
+```{r}
+#| label: recreation-import
+
+#add code to read in the events file here
+
+
+```
+
+### Part 2 - Summarize data
+
+This week, we'd like to see if days in milk (dim_event) at the first bred event (**BRED1**) has changed over time.
+
+We will summarize the data by lactation group (**lact_group**) , location (**location_event**), and month bred (**floordate_month**).
+
+You will learn to write the code to add new variables (like month bred) in a few weeks. For now you can create month bred in the chunk ***above this*** by piping your data to the function ***add_new_variables()***. Note that this function may take a little time to process. This function will also modify the events so that they are numbers and you don't have to do anything special to find all the first breedings other than filter for **BRED1**
+
+Before you move on, run the code chunk below to make sure you see all the grouping variables in your list of variable names. The output of this chunk should be:
+
+"floordate_month" "lact_group" "location_event" 
+
+If don't get a green checkmark here, you need to fix the chunk above in part 1 before you move on.
+
+```{r check_variables}
+
+#(Don't worry if you don't understand all the code in this chunk yet...but you probably understand most of it)
+check<-tibble(list_columns = colnames(events_formatted))%>%
+    filter(list_columns %in% c('location_event', 'lact_group', 'floordate_month'))%>%
+    pull(list_columns)%>%
+    sort()
+check
+
+waldo::compare(check, read_rds('data_milestones/solutions_week_03_check_columns.rds'))
+           
+```
+
+Now run the code below to see the table you are trying to create.
+
+```{r}
+#| label: recreate-this
+#| message: false
+
+
+solution <- readr::read_rds("data_milestones/solutions_week_03_summary_data.rds")
+solution
+
+```
+
+Now summarize your data to recreate the table above.
+
+-   Create an object in your environment that is a summary of the data named "dim_at_bred".
+
+-   Limit the time frame we are looking at to 3 years.
+
+-   For each location, lactation group, and month calculate:
+
+<!-- -->
+
+1.  mean
+
+2.  sd
+
+3.  median
+
+4.  min
+
+5.  max
+
+6.  97th percentile (hint: q97 = quantile(dim_event, probs = 0.97) )
+
+***don't forget to filter your data so you are only looking at Bred1 events, for only the past 3 years*****.**
+
+Work in the code chunk below. Save the result as `dim_at_bred`. We will use the result in Part 3.
+
+```{r}
+#| label: recreation-summary
+#
+
+
+
+
+```
+
+Run the following code chunk to test whether you have the same answer as the solution:
+
+```{r}
+#| label: compare
+#| eval: false
+waldo::compare(dim_at_bred, solution, tolerance = 1e-4)
+```
+
+### Part 3 - Visualize
+
+Let's display our results visually. Run the chunk below to see a plot.
+
+```{r}
+#| label: recreate-plot
+#| message: false
+knitr::include_graphics("images/milestone03.png")
+```
+
+Use the code chunk below to create the plot above. Hint: if your geom_smooth line looks different adjust the span
+
+```{r}
+#| label: recreation-plot
+
+
+```
+
+## Extension
+
+Using the code chunk below, investigate a research question about this data, using the data wrangling skills you learned this week.
+
+```{r}
+
+```

@@ -21,7 +21,7 @@ library(gt)
 library(flextable)
 library(gtsummary)
 
-source('functions/DT_base.R') #functions to parse remarks and protocols
+source('functions/fxn_dt_base.R') #functions to parse remarks and protocols
 
 animals <-read_parquet('data/intermediate_files/animals.parquet') |> 
    select(id_animal, date_left)

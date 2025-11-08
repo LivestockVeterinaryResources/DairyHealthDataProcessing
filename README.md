@@ -13,7 +13,10 @@ the Data/ subfolders will not be shared to git unless they are in the
 Data/SharedFiles folder.
 
 More details about the data structure can be found in the resources
-folder: DataProcessingDocumentation.pptx
+folder: DataProcessingDocumentation.pptx.  
+
+Template files/functions can also be found in the resources folder. 
+These are meant to be starter scripts for common (but non standard) functions 
 
 ------------------------------------------------------------------------
 

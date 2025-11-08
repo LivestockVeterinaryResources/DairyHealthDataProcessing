@@ -24,6 +24,9 @@ pacman::p_load(
 )
 
 # read in functions -------------------
+source('functions/fxn_delete_files_clean_slate.R')
+source('functions/fxn_de_duplicate.R') #removes duplicated rows
+
 
 source("functions/fxn_location.R") # function to specify event location
 source("functions/fxn_assign_id_animal.R") # parameters to use in animal id
@@ -35,7 +38,6 @@ source("functions/fxn_disease.R")
 source("functions/fxn_treatment.R")
 
 # SETUP-----------------------------
-
 
 ## Set custom functions----
 
@@ -54,7 +56,7 @@ fxn_parse_remark <- fxn_parse_remark_default
 ## parse_free_text options: 
 fxn_parse_protocols <- fxn_parse_protocols_default
 
-### locations  ((turn on only one of these lines) ----------
+### locations  ((turn on only one location function) ----------
 set_farm_name <- 'Example Herd'  #if you are not using the default location function this name will never be used
 #fxn_assign_location_event <- fxn_assign_location_event_default
 fxn_assign_location_event <- fxn_assign_location_event_parnell_ANON
@@ -72,21 +74,18 @@ fxn_assign_disease <- fxn_assign_disease_default
 fxn_assign_treatment <- fxn_assign_treatment_template
 
 # set this to be the number of days between events that would
-# still count as the same event
+# still count as the same event - this is under development
 set_outcome_gap_animal <- 1
-#* set this to be the number of days between events in lactation that
-#*  would still count as the same event
 set_outcome_gap_lactation <- 1
 
 
 ## Set up processing -------------------------------
 #**** Modify This Section***
+#*
 
-### YOUR google drive-----------
-# set this to TRUE to pull data from YOUR google drive. You must modify the function
-#  to pull from the google drive folder you specify, and authenticate appropriately.  
-#  If you are manually adding data to event_files this should be set to false
-get_data_from_google_drive <- FALSE
+### clean up old data ---------------------------------
+#***DANGER*** make sure you understand this setting if you change it to TRUE
+clean_slate <- FALSE #this will delete all data in data/event_files and data/intermediate files
 
 ### EXAMPLE data google drive-----------
 # set this to TRUE to pull EXAMPLE data from google drive.
@@ -102,21 +101,26 @@ denominator_granularity <- 100
 # if you also want to pull in milk data set this to true
 milk_data_exists <- FALSE
 
+### deduplicate automatically---------
+# deduplicate at original file creation
+# if this is true it will run a function to deduplicate rows - this usually makes sense but not always.
+auto_de_duplicate <- TRUE
+
 
 # PROCESS FILES--------------------------
 #*** Do NOT modify this section*** unless you are very sure you understand what you want
 #*
+## start with clean slate ------
+if (clean_slate == TRUE){
+  fxn_delete_files_clean_slate()
+}
+
 ## process milk data ---------------------
 if (milk_data_exists == TRUE) {
   source("step1a_read_in_production_data.R")
 }
 
 ## process event data -----------------
-
-if (get_data_from_google_drive == TRUE) {
-  source("step00_get_data_from_google_drive.R")
-}
-
 if (get_EXAMPLE_data_from_google_drive == TRUE) {
   source("step00_get_example_data_from_google_drive.R")
 }
@@ -125,7 +129,7 @@ if (get_EXAMPLE_data_from_google_drive == TRUE) {
 source("step1_read_in_data.R")
 
 ### Step 2 create Intermediate Files----------------------
-source("step2_create_intermediate_files.R") # fundamental files
+source("step2_create_intermediate_files.R") #fundamental files
 
 ### Step 3 Create Denominators ---------------------
 #standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
