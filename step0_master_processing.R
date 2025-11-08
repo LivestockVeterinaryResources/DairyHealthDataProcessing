@@ -127,8 +127,6 @@ if (get_EXAMPLE_data_from_google_drive == TRUE) {
 
 ### Step 1 Read in data-------------
 source("step1_read_in_data.R")
-source("step1_read_in_data_old.R")
-
 
 ### Step 2 create Intermediate Files----------------------
 source("step2_create_intermediate_files.R") #fundamental files

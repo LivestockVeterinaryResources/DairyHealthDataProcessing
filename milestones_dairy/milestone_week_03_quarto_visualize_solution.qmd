@@ -14,14 +14,15 @@ format:
 #| include: false
 knitr::opts_chunk$set(echo = TRUE)
 
-# Load your packages here
+# This chunck is already finished for you, you don't need to modify anything here
 library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
 library(arrow) #this package handles parquet files
 library(skimr) #this is particularly helpful when looking at new data or finding NA values
 library(waldo) #we use this to create answer keys for these exercises
 
 
-# Load your packages here
+#add some extra functions
+source('data_milestones/fxn_floor_dates.R')
 
 ```
 
@@ -29,67 +30,120 @@ library(waldo) #we use this to create answer keys for these exercises
 
 In this milestone you'll create, visualize, and compare summary statistics for the animals included in the data set.
 
-
 ## Recreation
 
 ### Part 1 - Import
 
-Before you begin, you will need to import your data set. Use the code chunk below to read the data from the data file `events_formatted.parquet`, which is stored in the `../data/intermediate_files` folder in your working directory. Be sure to save the data to an object named `events_formatted`.
-
+Before you begin, you will need to import your data set. Use the code chunk below to read the data from the data file **`events_formatted.parquet`**, which is stored in the **`../data/intermediate_files`** folder in your working directory. Be sure to save the data to an object in your environment named **`events_formatted`**.
 
 ```{r}
 #| label: recreation-import
-# will use within the code chunk labeled `setup` at the top of the file.
 
+#add code to read in the events file here
+events_formatted<-read_parquet('../data/intermediate_files/events_formatted.parquet')%>%
+  add_new_variables()
 
 ```
 
 ### Part 2 - Summarize data
 
-This week, we'd like to analyze the change in GFR (glomerular filtration rate) over time for each patient in the MDRD study. Specifically, we'll calculate a `gfr_slope` variable, which is computed as follows, for each patient:
+This week, we'd like to see if days in milk (dim_event) at the first *bred* event ("BRED1") has changed over time.
 
-> (last GFR - first GFR) / time elapsed
+We will summarize the data by lactation group ("lact_group") , location ("location_event"), and month bred ("floordate_month").
 
-Run the code below to see a table.
+You will learn to write the code to add new variables (like month bred) in a few weeks. For now you can create month bred in the chunk ***above this*** by piping your data to the function ***add_new_variables()***. 
+Note that this function may take a little time to process
 
+Before you move on, run this code chunk to make sure you see all the grouping variables in your list of variable names. The output of this chunk should be:
+
+"lact_group" "location_event" "floordate_month"
+
+If don't get a green checkmark, you need to fix the import chunk above.
+
+```{r}
+
+#(Don't worry if you don't understand all the code in this chunk yet...but you probably understand most of it)
+check<-tibble(list_columns = colnames(events_formatted))%>%
+    filter(list_columns %in% c('location_event', 'lact_group', 'floordate_month'))%>%
+    pull(list_columns)
+
+check
+
+write_rds(check, 'data_milestones/solutions_week_03_check_columns.rds')
+
+waldo::compare(check, read_rds('data_milestones/solutions_week_03_check_columns.rds'))
+           
+```
+
+
+Now run the code below to see the table you are trying to create.  
 
 ```{r}
 #| label: recreate-this
 #| message: false
-solution <- readr::read_csv("data/milestone03.csv")
+
+dim_at_bred<-events_formatted%>%
+  filter(event %in% 'BRED1')%>%
+    filter(date_event>(max(date_event)-(365*3)))%>%
+  group_by(location_event, lact_group, floordate_month)%>%
+  summarize(mean = mean(dim_event),
+            sd = sd(dim_event),
+            median = median(dim_event),
+            min = min(dim_event),
+            max = max(dim_event),
+            q97 = quantile(dim_event, probs = 0.97),
+            n = sum(n())
+            )%>%
+  ungroup()
+
+write_rds(dim_at_bred, 'data_milestones/solutions_week_03_summary_data.rds')
+
+solution <- readr::read_rds("data_milestones/solutions_week_03_summary_data.rds")
 solution
+
 ```
 
-Your task is to use what you've learned about the dplyr package to transform `mdrd` into this table. You will need to:
 
-1. Group the data by `ptid`. 
-2. Summarize the `gfr_slope` for each patient.
+Now summarize your data.
 
-Work in the code chunk below. Save the result as `patient_summary`. We will use the result in Part 3.
+Create an object in your environment that is a summary of the data named "dim_at_bred".
+Limit the time frame we are looking at to 3 years.
+For each location, lactation group, and month calculate:
 
+1.  mean
+
+2.  sd
+
+3.  median
+
+4.  min
+
+5.  max
+
+6.  97th percentile (hint: q97 = quantile(dim_event, probs = 0.97)  )
+
+***don't forget to filter your data so you are only looking at Bred1 events*.**  
+
+Work in the code chunk below. Save the result as `dim_at_bred`. We will use the result in Part 3.
 
 ```{r}
 #| label: recreation-summary
-# DO NOT INSTALL TIDYVERSE PACKAGES
-# Remember that all tidyverse packages have already been installed for you,
-# but you will need to *load* the ones you want to use. As a best practice when
-# working within a Quarto document like this one, load any packages you
-# will use within the code chunk labeled `setup` at the top of the file.
+#
+
+
 ```
 
 Run the following code chunk to test whether you have the same answer as the solution:
 
-
 ```{r}
 #| label: compare
 #| eval: false
-waldo::compare(patient_summary, solution, tolerance = 1e-4, ignore_attr = .groups)
+waldo::compare(dim_at_bred, solution, tolerance = 1e-4)
 ```
 
 ### Part 3 - Visualize
 
 Let's display our results visually. Run the chunk below to see a plot.
-
 
 ```{r}
 #| label: recreate-plot
@@ -97,15 +151,18 @@ Let's display our results visually. Run the chunk below to see a plot.
 knitr::include_graphics("images/milestone03.png")
 ```
 
-Use the code chunk below to create the plot above. Begin with the `patient_summary` table. *Hint: you can adjust the width of the bins with the `binwidth` argument.*
-
+Use the code chunk below to create the plot above. 
+Hint: if your geom_smooth line looks different adjust the span
 
 ```{r}
 #| label: recreation-plot
-# Remember that all tidyverse packages have already been installed for you,
-# but you will need to *load* the ones you want to use. As a best practice when
-# working within a Quarto document like this one, load any packages you
-# will use within the code chunk labeled `setup` at the top of the file.
+ggplot(dim_at_bred)+
+  geom_point(aes(x = floordate_month, y = q97, color = lact_group, fill = lact_group), size = .5)+
+  geom_smooth(aes(x = floordate_month, y = q97, color = lact_group, fill = lact_group), alpha = .2, span = .2)+
+  facet_wrap(lact_group~., scales = 'free')
+
+ggsave("images/milestone03.png")
+
 ```
 
 ## Extension
@@ -114,16 +171,13 @@ Use the code chunk below to create the plot above. Begin with the `patient_summa
 
 Using the code chunk below, investigate a research question about this data, using the data wrangling skills you learned this week. Some ideas:
 
-1. How does change in GFR over time differ for patients patients who dropped out of the study compared to those who didn't drop out?
-2. Most patients have more than two GFR measurements taken -- how else can you compute and visualize change in GFR over time other than calculating the difference between the first and last GFR values?
-3. How much variation is there in the number of months between GFR measurements across patients? How does this relate to change in GFR over time?
-4. [any other research question of interest]
+1.  How does change in GFR over time differ for patients patients who dropped out of the study compared to those who didn't drop out?
+2.  Most patients have more than two GFR measurements taken -- how else can you compute and visualize change in GFR over time other than calculating the difference between the first and last GFR values?
+3.  How much variation is there in the number of months between GFR measurements across patients? How does this relate to change in GFR over time?
+4.  \[any other research question of interest\]
 
 Alternately, working with a data set of your own, complete the following:
 
-1. Read in your data
-2. Use `group_by()` and `summarize()` to produce simple a table from some subset of your data 
-3. Create a related graph of this data subset using ggplot 
-
-
-
+1.  Read in your data
+2.  Use `group_by()` and `summarize()` to produce simple a table from some subset of your data
+3.  Create a related graph of this data subset using ggplot
