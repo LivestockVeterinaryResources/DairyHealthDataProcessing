@@ -39,7 +39,6 @@ source("functions/fxn_treatment.R")
 
 # SETUP-----------------------------
 
-
 ## Set custom functions----
 
 #**** Modify This Section***
@@ -57,7 +56,7 @@ fxn_parse_remark <- fxn_parse_remark_default
 ## parse_free_text options: 
 fxn_parse_protocols <- fxn_parse_protocols_default
 
-### locations  ((turn on only one of these lines) ----------
+### locations  ((turn on only one location function) ----------
 set_farm_name <- 'Example Herd'  #if you are not using the default location function this name will never be used
 #fxn_assign_location_event <- fxn_assign_location_event_default
 fxn_assign_location_event <- fxn_assign_location_event_parnell_ANON
@@ -75,10 +74,8 @@ fxn_assign_disease <- fxn_assign_disease_default
 fxn_assign_treatment <- fxn_assign_treatment_template
 
 # set this to be the number of days between events that would
-# still count as the same event
+# still count as the same event - this is under development
 set_outcome_gap_animal <- 1
-#* set this to be the number of days between events in lactation that
-#*  would still count as the same event
 set_outcome_gap_lactation <- 1
 
 
@@ -89,12 +86,6 @@ set_outcome_gap_lactation <- 1
 ### clean up old data ---------------------------------
 #***DANGER*** make sure you understand this setting if you change it to TRUE
 clean_slate <- FALSE #this will delete all data in data/event_files and data/intermediate files
-
-### YOUR google drive-----------
-# set this to TRUE to pull data from YOUR google drive. You must modify the function
-#  to pull from the google drive folder you specify, and authenticate appropriately.  
-#  If you are manually adding data to event_files this should be set to false
-get_data_from_google_drive <- FALSE
 
 ### EXAMPLE data google drive-----------
 # set this to TRUE to pull EXAMPLE data from google drive.
@@ -130,18 +121,13 @@ if (milk_data_exists == TRUE) {
 }
 
 ## process event data -----------------
-
-# if (get_data_from_google_drive == TRUE) {
-#   source("step00_get_data_from_my_google_drive.R") #note you must set this up with your google drive path and authentication
-# }
-
 if (get_EXAMPLE_data_from_google_drive == TRUE) {
   source("step00_get_example_data_from_google_drive.R")
 }
 
 ### Step 1 Read in data-------------
 source("step1_read_in_data.R")
-#source("step1_read_in_data_old.R")
+source("step1_read_in_data_old.R")
 
 
 ### Step 2 create Intermediate Files----------------------

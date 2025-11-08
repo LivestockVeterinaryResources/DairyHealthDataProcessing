@@ -49,23 +49,39 @@ events2 <- events|>
   ## name the breed variable--------------------
   mutate(breed = CBRD)|>
   ##format dates--------------------------------------- 
+##format dates--------------------------------------- 
+# mutate(date_event = lubridate::mdy(Date), 
+#        
+#        date_birth = lubridate::mdy(BDAT), 
+#        
+#        date_fresh = lubridate::mdy(FDAT), 
+#        date_dry = lubridate::mdy(DDAT),
+#        
+#        date_enrolled = lubridate::mdy(EDAT), 
+#        date_archived = lubridate::mdy(ARDAT),
+#        
+#        date_heat = lubridate::mdy(HDAT), #unnecessary to pull
+#        date_concieved = lubridate::mdy(CDAT), #unnecessary to pull
+#        date_aborted = lubridate::mdy(ABDAT), #unnecessary to pull
+#        date_repro_dx = lubridate::mdy(PODAT) #unnecessary to pull
+#        )|>
+
    mutate(
     across(
-      .cols = matches("(Date|DAT)$"),  # columns ending with Date or DAT
-      .fns = ~ parse_date_time(., orders = c("mdy")),
-      .names = "{.col}"  # keep same names
+      .cols = matches("Date|.DAT$"),  # columns ending with Date or DAT
+      .fns = ~lubridate::mdy(.x)
      )
     )%>%
-  mutate(date_event = Date, 
-       
-       date_birth = BDAT, 
-       
-       date_fresh = FDAT, 
+  mutate(date_event = Date,
+
+       date_birth = BDAT,
+
+       date_fresh = FDAT,
        date_dry = DDAT,
-       
-       date_enrolled = EDAT, 
-       date_archived = ARDAT#,
-       
+
+       date_enrolled = EDAT,
+       date_archived = ARDAT,
+
        # Am taking these out of main processing, they can be added to a repro function later
        # date_heat = HDAT, #unnecessary to pull
        # date_concieved = CDAT, #unnecessary to pull
