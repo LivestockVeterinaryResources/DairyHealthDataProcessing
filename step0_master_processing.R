@@ -131,7 +131,7 @@ source("step1_read_in_data_old.R")
 
 
 ### Step 2 create Intermediate Files----------------------
-source("step2_create_intermediate_files.R") # fundamental files
+source("step2_create_intermediate_files.R") #fundamental files
 
 ### Step 3 Create Denominators ---------------------
 #standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
