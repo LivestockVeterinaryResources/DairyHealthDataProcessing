@@ -33,7 +33,7 @@ custom_location_color<-function(){scale_color_hue(h = c(165, 525), c = 80, l = 7
 
 
 
-source('functions/DT_base.R') #functions to parse remarks and protocols
+source('functions/fxn_dt_base.R') #functions to parse remarks and protocols
 source('functions/fxn_disease.R') #functions to parse remarks and protocols
 
 events_parsed<-read_parquet('data/intermediate_files/events_parsed.parquet')
