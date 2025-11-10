@@ -1,0 +1,241 @@
+---
+title: "Fun Data"
+format: html
+embed-resources: true
+---
+
+```{r}
+# Load libraries
+library(tidyverse)
+library(scales)
+```
+
+
+## normal distribution
+
+```{r, include=FALSE}
+# Load required libraries
+library(tidyverse)
+library(scales)
+library(datasauRus)  # for the Datasaurus Dozen
+```
+
+
+```{r}
+set.seed(123)
+```
+
+
+```{r get data}
+# ================================================================
+# 1. Create synthetic datasets with different distributions
+# ================================================================
+n <- 100
+df_all <- tibble(
+  id = 1:n,
+  normal_data      = rnorm(n, mean = 50, sd = 10),
+  uniform_data     = runif(n, min = 0, max = 100),
+  exponential_data = rexp(n, rate = 0.1),
+  bimodal_data     = c(rnorm(n/2, mean = 30, sd = 5),
+                       rnorm(n/2, mean = 70, sd = 5)),
+  heavy_tail_data  = 10 + 15 * rt(n, df = 3)
+)
+
+# ================================================================
+# 2. Anscombe's Quartet
+# ================================================================
+data("anscombe")
+
+anscombe_long <- anscombe %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = c(".value", "set"),
+    names_pattern = "(.)(.)"
+  )%>%
+  mutate(value = y)%>%
+  group_by(set)%>%
+  mutate(
+    original_value  = value,
+    zscore       = (value - mean(value)) / sd(value),
+    minmax       = (value - min(value)) / (max(value) - min(value)),
+    robust       = (value - median(value)) / mad(value),
+    rescale_01   = rescale(value, to = c(0, 1)),
+    percent_rank = percent_rank(value),
+    rank_int     = rank(value),
+    dense_rank   = dense_rank(value),
+    ecdf_val     = ecdf(value)(value),
+    normal_score = qnorm((rank(value) - 0.5) / length(value))
+  ) %>%
+  ungroup()
+
+anscombe_long2<-anscombe_long%>%
+  pivot_longer(cols = c('zscore':'normal_score'), 
+               names_to = 'method', 
+               values_to = 'y2')
+  
+
+# ================================================================
+# 3. Datasaurus Dozen
+# ================================================================
+data("datasaurus_dozen")
+
+# Example datasets in datasaurus_dozen:
+# "dino", "circle", "bullseye", "dots", "x_shape", "star", etc.
+#unique(datasaurus_dozen$dataset)
+```
+
+
+```{r}
+# ================================================================
+# 4. Apply normalization methods to all synthetic datasets
+# ================================================================
+df_long <- df_all %>%
+  pivot_longer(cols = -id, names_to = "dataset", values_to = "value")
+
+df_scaled <- df_long %>%
+  group_by(dataset) %>%
+  mutate(
+    original_value  = value,
+    zscore       = (value - mean(value)) / sd(value),
+    minmax       = (value - min(value)) / (max(value) - min(value)),
+    robust       = (value - median(value)) / mad(value),
+    rescale_01   = rescale(value, to = c(0, 1)),
+    percent_rank = percent_rank(value),
+    rank_int     = rank(value),
+    dense_rank   = dense_rank(value),
+    ecdf_val     = ecdf(value)(value),
+    normal_score = qnorm((rank(value) - 0.5) / length(value))
+  ) %>%
+  pivot_longer(cols = -c(id, dataset, value),
+               names_to = "method", values_to = "scaled_value")
+```
+
+## Explore Rescale and Normalize functions with different distributions
+
+```{r}
+# ================================================================
+# 5. Plot densities for synthetic datasets
+# ================================================================
+
+list_datasets<-sort(unique(df_scaled$dataset))
+
+for (i in seq_along(list_datasets)){
+p<-ggplot(df_scaled%>%
+            filter(dataset %in% list_datasets[[i]])%>%
+            rowid_to_column(), aes(x = scaled_value, fill = method)) +
+  geom_density(alpha = 0.5, color = NA) +
+  facet_wrap(method ~ ., scales = "free") +
+  theme_minimal(base_size = 10) +
+  labs(
+    title = paste0(list_datasets[[i]]),
+    x = "Transformed Value",
+    y = "Density"
+  ) +
+  theme(legend.position = "none")
+  print(p)
+}
+
+
+for (i in seq_along(list_datasets)){
+p<-ggplot(df_scaled%>%
+            filter(dataset %in% list_datasets[[i]])%>%
+            rowid_to_column()%>%
+            mutate(rowid_label = rowid), aes(x = scaled_value, fill = method)) +
+  geom_point(aes(x = value, y = scaled_value, color = method)) +
+  facet_wrap(method ~ ., scales = "free") +
+  theme_minimal(base_size = 10) +
+  labs(
+    title = paste0(list_datasets[[i]]),
+    x = "Transformed Value",
+    y = "Density"
+  ) +
+  theme(legend.position = "none")
+  print(p)
+}
+```
+## Anscombe’s Quartet
+
+```{r}
+# ================================================================
+# 6. Visualize Anscombe’s Quartet - Original Values
+# ================================================================
+ggplot(anscombe_long, aes(x = x, y = y)) +
+  geom_point(size = 3) +
+  facet_wrap(~set) +
+  theme_minimal(base_size = 12) +
+  labs(title = "Anscombe’s Quartet — Same Summary Stats")+
+  theme(aspect.ratio = 1)
+
+ggplot(anscombe_long, aes(x = x, y = y)) +
+  geom_point(size = 3) +
+      geom_smooth(alpha = 0.1,  color = 'blue', fill = 'blue', method = 'lm') +
+  facet_wrap(~set) +
+  theme_minimal(base_size = 12) +
+  labs(title = "Anscombe’s Quartet — linear regression")+
+  theme(aspect.ratio = 1)
+
+ggplot(anscombe_long, aes(x = x, y = y)) +
+  geom_point(size = 3) +
+      geom_smooth(alpha = 0.1,  color = 'red', fill = 'red') +
+
+  facet_wrap(~set) +
+  theme_minimal(base_size = 12) +
+  labs(title = "Anscombe’s Quartet — localized linear regression (loess)")+
+  theme(aspect.ratio = 1)
+
+```
+
+## Rescale and Transform Anscombe's
+
+```{r}
+
+#Visualize other values
+
+list_sets<-sort(unique(anscombe_long2$set))
+
+for (i in seq_along(list_sets)){
+  p<-ggplot(anscombe_long2%>%
+         filter(set %in% list_sets[[i]]), 
+         aes(x = x, y = y2)) +
+  geom_point(size = 3) +
+    geom_smooth(alpha = 0.1,  color = 'red', fill = 'red') +
+      geom_smooth(alpha = 0.1,  color = 'blue', fill = 'blue', method = 'lm') +
+  facet_wrap(method~., nrow = 4, scales = 'free') +
+  theme_minimal(base_size = 12) +
+  labs(title = paste0(list_sets[[i]]))+
+  theme(aspect.ratio = 1)
+  print(p)
+  
+}
+
+```
+## Other FUN Data
+
+```{r}
+# ================================================================
+# 7. Visualize a few examples from the Datasaurus Dozen
+# ================================================================
+selected_shapes <- c("dino", "circle", "bullseye", "x_shape", "star", "h_lines")
+
+datasaurus_filtered <- datasaurus_dozen %>%
+  filter(dataset %in% selected_shapes)
+
+ggplot(datasaurus_filtered, aes(x = x, y = y)) +
+  geom_point(alpha = 0.6, color = "#2c7fb8") +
+  facet_wrap(~dataset, ncol = 3) +
+  coord_equal() +
+  theme_minimal(base_size = 12) +
+  labs(title = "Datasaurus Dozen — Same Summary Stats, Wildly Different Shapes")
+```
+
+
+```{r}
+ggplot(datasaurus_dozen, aes(x = x, y = y)) +
+  geom_point(alpha = 0.6, color = "#2c7fb8") +
+  facet_wrap(~dataset) +
+  coord_equal() +
+  theme_minimal(base_size = 12) +
+  labs(title = "Datasaurus Dozen — Same Summary Stats, Wildly Different Shapes")
+```
+
+
