@@ -11,3 +11,4 @@ add_new_variables<-function(df){
     mutate(event = paste0(event, event_count))
   
 }
+
