@@ -115,10 +115,11 @@ write_csv(template_event_type, 'data/template_files/template_event_details.csv')
 events2 <-events2|>
   #fix na values-------------
 mutate(technician = Technician, 
-       eid = EID)|> 
+       eid = EID, 
+       id = ID)|> 
   
   mutate(across(
-    .cols = c(event_type, breed, location_event, locate_lesion, technician, eid), 
+    .cols = c(event_type, breed, location_event, locate_lesion, technician, eid, id), 
     ~replace_na(., "Unknown")
   ))|>
   
@@ -161,7 +162,7 @@ write_parquet(events2, 'data/intermediate_files/events_all_columns.parquet') # t
 # formatted file -----------------------
 write_parquet(events2%>%
                 select(source_file_path, 
-                       id_animal, 
+                       id_animal, id,
                        date_birth, breed, #eid, 
                        date_enrolled, qc_diff_bdat_edat,
                        id_animal_lact, date_fresh, date_archived, 
