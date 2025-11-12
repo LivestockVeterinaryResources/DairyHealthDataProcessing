@@ -204,6 +204,10 @@ denominator_granular<-deno_dataframe%>%
 
 write_parquet(denominator_granular, 'data/intermediate_files/denominator_calendar_time.parquet')
 
+herd_deno<-denominator_granular%>%
+  group_by(floordate_calendar_year, location_lact_list, `Lactation Group`, ct_animals, ct_lactations )
+
+gerard_herd_deno<-read_parquet('data/intermediate_files/herd_denominators.parquet')
 
 #display table--------------------
 fxn_DT_base(head(denominator_granular, 500))
