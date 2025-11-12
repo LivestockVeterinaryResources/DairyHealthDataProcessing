@@ -27,11 +27,11 @@ source('data_milestones/fxn_floor_dates.R')
 
 In this milestone, you'll write some of the code that was written for you in milestone 3.
 
-1.  Read in **events_formatted.parque**t from the **../data/intermediate_files**, and name it **events_formatted. Then filter so you only have the events: FRESH, BRED, LAME, MAST, DRY, SOLD, DIED**
+1.  Read in **events_formatted.parque**t from the **../data/intermediate_files**, and name it **events_formatted. Then filter so you only have the LAME events**
 2.  create a new variable named **floordate_month**. The logic to create this variable is: **floor_date(date_event, 'months')**
-3.  arrange the data by 3 variables: the cow the event, and then the event date. In this data set these variables are named: id_animal, event, event_date
+3.  arrange the data by 3 variables: the animal, the event, and then the event date. In this data set these variables are named: id_animal, event, event_date
 4.  Pipe your events_formatted to the function fxn_add_event_counts(). This will add columns indicating the number of times the animal has had that event within the data set (event_count_animal) or within their lactation (event_count_lact).
-5.  Create a new dataframe the filters to only include FRESH, BRED, MAST
+5.  select all the variables you see in the solution chunk
 
 ```{r}
 #| label: recreation-import
@@ -45,12 +45,14 @@ lame_events<-read_parquet('../data/intermediate_files/events_formatted.parquet')
   fxn_add_event_counts()%>%
   select(location_event, 
          id_animal, 
-         id_animal_lact,lact_number, 
+         id_animal_lact,lact_number,
+         id,
          dim_event, 
          floordate_month, 
          event, remark, protocols, 
          event_count_lact,
-         event_count_animal)
+         event_count_animal, 
+         contains('remark'))
 
 ```
 
@@ -61,19 +63,16 @@ Run the code below to see a table.
 ```{r}
 #| label: recreate-this
 #| message: false
+
+lame_events<-
+  
 solution <- readr::read_csv("data/milestone04.csv")
 solution
 ```
 
 Your task is to use what you've learned about the dplyr package to transform `mdrd` into this table. You will need to:
 
-1.  Create a new column named `kidney_stage` that represents the current stage of chronic kidney disease based on GFR. Use the information below to create the new column with the following values:
-
-    -   `1` if `gfr` is greater than or equal to 90
-    -   `2` if `gfr` is greater than or equal to 60 (and less than 90)\
-    -   `3` if `gfr` is greater than or equal to 30 (and less than 60)
-    -   `4` if `gfr` is greater than or equal to 15 (and less than 30)
-    -   `5` otherwise
+1.  Create a new column named `lame_type` that represents a more specific lameness diagnosis.  Feel free to do something simple like differentiate trims from actual lame events.
 
 *Hint: the `case_when()` function from dplyr is useful for situations like this.*
 
@@ -82,6 +81,8 @@ skimr::skim(mdrd)
 ```
 
 ```{r}
+
+
 mdrd2<-mdrd%>%
   #mutate(gfr = parse_number(gfr))%>%
   mutate(kidney_stage = case_when(
