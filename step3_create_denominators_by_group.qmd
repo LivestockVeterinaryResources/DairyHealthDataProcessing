@@ -134,21 +134,25 @@ for (i in seq_along(calendar$date_calendar)){
     ))
   
   df2<-df%>%
+    filter(eligible>0)%>%
     group_by(location_lact_list, lact_group_basic, date_ref) |> 
-    summarize(ct_animals = sum(eligible))%>%
+    summarize(ct_lacts = sum(eligible), 
+              ct_animals = n_distinct(id_animal))%>%
     ungroup() |> 
     rename(`Lactation Group` = lact_group_basic)
   
   df3<-df%>%
+    filter(eligible>0)%>%
     group_by(location_lact_list, lact_group, date_ref) |> 
-    summarize(ct_animals = sum(eligible))%>%
-    ungroup()|> 
+    summarize(ct_lacts = sum(eligible), 
+              ct_animals = n_distinct(id_animal))%>%    ungroup()|> 
     rename(`Lactation Group` = lact_group)
   
   df4<-df%>%
+    filter(eligible>0)%>%
     group_by(location_lact_list, lact_group_5, date_ref) |> 
-    summarize(ct_animals = sum(eligible))%>%
-    ungroup()|> 
+    summarize(ct_lacts = sum(eligible), 
+              ct_animals = n_distinct(id_animal))%>%    ungroup()|> 
     rename(`Lactation Group` = lact_group_5)
   
  
@@ -200,19 +204,74 @@ denominator_granular<-deno_dataframe%>%
          floordate_calendar_season = floor_date(date_calendar, unit = 'seasons'),
          floordate_calendar_month = floor_date(date_calendar, unit = 'months'),
          floordate_calendar_week = floor_date(date_calendar, unit = 'weeks') )%>%
-  select(location_lact_list, `Lactation Group`, ct_animals, contains('date'))
+  select(location_lact_list, `Lactation Group`, ct_animals, ct_lacts, contains('date'))
 
 write_parquet(denominator_granular, 'data/intermediate_files/denominator_calendar_time.parquet')
 
-herd_deno<-denominator_granular%>%
-  group_by(floordate_calendar_year, location_lact_list, `Lactation Group`, ct_animals, ct_lactations )
 
-gerard_herd_deno<-read_parquet('data/intermediate_files/herd_denominators.parquet')
 
 #display table--------------------
 fxn_DT_base(head(denominator_granular, 500))
 
 ```
+
+### Match Gerard Denominator
+```{r}
+
+fxn_summarize_denos<-function(df){
+  df%>%
+    summarize(count_animals = round(mean(ct_animals), digits = 0), 
+            count_lactations = round(mean(ct_lacts), digits = 0), 
+            
+            min_animals = min(ct_animals), 
+            max_animals = max(ct_animals), 
+            sd_animals = sd(ct_animals), 
+            median_animals = median(ct_animals),
+            
+            min_lacts = min(ct_lacts), 
+            max_lacts = max(ct_lacts), 
+            sd_lacts = sd(ct_lacts), 
+            median_lacts = median(ct_lacts)
+            )%>%
+  ungroup()
+    
+}
+
+#--------------------------------------------
+herd_deno<-denominator_granular%>%
+  group_by(floordate_calendar_year, location_lact_list, 
+           `Lactation Group`)%>%
+  fxn_summarize_denos()%>%
+  mutate(time_period = year(floordate_calendar_year))%>%
+  select(location_lact_list, time_period, `Lactation Group`, 
+         count_animals, count_lactations, everything() )
+
+write_parquet(herd_deno, 'data/intermediate_files/herd_denominators2.parquet')
+            
+
+gerard_herd_deno<-read_parquet('data/intermediate_files/herd_denominators.parquet')
+
+#--------------------------------------------
+
+herd_deno_month<-denominator_granular%>%
+  group_by(floordate_calendar_month, location_lact_list, 
+           `Lactation Group`)%>%
+  fxn_summarize_denos()%>%
+  mutate(time_period = year(floordate_calendar_month))%>%
+  select(location_lact_list, time_period, `Lactation Group`, 
+         count_animals, count_lactations, everything() )
+
+write_parquet(herd_deno_month, 'data/intermediate_files/herd_season_denominators2.parquet')
+
+write_parquet(herd_deno_month, 'data/intermediate_files/herd_month_denominators2.parquet')
+            
+
+gerard_herd_deno_season<-read_parquet('data/intermediate_files/herd_season_denominators.parquet')
+
+
+
+```
+
 
 ## Time period denominators
 
@@ -253,6 +312,8 @@ denominator_time_period<-bind_rows(denominator_year, denominator_season, denomin
 
 
 write_parquet(denominator_time_period, 'data/intermediate_files/denominator_time_period.parquet')
+
+
 
 #display table-----------------
 fxn_DT_base(denominator_time_period)
@@ -309,7 +370,8 @@ for (i in seq_along(calendar$date_calendar)){
   df3<-df%>%
     filter(!(is.na(dim_categories)))%>%
     group_by(location_lact_list, lact_group, date_ref, dim_categories) |> 
-    summarize(ct_animal_lacts = n_distinct(id_animal_lact)
+    summarize(ct_lacts = n_distinct(id_animal_lact), 
+              ct_animals = n_distinct(id_animal)
               )%>%
     ungroup()|> 
     rename(`Lactation Group` = lact_group)
@@ -318,7 +380,8 @@ for (i in seq_along(calendar$date_calendar)){
   df4<-df%>%
     filter(!(is.na(dim_categories)))%>%
     group_by(location_lact_list, lact_group_basic, date_ref, dim_categories) |> 
-    summarize(ct_animal_lacts = n_distinct(id_animal_lact)
+    summarize(ct_lacts = n_distinct(id_animal_lact), 
+              ct_animals = n_distinct(id_animal)
               )%>%
     ungroup()|> 
     rename(`Lactation Group` = lact_group_basic)
@@ -338,7 +401,17 @@ for (i in seq_along(calendar$date_calendar)){
 
 write_parquet(deno_dataframe_phase, 'data/intermediate_files/denominator_phase_time.parquet')
 
+#-----------------------------------------
 
+herd_deno_dim<-deno_dataframe_phase%>%
+  mutate(time_period = floor_date(date_ref, unit = 'months'))%>%
+  group_by(time_period, dim_categories, `Lactation Group`, location_lact_list )%>%
+  fxn_summarize_denos()
+
+write_parquet(herd_deno_dim, 'data/intermediate_files/herd_dim_denominators2.parquet')
+
+
+gerard_herd_deno_dim<-read_parquet('data/intermediate_files/herd_dim_denominators.parquet')
 ```
 
 
@@ -348,12 +421,31 @@ write_parquet(deno_dataframe_phase, 'data/intermediate_files/denominator_phase_t
 ```{r}
 
 ggplot(deno_dataframe_phase)+
-  geom_point(aes(x = date_ref, y = ct_animal_lacts, color = dim_categories))+
+  geom_point(aes(x = date_ref, y = ct_lacts, color = dim_categories))+
   ylim(c(0, NA))+
   facet_grid(location_lact_list~`Lactation Group`)
 
 ```
+## Compare new and old
+
+```{r}
+waldo::compare(
+sort(unique(colnames(gerard_herd_deno_dim))),
+sort(unique(colnames(herd_deno_dim)))
+)
+
+waldo::compare(
+sort(unique(colnames(gerard_herd_deno_season))),
+sort(unique(colnames(herd_deno_month)))
+)
+
+waldo::compare(
+sort(unique(colnames(gerard_herd_deno))),
+sort(unique(colnames(herd_deno) ))
+)
 
 
+
+```
 
 
