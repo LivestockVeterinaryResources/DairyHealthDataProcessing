@@ -365,12 +365,12 @@ for (i in seq_along(calendar$date_calendar)){
       ((date_ref>=date_elig_start)&(date_ref<date_elig_end))~as.numeric(date_ref-date_fresh), 
       TRUE~as.numeric(NA))
       )%>%
-        mutate(dim_categories = cut(dim_at_date_ref, breaks = set_dim_breaks))
+        mutate(dim_group = cut(dim_at_date_ref, breaks = set_dim_breaks))
     
 
   df3<-df%>%
-    filter(!(is.na(dim_categories)))%>%
-    group_by(location_lact_list, lact_group, date_ref, dim_categories) |> 
+    filter(!(is.na(dim_group)))%>%
+    group_by(location_lact_list, lact_group, date_ref, dim_group) |> 
     summarize(ct_lacts = n_distinct(id_animal_lact), 
               ct_animals = n_distinct(id_animal)
               )%>%
@@ -379,8 +379,8 @@ for (i in seq_along(calendar$date_calendar)){
   
   
   df4<-df%>%
-    filter(!(is.na(dim_categories)))%>%
-    group_by(location_lact_list, lact_group_basic, date_ref, dim_categories) |> 
+    filter(!(is.na(dim_group)))%>%
+    group_by(location_lact_list, lact_group_basic, date_ref, dim_group) |> 
     summarize(ct_lacts = n_distinct(id_animal_lact), 
               ct_animals = n_distinct(id_animal)
               )%>%
@@ -406,7 +406,7 @@ write_parquet(deno_dataframe_phase, 'data/intermediate_files/denominator_phase_t
 
 herd_deno_dim<-deno_dataframe_phase%>%
   mutate(time_period = floor_date(date_ref, unit = 'months'))%>%
-  group_by(time_period, dim_categories, `Lactation Group`, location_lact_list )%>%
+  group_by(time_period, dim_group, `Lactation Group`, location_lact_list )%>%
   fxn_summarize_denos()
 
 write_parquet(herd_deno_dim, 'data/intermediate_files/herd_dim_denominators2.parquet')
@@ -422,7 +422,7 @@ gerard_herd_deno_dim<-read_parquet('data/intermediate_files/herd_dim_denominator
 ```{r}
 
 ggplot(deno_dataframe_phase)+
-  geom_point(aes(x = date_ref, y = ct_lacts, color = dim_categories))+
+  geom_point(aes(x = date_ref, y = ct_lacts, color = dim_group))+
   ylim(c(0, NA))+
   facet_grid(location_lact_list~`Lactation Group`)
 
@@ -456,9 +456,34 @@ colnames(herd_deno)
 
 
 ```
+## compare herd
 
 ```{r}
-compare_values<-bind_rows(gerard_herd_deno%>%mutate(type = 'Gerard'), 
+compare_values_herd<-bind_rows(gerard_herd_deno%>%mutate(type = 'Gerard'), 
                           herd_deno %>% mutate(type = 'New'))
+
+ggplot(compare_values_herd)+
+  geom_point(aes(x = time_period, y = count_animals, color = type))+
+  facet_wrap(`Lactation Group`~location_lact_list, scales = 'free')+
+  ylim(c(0, NA))
+
+ggplot(compare_values_herd)+
+  geom_col(aes(x = time_period, y = count_lactations, fill = type), position = 'dodge')+
+  facet_wrap(`Lactation Group`~location_lact_list, scales = 'free')+
+  ylim(c(0, NA))
+
+```
+
+## compare dim
+
+```{r}
+compare_values_dim<-bind_rows(gerard_herd_deno_dim%>%mutate(type = 'Gerard'), 
+                              herd_deno_dim %>% mutate(type = 'New'))
+
+ggplot(compare_values)+
+  geom_col(aes(x = time_period, y = count_lactations, fill = type), position = 'dodge')+
+  facet_wrap(`Lactation Group`~location_lact_list, scales = 'free')+
+  ylim(c(0, NA))
+
 ```
 

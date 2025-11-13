@@ -1,0 +1,45 @@
+---
+title: "Active Animals"
+output: html_document
+date: "2025-11-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(tidyverse)
+animals<-read_parquet('data/intermediate_files/animals.parquet')
+
+animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parquet')%>%
+  filter(is.na(date_archive))%>%
+  left_join(animals%>%select(id_animal, breed, sex ))
+
+```
+
+```{r}
+
+
+
+ggplot(animal_lactations%>%
+         mutate(total = n_distinct(id_animal))%>%
+         group_by(breed)%>%
+         mutate(ct_animals_breed = n_distinct(id_animal))%>%
+         ungroup()%>%
+         mutate(pct_breed = ct_animals_breed/total)%>%
+         mutate(breed_simple = case_when(
+           pct_breed>=0.05~breed,
+            pct_breed<0.05~'Other',
+           TRUE~'Unknown'
+           
+         )))+
+  geom_bar(aes(x = lact_group, fill = breed))+
+  facet_wrap(location_lact_list~.)+
+  theme_bw()
+
+```
+
+
