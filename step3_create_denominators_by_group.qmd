@@ -266,7 +266,8 @@ write_parquet(herd_deno_month, 'data/intermediate_files/herd_season_denominators
 write_parquet(herd_deno_month, 'data/intermediate_files/herd_month_denominators2.parquet')
             
 
-gerard_herd_deno_season<-read_parquet('data/intermediate_files/herd_season_denominators.parquet')
+gerard_herd_deno_season<-read_parquet('data/intermediate_files/herd_season_denominators.parquet')%>%
+  select(location_lact_list, everything())
 
 
 
@@ -430,18 +431,26 @@ ggplot(deno_dataframe_phase)+
 
 ```{r}
 waldo::compare(
-sort(unique(colnames(gerard_herd_deno_dim))),
-sort(unique(colnames(herd_deno_dim)))
+colnames(gerard_herd_deno_dim),
+colnames(herd_deno_dim%>%
+           select(location_lact_list, time_period,
+                  `Lactation Group`, everything()))
 )
+```
 
+
+```{r}
 waldo::compare(
-sort(unique(colnames(gerard_herd_deno_season))),
-sort(unique(colnames(herd_deno_month)))
+colnames(gerard_herd_deno_season),
+colnames(herd_deno_month)
 )
+```
 
+
+```{r}
 waldo::compare(
-sort(unique(colnames(gerard_herd_deno))),
-sort(unique(colnames(herd_deno) ))
+colnames(gerard_herd_deno),
+colnames(herd_deno) 
 )
 
 
