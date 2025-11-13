@@ -457,4 +457,8 @@ colnames(herd_deno)
 
 ```
 
+```{r}
+compare_values<-bind_rows(gerard_herd_deno%>%mutate(type = 'Gerard'), 
+                          herd_deno %>% mutate(type = 'New'))
+```
 
