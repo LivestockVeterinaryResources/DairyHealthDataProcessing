@@ -477,12 +477,19 @@ ggplot(compare_values_herd)+
 ## compare dim
 
 ```{r}
-compare_values_dim<-bind_rows(gerard_herd_deno_dim%>%mutate(type = 'Gerard'), 
-                              herd_deno_dim %>% mutate(type = 'New'))
+compare_values_dim<-bind_rows(gerard_herd_deno_dim%>%mutate(type = 'Gerard')%>%
+                                mutate(time_period = as.character(time_period)), 
+                              herd_deno_dim %>% mutate(type = 'New')%>%
+                                mutate(time_period = as.character(time_period)))
 
-ggplot(compare_values)+
-  geom_col(aes(x = time_period, y = count_lactations, fill = type), position = 'dodge')+
-  facet_wrap(`Lactation Group`~location_lact_list, scales = 'free')+
+ggplot(compare_values_dim)+
+    geom_col(data = gerard_herd_deno_dim%>%mutate(type = 'Gerard')%>%
+               mutate(time_period = as.character(time_period))%>%
+               mutate(dim_group = DIM),
+             aes(x = time_period, y = count, fill = type), position = 'dodge', color = 'salmon')+
+
+  geom_col(aes(x = time_period, y = count_animals, fill = `Lactation Group`), position = 'dodge')+
+  facet_wrap(`Lactation Group`~type, scales = 'free')+
   ylim(c(0, NA))
 
 ```
