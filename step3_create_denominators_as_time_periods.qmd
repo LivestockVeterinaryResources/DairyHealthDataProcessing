@@ -1,0 +1,560 @@
+---
+title: "Create Denominators"
+format: 
+  html:
+    embed-resources: true
+editor: source
+execute:
+  echo: true
+  message: false
+  warning: false
+params:
+  denominator_granularity: 365
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dtplyr)
+
+source('functions/fxn_dt_base.R')
+source('functions/fxn_denominator_eligibility.R')
+source('functions/fxn_standardize_cow_breed.R')
+
+
+```
+
+```{r}
+#denominator base files -------------------
+animals<-read_parquet('data/intermediate_files/animals.parquet') #each row is an animal
+
+animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parquet') #each row is an animal lactation
+
+animal_event_existance<-read_parquet('data/intermediate_files/events_all_columns.parquet')%>% #add a few parameters to animal
+  group_by(id_animal)%>%
+  summarize(
+            animal_lact_min = min(lact_number), #lowest lactation number in data set
+            animal_lact_max = max(lact_number), #highest lactation numer in data set
+            animal_date_event_min = min(date_event, na.rm = TRUE), #first animal event in data set
+            animal_date_event_max = max(date_event, na.rm = TRUE))%>% #last animal event in data set
+  ungroup()
+
+
+#---------------------------
+data_pull_min<-min(animals$data_pull_date_min)
+data_pull_max<-max(animals$data_pull_date_max)
+
+```
+
+
+## define calendar days for calculations 
+
+This creates a list of calendar days from 1200 days prior to the most recent event date
+
+```{r}
+#get a list of dates for 1200 days before the final event in data set, uses the parameter "denominator granularity"
+calendar<-tibble(date_calendar = seq.Date(from = data_pull_max-1200, 
+                                          to = data_pull_max, 
+                                          by = params$denominator_granularity))
+```
+
+
+## define list of animals
+
+This is the base data for denominator calculations.  
+Each row is a unique animal lactation (id_animal_lact). 
+This is then joined to the animal data to make sure all dates for eligibility are available if needed.  
+
+In this base version of denominators, an animal is eligible to be counted if she exists on the reference day.  
+
+There are example functions for all_lactation, milking, dry. 
+Code can easily be modified to accept other eligibility criteria.
+
+
+```{r}
+#base data frame for denominator.  Each row is an animal lactation, joined to animal data so that all important dates are available
+deno_base<-animal_lactations |> 
+  left_join(animals) %>%
+  left_join(animal_event_existance)%>%
+  mutate(
+     lact_status = case_when(
+      is.na(date_left)~'Active', 
+      TRUE~'Archived' ),
+     
+    date_lact_start = case_when(
+      lact_number == 0~date_birth, 
+      lact_number >0~date_fresh, 
+      TRUE~lubridate::myd(NA)
+      ), 
+    
+    date_lact_end = case_when(
+      is.na(date_left)<1~date_left,
+      is.na(date_archive)<1~date_archive,
+      lact_status %in% 'Active'~data_pull_max,
+      TRUE~lubridate::mdy(NA)
+      ),
+
+    
+    
+    lact_duration = as.numeric(date_lact_end-date_lact_start),
+    
+    valid_lact_start = date_lact_start>=data_pull_min
+      )
+  
+
+deno_all_lact<-deno_base%>%
+  fxn_deno_eligible_entire_lactation() #animals are eligible the entire lactation
+
+deno_milking<-deno_base%>%
+  fxn_deno_eligible_milking() #animals are eligible only when milking
+
+deno_dry<-deno_base%>%
+  fxn_deno_eligible_dry() #animals are eligible only when dry
+
+deno_period<-deno_base%>%
+  fxn_deno_eligible_period()
+```
+
+### set base type used for calculations
+
+```{r}
+set_deno_base_type<-deno_all_lact
+#set_deno_base_type<-deno_dry
+#set_deno_base_type<-deno_dry
+
+```
+
+
+### plot variables in base data
+```{r, fig.height=12}
+sk_deno<-skimr::skim(deno_base)
+
+ggplot(sk_deno)+
+  geom_bar(aes(x = reorder(skim_variable, complete_rate), y = complete_rate, fill = skim_type), 
+           stat = 'identity')+
+  facet_wrap(skim_type~., scales = 'free', ncol = 1)+
+  coord_flip()+
+  scale_fill_viridis_d()
+
+```
+
+
+## Time period denominators
+
+The very granular data frame is s summarized to make reporting easier. 
+The options shown here for summary time periods are year, season, month, and week.  
+Any option is available, the time period start an end dates just need to be defined.
+
+#***START HERE---------------------------
+
+```{r}
+cow_list<-sort(unique(deno_base$id_animal))
+#i=1
+#create bookends for period )
+calendar2<-calendar%>%
+  mutate(period_start = date_calendar, 
+         period_end = lead(date_calendar))
+
+get_period_start<-calendar2$period_start[[i]]
+get_period_end<-calendar2$period_end[[i]]
+
+df_period<-deno_base%>%
+  filter(id_animal %in% sample(cow_list, 3))%>%
+  mutate(period_start = get_period_start, 
+        period_end = get_period_end)%>%
+  # filter(date_lact_start<=period_start)%>%
+  # filter(date_lact_end>=period_end)%>%
+  mutate(days_elig = case_when(
+    (date_lact_start>=period_end)~0, 
+    date_lact_end<period_start~0,
+   
+    ((date_lact_end>period_end)&(date_lact_start>=period_start))~as.numeric(period_end-date_lact_start), 
+    ((date_lact_end<period_end)&(date_lact_start>=period_start))~as.numeric(date_lact_end-period_start), 
+     ((date_lact_end>period_end)&(date_lact_start<=period_start))~as.numeric(period_end-period_start), 
+    TRUE~as.numeric(NA)
+  ))%>%
+  select(days_elig, contains('period'), 
+         date_lact_start, date_lact_end, lact_duration, 
+         date_left, date_archive, everything())
+
+```
+
+
+```{r}
+fxn_create_deno<-function(time_period){
+  denominator_granular%>%
+    group_by(location_lact_list, `Lactation Group`, {{time_period}})%>%
+    #group_by(`Lactation Group`, floordate_calendar_year)%>%
+    summarize(time_period_start = min(date_calendar), 
+              time_period_end = max(date_calendar), 
+              animal_count_mean = round(mean(ct_animals), digits = 0), 
+              animal_count_sd = round(sd(ct_animals), digits = 0), 
+              animal_count_min = min(ct_animals), 
+              animal_count_max = max(ct_animals))%>%
+    ungroup()
+}
+
+denominator_year<-fxn_create_deno(time_period = floordate_calendar_year)
+denominator_season<-fxn_create_deno(time_period = floordate_calendar_season)
+denominator_month<-fxn_create_deno(time_period = floordate_calendar_month)
+denominator_week<-fxn_create_deno(time_period = floordate_calendar_week)
+
+denominator_time_period<-bind_rows(denominator_year, denominator_season, denominator_month, denominator_week)%>%
+  select(`Lactation Group`, location_lact_list, contains('time_period'), contains('animal'), contains('floordate'))%>%
+  mutate(time_period_type = case_when(
+    (is.na(floordate_calendar_year)<1)~'year', 
+    (is.na(floordate_calendar_season)<1)~'season', 
+    (is.na(floordate_calendar_month)<1)~'month', 
+    (is.na(floordate_calendar_week)<1)~'week', 
+    TRUE~'unknown')
+  )%>%
+    select(time_period_type, everything())
+
+
+write_parquet(denominator_time_period, 'data/intermediate_files/denominator_time_period.parquet')
+
+
+
+#display table-----------------
+fxn_DT_base(denominator_time_period)
+```
+
+
+### Plot time period denominators
+
+```{r}
+
+ggplot(denominator_time_period)+
+  geom_linerange(aes(y = animal_count_mean, 
+                     xmin = time_period_start, 
+                     xmax = time_period_end))+
+  facet_grid(`Lactation Group`~location_lact_list)
+  
+
+```
+
+
+
+
+
+
+## Count cows on each calendar day for differnt lacation groups
+
+This loops over the list of calendar days and counts the number of eligible cows each date.  It prints out the date as it does it so you can see progress.  The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  The speed is limited by the length of the list of calendar dates until very very large herds are used.
+
+```{r, message = FALSE}
+
+#make a place to put the results
+deno_dataframe<-NULL
+
+
+#i = 324
+for (i in seq_along(calendar$date_calendar)){
+  
+  #faster------------------------------------------
+  df<-set_deno_base_type%>%
+    #test%>%
+    mutate(date_ref = calendar$date_calendar[[i]])%>%
+    mutate(eligible = case_when(
+      ((date_elig_start<=date_ref)&(date_elig_end>date_ref))~1, #inclusive at begining but not end
+      TRUE~0
+    ))
+  
+  df2<-df%>%
+    filter(eligible>0)%>%
+    group_by(location_lact_list, lact_group_basic, date_ref) |> 
+    summarize(ct_lacts = sum(eligible), 
+              ct_animals = n_distinct(id_animal))%>%
+    ungroup() |> 
+    rename(`Lactation Group` = lact_group_basic)
+  
+  df3<-df%>%
+    filter(eligible>0)%>%
+    group_by(location_lact_list, lact_group, date_ref) |> 
+    summarize(ct_lacts = sum(eligible), 
+              ct_animals = n_distinct(id_animal))%>%    ungroup()|> 
+    rename(`Lactation Group` = lact_group)
+  
+  df4<-df%>%
+    filter(eligible>0)%>%
+    group_by(location_lact_list, lact_group_5, date_ref) |> 
+    summarize(ct_lacts = sum(eligible), 
+              ct_animals = n_distinct(id_animal))%>%    ungroup()|> 
+    rename(`Lactation Group` = lact_group_5)
+  
+ 
+  #final df---------------------------
+  df10<-bind_rows(df2, df3, df4)%>%
+    distinct()
+  
+  deno_dataframe <-bind_rows(deno_dataframe, df10) 
+  
+  print(calendar$date_calendar[[i]])
+    
+}
+  
+
+
+
+
+```
+
+
+
+
+### Plot Counts by Lactation Groups
+
+This is a plot of the granular dataframe.  It displays the count of cows on each reference date.
+
+```{r}
+#fast method-------------------
+ggplot(deno_dataframe)+
+  geom_point(aes(x = date_ref, y = ct_animals, color = `Lactation Group`))+
+  ylim(c(0, NA))+
+  facet_wrap(location_lact_list~.)
+
+```
+
+
+
+
+## Granular denominator
+
+For most reporting the time period reported will be longer than one day.  However, here is the most granular denominator. 
+
+```{r}
+
+denominator_granular<-deno_dataframe%>%
+  #filter(eligible %in% 'eligible')%>%
+  rename(date_calendar = date_ref)%>%
+  mutate(floordate_calendar_year = floor_date(date_calendar, unit = 'years'),
+         floordate_calendar_season = floor_date(date_calendar, unit = 'seasons'),
+         floordate_calendar_month = floor_date(date_calendar, unit = 'months'),
+         floordate_calendar_week = floor_date(date_calendar, unit = 'weeks') )%>%
+  select(location_lact_list, `Lactation Group`, ct_animals, ct_lacts, contains('date'))
+
+write_parquet(denominator_granular, 'data/intermediate_files/denominator_calendar_time.parquet')
+
+
+
+#display table--------------------
+fxn_DT_base(head(denominator_granular, 500))
+
+```
+
+### Match Gerard Denominator
+```{r}
+
+fxn_summarize_denos<-function(df){
+  df%>%
+    summarize(count_animals = round(mean(ct_animals), digits = 0), 
+            count_lactations = round(mean(ct_lacts), digits = 0), 
+            
+            min_animals = min(ct_animals), 
+            max_animals = max(ct_animals), 
+            sd_animals = sd(ct_animals), 
+            median_animals = median(ct_animals),
+            
+            min_lacts = min(ct_lacts), 
+            max_lacts = max(ct_lacts), 
+            sd_lacts = sd(ct_lacts), 
+            median_lacts = median(ct_lacts)
+            )%>%
+  ungroup()
+    
+}
+
+#--------------------------------------------
+herd_deno<-denominator_granular%>%
+  group_by(floordate_calendar_year, location_lact_list, 
+           `Lactation Group`)%>%
+  fxn_summarize_denos()%>%
+  mutate(time_period = year(floordate_calendar_year))%>%
+  select(location_lact_list, time_period, `Lactation Group`, 
+         count_animals, count_lactations, everything() )
+
+write_parquet(herd_deno, 'data/intermediate_files/herd_denominators2.parquet')
+            
+
+gerard_herd_deno<-read_parquet('data/intermediate_files/herd_denominators.parquet')
+
+#--------------------------------------------
+
+herd_deno_month<-denominator_granular%>%
+  group_by(floordate_calendar_month, location_lact_list, 
+           `Lactation Group`)%>%
+  fxn_summarize_denos()%>%
+  mutate(time_period = year(floordate_calendar_month))%>%
+  select(location_lact_list, time_period, `Lactation Group`, 
+         count_animals, count_lactations, everything() )
+
+write_parquet(herd_deno_month, 'data/intermediate_files/herd_season_denominators2.parquet')
+
+write_parquet(herd_deno_month, 'data/intermediate_files/herd_month_denominators2.parquet')
+            
+
+gerard_herd_deno_season<-read_parquet('data/intermediate_files/herd_season_denominators.parquet')%>%
+  select(location_lact_list, everything())
+
+
+
+```
+
+
+## Denominators by day of phase (under development)
+
+### Count cows on each calendar day for different dim groups
+
+This loops over the list of calendar days and counts the number of eligible cows each date.  It prints out the date as it does it so you can see progress.  The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  The speed is limited by the length of the list of calendar dates until very very large herds are used.
+
+```{r, message = FALSE}
+
+
+
+#set_dim_breaks<-30
+set_dim_breaks<-seq(0, 400, by = 30)
+
+
+#make a place to put the results
+deno_dataframe_phase<-NULL
+
+#i = 1
+for (i in seq_along(calendar$date_calendar)){
+  
+  #faster------------------------------------------
+  df<-set_deno_base_type%>%
+    #test%>%
+    mutate(date_ref = calendar$date_calendar[[i]])%>%
+    mutate(dim_at_date_ref = case_when(
+      ((date_ref>=date_elig_start)&(date_ref<date_elig_end))~as.numeric(date_ref-date_fresh), 
+      TRUE~as.numeric(NA))
+      )%>%
+        mutate(dim_group = cut(dim_at_date_ref, breaks = set_dim_breaks))
+    
+
+  df3<-df%>%
+    filter(!(is.na(dim_group)))%>%
+    group_by(location_lact_list, lact_group, date_ref, dim_group) |> 
+    summarize(ct_lacts = n_distinct(id_animal_lact), 
+              ct_animals = n_distinct(id_animal)
+              )%>%
+    ungroup()|> 
+    rename(`Lactation Group` = lact_group)
+  
+  
+  df4<-df%>%
+    filter(!(is.na(dim_group)))%>%
+    group_by(location_lact_list, lact_group_basic, date_ref, dim_group) |> 
+    summarize(ct_lacts = n_distinct(id_animal_lact), 
+              ct_animals = n_distinct(id_animal)
+              )%>%
+    ungroup()|> 
+    rename(`Lactation Group` = lact_group_basic)
+  
+  
+ 
+ 
+  #final df---------------------------
+  df10<-bind_rows(df3, df4)%>%
+    distinct()
+  
+  deno_dataframe_phase <-bind_rows(deno_dataframe_phase, df10)
+  
+  print(calendar$date_calendar[[i]])
+    
+}
+
+write_parquet(deno_dataframe_phase, 'data/intermediate_files/denominator_phase_time.parquet')
+
+#-----------------------------------------
+
+herd_deno_dim<-deno_dataframe_phase%>%
+  mutate(time_period = floor_date(date_ref, unit = 'months'))%>%
+  group_by(time_period, dim_group, `Lactation Group`, location_lact_list )%>%
+  fxn_summarize_denos()
+
+write_parquet(herd_deno_dim, 'data/intermediate_files/herd_dim_denominators2.parquet')
+
+
+gerard_herd_deno_dim<-read_parquet('data/intermediate_files/herd_dim_denominators.parquet')
+```
+
+
+### plot phase denominators
+
+
+```{r}
+
+ggplot(deno_dataframe_phase)+
+  geom_point(aes(x = date_ref, y = ct_lacts, color = dim_group))+
+  ylim(c(0, NA))+
+  facet_grid(location_lact_list~`Lactation Group`)
+
+```
+## Compare new and old
+
+```{r}
+waldo::compare(
+colnames(gerard_herd_deno_dim),
+colnames(herd_deno_dim%>%
+           select(location_lact_list, time_period,
+                  `Lactation Group`, everything()))
+)
+```
+
+
+```{r}
+waldo::compare(
+colnames(gerard_herd_deno_season),
+colnames(herd_deno_month)
+)
+```
+
+
+```{r}
+waldo::compare(
+colnames(gerard_herd_deno),
+colnames(herd_deno) 
+)
+
+
+
+```
+## compare herd
+
+```{r}
+compare_values_herd<-bind_rows(gerard_herd_deno%>%mutate(type = 'Gerard'), 
+                          herd_deno %>% mutate(type = 'New'))
+
+ggplot(compare_values_herd)+
+  geom_point(aes(x = time_period, y = count_animals, color = type))+
+  facet_wrap(`Lactation Group`~location_lact_list, scales = 'free')+
+  ylim(c(0, NA))
+
+ggplot(compare_values_herd)+
+  geom_col(aes(x = time_period, y = count_lactations, fill = type), position = 'dodge')+
+  facet_wrap(`Lactation Group`~location_lact_list, scales = 'free')+
+  ylim(c(0, NA))
+
+```
+
+## compare dim
+
+```{r}
+compare_values_dim<-bind_rows(gerard_herd_deno_dim%>%mutate(type = 'Gerard')%>%
+                                mutate(time_period = as.character(time_period)), 
+                              herd_deno_dim %>% mutate(type = 'New')%>%
+                                mutate(time_period = as.character(time_period)))
+
+ggplot(compare_values_dim)+
+    geom_col(data = gerard_herd_deno_dim%>%mutate(type = 'Gerard')%>%
+               mutate(time_period = as.character(time_period))%>%
+               mutate(dim_group = DIM),
+             aes(x = time_period, y = count, fill = type), position = 'dodge', color = 'salmon')+
+
+  geom_col(aes(x = time_period, y = count_animals, fill = `Lactation Group`), position = 'dodge')+
+  facet_wrap(`Lactation Group`~type, scales = 'free')+
+  ylim(c(0, NA))
+
+```
+
