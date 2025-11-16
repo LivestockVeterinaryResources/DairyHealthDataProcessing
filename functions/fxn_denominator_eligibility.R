@@ -83,7 +83,7 @@ fxn_deno_eligible_period<-function(df){
       #Get lactating cows. Use date_archive except for active cows. 
       date_elig_end = case_when(
         (is.na(date_next_fresh)<1)~date_next_fresh,
-        (is.na(date_archive)<1)~date_archive, #if no date dry end with date_archive
+        (is.na(date_archive)<1)~date_archive, #end with date_archive
         (is.na(date_archive)>0)~data_pull_max, #if no archive date end with data_pull_max date
         TRUE~lubridate::ymd(NA)) #this should be modified so that it throws an error notifying us that we missed something in the logic
       

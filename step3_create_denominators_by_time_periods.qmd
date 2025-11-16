@@ -240,11 +240,6 @@ ggplot(sk_deno)+
 
 ## Time period denominators
 
-The very granular data frame is s summarized to make reporting easier. 
-The options shown here for summary time periods are year, season, month, and week.  
-Any option is available, the time period start an end dates just need to be defined.
-
-#***START HERE---------------------------
 
 ```{r}
 cow_list<-sort(unique(deno_base$id_animal))
@@ -314,7 +309,7 @@ deno_by_period = bind_rows(deno_by_period, df_period_summary)
 
 ```
 
-## write out files
+### write out files
 
 ```{r}
 
@@ -323,6 +318,196 @@ write_parquet(deno_by_period,
 
 ```
 
+
+
+## Calendar Denominators
+
+```{r}
+cow_list<-sort(unique(deno_base$id_animal))
+#i=1
+cal_seq<-tibble(date= seq.Date(data_pull_min, data_pull_max, by = 3))%>%
+  mutate(floordate_year = floor_date(date, unit = 'years'), 
+         floordate_season = floor_date(date, unit = 'season'),
+         floordate_month = floor_date(date, unit = 'month'), 
+         floordate_week = floor_date(date, unit = 'week')
+  )
+
+fxn_get_calendar<-function(date_var){
+  cal_seq%>%
+  select({{date_var}})%>%
+  distinct()%>%
+  rename(date_calendar = {{date_var}})%>%
+  mutate(period_start = date_calendar, 
+         period_end = lead(date_calendar))%>%
+  mutate(period_end = case_when(
+    is.na(period_end)~data_pull_max, 
+    TRUE~period_end)
+    )%>%
+  mutate(days_in_period = as.numeric(period_end-period_start))
+}
+
+calendar_year<-fxn_get_calendar(date_var = 'floordate_year')
+calendar_season<-fxn_get_calendar(date_var = 'floordate_season')
+calendar_month<-fxn_get_calendar(date_var = 'floordate_month')
+calendar_week<-fxn_get_calendar(date_var = 'floordate_week')
+
+
+```
+
+
+### Function 
+
+```{r}
+
+fxn_create_deno_calendar<-function(calendar2){
+
+deno_by_period<-NULL
+
+for (i in seq_along(calendar2$period_start)){
+
+get_period_start<-calendar2$period_start[[i]]
+get_period_end<-calendar2$period_end[[i]]
+get_days_in_period<-calendar2$days_in_period[[i]]
+
+df_period<-deno_base%>%
+  #filter(id_animal %in% sample(cow_list, 3))%>% #turn on for testing
+  mutate(period_start = get_period_start, 
+        period_end = get_period_end, 
+        days_in_period = get_days_in_period)%>%
+  # filter(date_lact_start<=period_start)%>%
+  # filter(date_lact_end>=period_end)%>%
+  mutate(days_elig = case_when(
+    (date_lact_start>=period_end)~0, 
+    date_lact_end<period_start~0,
+  
+    ((date_lact_end<period_end)&(date_lact_start<=period_start))~as.numeric(date_lact_end-period_start), 
+    ((date_lact_end<period_end)&(date_lact_start>=period_start))~as.numeric(period_end-date_lact_start), 
+     ((date_lact_end>period_end)&(date_lact_start<=period_start))~as.numeric(period_end-period_start), 
+    TRUE~as.numeric(NA)
+  ))%>%
+  select(days_elig, contains('period'), 
+         date_lact_start, date_lact_end, lact_duration, 
+         date_left, date_archive, everything())%>%
+  mutate(qc_days_elig = case_when(
+    days_elig >=0 ~ 'ok', 
+    days_elig<0~'neg days elig', 
+    is.na(days_elig)~'missing days elig',
+    TRUE~'unknown'))
+
+#----------------------------
+
+df_period_summary<-df_period%>%
+  group_by(location_list, lact_group, period_start, period_end, days_in_period,  qc_days_elig)%>%
+  filter(days_elig>0)%>%
+  summarize(days_elig = sum(days_elig, na.rm = TRUE), 
+            count_lactations = n_distinct(id_animal_lact), 
+            count_animals = n_distinct(id_animal))%>%
+  ungroup()%>%
+  mutate(animal_periods = days_elig/days_in_period)
+
+deno_by_period = bind_rows(deno_by_period, df_period_summary)
+
+
+}
+
+}
+
+```
+
+#### function to plot denos
+
+```{r}
+fxn_plot_deno_types<-function(deno_type){
+  
+  deno_type_long<-deno_type%>%
+    select(period_start, count_animals, count_lactations, animal_periods,  lact_group, location_list)%>%
+    pivot_longer(cols = c('count_animals', 'count_lactations', 'animal_periods'), 
+                 names_to = 'metric', 
+                 values_to = 'count')
+  
+p1<-ggplot(deno_type_long)+
+  geom_smooth(aes(x = period_start, y = count, color = metric, fill = metric, group = metric))+
+  geom_point(aes(x = period_start, y = count, color = metric), size = 1)+
+  facet_grid(location_list~lact_group)
+
+p2<-ggplot(deno_type)+
+  geom_smooth(aes(x = count_animals, y = count_lactations, color = lact_group, fill = lact_group, group = lact_group))+
+  facet_wrap(.~location_list, scales =  'free')+
+  theme_bw()+
+  theme(aspect.ratio = 1)
+
+# p3<-ggplot(deno_type)+
+#   geom_smooth(aes(x = period_start, y = animal_periods, color = lact_group, fill = lact_group, group = lact_group))+
+#   geom_point(aes(x = period_start, y = animal_periods, color = lact_group), size = 1)+
+#   facet_grid(.~location_list)
+
+print(p1) 
+print(p2) 
+# print(p3)
+
+}
+
+```
+
+
+### Year 
+
+```{r}
+fxn_create_deno_calendar(calendar2 = calendar_year)
+deno_calendar_year<-deno_by_period
+
+fxn_plot_deno_types(deno_type = deno_calendar_year)
+```
+
+### Season
+
+```{r}
+fxn_create_deno_calendar(calendar2 = calendar_season)
+deno_calendar_season<-deno_by_period
+
+fxn_plot_deno_types(deno_calendar_season)
+
+```
+
+### Month
+
+```{r}
+fxn_create_deno_calendar(calendar2 = calendar_month)
+deno_calendar_month<-deno_by_period
+
+fxn_plot_deno_types(deno_calendar_month)
+```
+
+### Week
+
+```{r}
+fxn_create_deno_calendar(calendar2 = calendar_week)
+deno_calendar_week<-deno_by_period
+
+fxn_plot_deno_types(deno_calendar_week)
+
+```
+
+### write out files
+
+```{r}
+
+write_parquet(deno_calendar_year, 
+              paste0('data/intermediate_files/deno_calendar_year.parquet'))
+
+write_parquet(deno_calendar_season, 
+              paste0('data/intermediate_files/deno_calendar_season.parquet'))
+
+write_parquet(deno_calendar_month, 
+              paste0('data/intermediate_files/deno_calendar_month.parquet'))
+
+write_parquet(deno_calendar_week, 
+              paste0('data/intermediate_files/deno_calendar_week.parquet'))
+
+```
+
+
+#####****JUNK************
 
 
 ```{r}

@@ -135,8 +135,9 @@ source("step2_create_intermediate_files.R") #fundamental files
 #standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
 quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") #denominators for lameness report
-quarto::quarto_render('step3_create_denominators_by_group.qmd') #standard denominators by lactation group, calender time, phase time
-quarto::quarto_render('step3_create_denominators_by_breed.qmd') #example of custom variable for denominators
+quarto::quarto_render('step3_create_denominators_by_group.qmd') #inventory denominators by lactation group, calender time, phase time
+quarto::quarto_render('step3_create_denominators_by_breed.qmd') #inventory denominators with custom variable 
+quarto::quarto_render('step3_create_denominators_by_calendar_interval.qmd') #standard denominators by timeperiod, lactation group, calender time, phase time, etc
 
 
 # Step 4 Report Templates------------------------
