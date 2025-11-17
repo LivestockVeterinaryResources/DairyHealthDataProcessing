@@ -1,0 +1,132 @@
+---
+title: Read and Visualize
+date: "`r Sys.Date()`"
+embed-resources: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# This chunk is already finished for you, you don't need to modify anything here
+library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
+library(arrow) #this package handles parquet files
+library(skimr) #this is particularly helpful when looking at new data or finding NA values
+library(waldo) #we use this to create answer keys for these exercises
+
+
+#add some extra functions
+source('../functions/fxn_add_event_counts.R')
+source('data_milestones/fxn_floor_dates.R')
+
+
+```
+
+## Create and select columns
+
+In this milestone, you'll write some of the code that was written for you in milestone 3.
+
+1.  The events_formatted.parquet file is read in, named "events",  and filtered for health events. Filter this further so you only have only one or 2 unique health events.  The example in the solution is based on 'NAVEL' and 'SEPTIC' events, but choose anything you want.
+2.  create a new variable named **floordate_month**. The logic to create this variable is: **floor_date(date_event, 'months')**
+3.  arrange the data by 3 variables: the animal (id_animal), the event (event), and then the event date (date_event). 
+4.  Pipe your events_formatted to the function fxn_add_event_counts(). This will add columns indicating the number of times the animal has had that event within the data set (event_count_animal) or within their lactation (event_count_lact). If you would like to see the code the creates these click on the function in your environment.
+5.  create a new variable the is animal age in days at time of event. Name this variable "age_event"
+6.  select all the variables below in the order you see them, 
+
+```{r}
+#| label: recreation-import
+#| 
+events<-read_parquet('../data/intermediate_files/events_formatted.parquet')%>%
+  filter(event_type %in% 'health')%>%
+  filter(event %in% c('NAVEL', 'SEPTIC'
+                      ))%>%
+  mutate(floordate_month = floor_date(date_event, 'months'), 
+         age_event = date_event-date_birth)%>%
+  fxn_add_event_counts()%>%
+  select(location_event, 
+         id_animal, 
+         id_animal_lact,
+         id, date_birth,
+         lact_number, lact_group,
+         dim_event, starts_with('age'), 
+         floordate_month, 
+         event, remark, protocols, locate_lesion,
+         contains('event'), 
+         contains('remark'), 
+         contains('protocols') 
+         )
+
+write_rds(head(events, 10), 'data_milestones/solutions_week4_check_columns.rds')
+
+
+
+```
+
+
+## Check selected columns
+
+```{r}
+
+waldo::compare(colnames(events), colnames(read_rds('data_milestones/solutions_week4_check_columns.rds')))
+
+```
+
+
+### Step 2 - Disease and Treatments
+
+Create 2 new variables for your events: Disease and Treatment.  Use case_when() and whichever columns you would like to create the best description.
+Then use graphs, tables, or a combination to describe the timing your selected Disease(s), both over time and according to animal age or dim as appropriate. 
+Show if there has been a change in the treatments used over time.
+
+Below are a couple example graphics, but yours can be prettier.
+
+```{r}
+#| label: recreate-this
+#| message: false
+
+
+get_values<-events%>%
+  group_by(event, remark, protocols)%>%
+  summarize(ct = sum(n()))%>%
+  ungroup()
+
+check<-events%>%
+  mutate(disease = event, 
+         treatment = case_when(
+           str_detect(remark, '\\+')~remark, 
+           TRUE~remark_letters1
+         ))%>%
+  mutate(age_category = case_when(
+    lact_number>0~'Adult Cow', 
+    age_event<60~'<60 days', 
+    age_event<120~'60-120 days', 
+    age_event>=120~'>120 days',
+    TRUE~'Unknown'
+  ))%>%
+  group_by(age_category, floordate_month, disease, treatment)%>%
+  summarize(ct = sum(n()))%>%
+  ungroup()
+
+ggplot(check)+
+  geom_bar(aes(x = floordate_month, fill = treatment))+
+  facet_wrap(disease~.)
+ggsave('images/milestone4_disease_over_time.jpg')
+
+ggplot(check)+
+  geom_bar(aes(x = age_category, fill = treatment))+
+  facet_wrap(disease~.)
+ggsave('images/milestone4_disease_by_phase.jpg')
+
+knitr::include_graphics('images/milestone4_disease_over_time.jpg')
+knitr::include_graphics('images/milestone4_disease_by_phase.jpg')
+
+
+
+```
+
+### Extension Options
+
+1) Improve your description for your choosen events
+2) Choose a new disease
+3) choose to add multiple farms (either your own data or other example herds)
