@@ -147,7 +147,8 @@ mutate(technician = Technician,
       (lact_number ==4)~'LACT 4',
       (lact_number >4)~'LACT 5+',
       TRUE~'Unknown')
-  )
+  )%>%
+  mutate(id = ID)
 
 
 
@@ -161,7 +162,7 @@ write_parquet(events2, 'data/intermediate_files/events_all_columns.parquet') # t
 # formatted file -----------------------
 write_parquet(events2%>%
                 select(source_file_path, 
-                       id_animal, 
+                       id_animal, id,
                        date_birth, breed, #eid, 
                        date_enrolled, qc_diff_bdat_edat,
                        id_animal_lact, date_fresh, date_archived, 
