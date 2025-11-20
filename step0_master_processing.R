@@ -24,8 +24,8 @@ pacman::p_load(
 )
 
 # read in functions -------------------
-source('functions/fxn_delete_files_clean_slate.R')
-source('functions/fxn_de_duplicate.R') #removes duplicated rows
+source("functions/fxn_delete_files_clean_slate.R")
+source("functions/fxn_de_duplicate.R") # removes duplicated rows
 
 
 source("functions/fxn_location.R") # function to specify event location
@@ -42,23 +42,23 @@ source("functions/fxn_treatment.R")
 ## Set custom functions----
 
 #**** Modify This Section***
-##Note: you can build your own custom functions for any of these.  
-##If you choose to use custom functions you must source them when you assign them
+## Note: you can build your own custom functions for any of these.
+## If you choose to use custom functions you must source them when you assign them
 
 ### animal id  (turn on only one of these lines) ---------
-#fxn_assign_id_animal <- fxn_assign_id_animal_default
+# fxn_assign_id_animal <- fxn_assign_id_animal_default
 fxn_assign_id_animal <- fxn_assign_id_animal_parnell
 
 ### parsing---------
-## parse_free_text options: 
+## parse_free_text options:
 fxn_parse_remark <- fxn_parse_remark_default
 
-## parse_free_text options: 
+## parse_free_text options:
 fxn_parse_protocols <- fxn_parse_protocols_default
 
 ### locations  ((turn on only one location function) ----------
-set_farm_name <- 'Example Herd'  #if you are not using the default location function this name will never be used
-#fxn_assign_location_event <- fxn_assign_location_event_default
+set_farm_name <- "Example Herd" # if you are not using the default location function this name will never be used
+# fxn_assign_location_event <- fxn_assign_location_event_default
 fxn_assign_location_event <- fxn_assign_location_event_parnell_ANON
 
 # detect_location_lesion options:
@@ -84,8 +84,8 @@ set_outcome_gap_lactation <- 1
 #*
 
 ### clean up old data ---------------------------------
-#***DANGER*** make sure you understand this setting if you change it to TRUE
-clean_slate <- FALSE #this will delete all data in data/event_files and data/intermediate files
+#*** DANGER*** make sure you understand this setting if you change it to TRUE
+clean_slate <- FALSE # this will delete all data in data/event_files and data/intermediate files
 
 ### EXAMPLE data google drive-----------
 # set this to TRUE to pull EXAMPLE data from google drive.
@@ -111,7 +111,7 @@ auto_de_duplicate <- TRUE
 #*** Do NOT modify this section*** unless you are very sure you understand what you want
 #*
 ## start with clean slate ------
-if (clean_slate == TRUE){
+if (clean_slate == TRUE) {
   fxn_delete_files_clean_slate()
 }
 
@@ -129,16 +129,16 @@ if (get_EXAMPLE_data_from_google_drive == TRUE) {
 source("step1_read_in_data.R")
 
 ### Step 2 create Intermediate Files----------------------
-source("step2_create_intermediate_files.R") #fundamental files
+source("step2_create_intermediate_files.R") # fundamental files
 
 ### Step 3 Create Denominators ---------------------
-#standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
+# standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
-quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") #denominators for lameness report
+quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
 
-##under development:
-#quarto::quarto_render('step3_create_denominators_by_group.qmd') #inventories by lactation group, calender time, phase time
-#quarto::quarto_render('step3_create_denominators_by_breed.qmd') #inventory with example of custom variable
+## under development:
+quarto::quarto_render("step3_create_denominators_by_group.qmd") # inventories by lactation group, calender time, phase time
+quarto::quarto_render("step3_create_denominators_by_breed.qmd") # inventory with example of custom variable
 
 
 # Step 4 Report Templates------------------------
@@ -169,4 +169,3 @@ quarto::quarto_render("report_explore_lame.qmd")
 
 # TODO List --------------------------------------------
 # add milk data for example farms
-
