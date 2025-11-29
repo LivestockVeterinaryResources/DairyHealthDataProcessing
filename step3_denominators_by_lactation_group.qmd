@@ -1,0 +1,290 @@
+---
+title: "Create Denominators"
+format: 
+  html:
+    embed-resources: true
+editor: source
+execute:
+  echo: true
+  message: false
+  warning: false
+params:
+  denominator_granularity: 21
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dtplyr)
+
+source('functions/fxn_dt_base.R')
+source('functions/fxn_denominator_eligibility.R')
+source('functions/fxn_standardize_cow_breed.R')
+source('functions/fxn_assign_day_of_phase_group.R')
+
+
+```
+
+```{r}
+#denominator base files -------------------
+animals<-read_parquet('data/intermediate_files/animals.parquet') #each row is an animal
+
+animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parquet') #each row is an animal lactation
+
+animal_event_existance<-read_parquet('data/intermediate_files/events_all_columns.parquet')%>% #add a few parameters to animal
+  mutate(lact = parse_number(LACT))%>%
+  group_by(id_animal)%>%
+  summarize(
+            animal_lact_min = min(lact), 
+            animal_lact_max = max(lact), 
+            animal_date_event_min = min(date_event, na.rm = TRUE), 
+            animal_date_event_max = max(date_event, na.rm = TRUE))%>%
+  ungroup()
+
+
+#---------------------------
+data_pull_min<-min(animals$data_pull_date_min)
+data_pull_max<-max(animals$data_pull_date_max)
+
+```
+
+
+## define calendar days for calculations 
+
+This creates a list of calendar days from 1200 days prior to the most recent event date
+
+```{r}
+get_factor_for_days_back<-ceiling(1200/params$denominator_granularity)
+#get a list of dates for 1200 days before the last event
+calendar<-tibble(date_calendar = seq.Date(
+                 from = data_pull_max-((get_factor_for_days_back+1)*params$denominator_granularity), 
+                 to = data_pull_max, 
+                 by = params$denominator_granularity))%>%
+  mutate(date_period_end = date_calendar, 
+         date_period_start = lag(date_calendar-1))%>%
+  filter(!(is.na(date_period_end)))
+
+```
+
+
+## define list of animals
+
+This is the base data for denominator calculations.  
+Each row is a unique animal lactation (id_animal). 
+This is then joined to the animal data to make sure all dates for eligibility are available if needed.  
+
+In this base version of denominators, an animal is eligible to be counted if she exists on the reference day.  You can modify this if you choose.
+
+There are example functions for all_lactation, milking, dry. Code can easily be modified to accept other eligibility criteria.
+
+
+```{r}
+#base data frame for denominator.  Each row is an animal lactation, joined to animal data so that all important dates are available
+deno_base<-animal_lactations |> 
+  left_join(animals) %>%
+  left_join(animal_event_existance)
+
+deno_all_lact<-deno_base%>%
+  fxn_deno_eligible_entire_lactation() #animals are eligible the entire lactation
+
+deno_milking<-deno_base%>%
+  fxn_deno_eligible_milking() #animals are eligible only when milking
+
+deno_dry<-deno_base%>%
+  fxn_deno_eligible_dry() #animals are eligible only when dry
+```
+
+### set base type used for calculations
+
+```{r}
+set_deno_base_type<-deno_all_lact #any animal is eligible
+#set_deno_base_type<-deno_milking #only milking animals are eligible
+#set_deno_base_type<-deno_dry #only dry animals are eligible
+
+```
+
+
+### plot variables in base data
+```{r, fig.height=12}
+# sk_deno<-skimr::skim(deno_base)
+# 
+# ggplot(sk_deno)+
+#   geom_bar(aes(x = reorder(skim_variable, complete_rate), y = complete_rate, fill = skim_type), 
+#            stat = 'identity')+
+#   facet_wrap(skim_type~., scales = 'free', ncol = 1)+
+#   coord_flip()+
+#   scale_fill_viridis_d()
+
+```
+
+
+
+
+## Count cows on each calendar day for differnt lacation groups
+
+This loops over the list of calendar days and counts the number of eligible cows each date.  It prints out the date as it does it so you can see progress.  The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  The speed is limited by the length of the list of calendar dates until very very large herds are used.
+
+It calculates for each lactation group, as well as each dim group. There is also a calculation for the interaction of lact_group_repro and dim. 
+
+```{r, message = FALSE}
+
+#make a place to put the results
+deno_dataframe<-NULL
+errors<-NULL
+
+#i = 3
+for (i in seq_along(calendar$date_calendar)){
+  
+  #faster------------------------------------------
+  df<-set_deno_base_type%>%
+    #test%>%
+    mutate(date_ref_start = calendar$date_period_start[[i]], 
+           date_ref_end = calendar$date_period_end[[i]])%>%
+    mutate(elig_days = case_when(
+      date_elig_start>date_ref_end~0, #lactation began after period ended
+      date_elig_end<date_ref_start~0, #lactation ended before period started
+      ((date_elig_start<=date_ref_start)&(date_elig_end>=date_ref_end))~as.numeric(date_ref_end-date_ref_start), #eligible for entire period, inclusive at begining but not end
+      ((date_elig_start<=date_ref_start)&(date_elig_end<=date_ref_end))~as.numeric(date_elig_end-date_ref_start), #eligible at start but not at end of period
+      ((date_elig_start>date_ref_start)&(date_elig_end>=date_ref_end))~as.numeric(date_ref_end-date_elig_start), #eligible at end but not at start of period.
+      ((date_elig_start>date_ref_start)&(date_elig_end<=date_ref_end))~as.numeric(date_elig_end-date_elig_start), #eligible within period but not at begining or end
+      TRUE~as.numeric(NA)
+    ))%>%
+    mutate(day_of_phase = case_when( #this is the day of phase at the reference period start
+      lact_number==0~as.numeric(date_ref_start-date_birth), 
+      lact_number>0~as.numeric(date_ref_start-date_fresh), 
+      TRUE~as.numeric(NA)
+    ))
+  
+  #errors-----------------------------
+  df_error <-df%>%
+    filter(is.na(elig_days))%>%
+    select(elig_days, contains('date_elig'), contains('date_ref'), date_birth, date_fresh, date_archive, everything())
+
+  errors<-bind_rows(df_error, errors)
+  
+  # #lact group basic------------------------------
+  df2<-df%>%
+    filter(!(is.na(elig_days)))%>%
+    group_by(location_lact_list, lact_group_basic, date_ref_start, date_ref_end) |>
+     summarize(ct_animal_days_elig = sum(elig_days), 
+              ct_animals = n_distinct(id_animal), 
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|> 
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group_basic)%>%
+    mutate(deno_type = 'lact_basic')
+  
+  # #lact_group_5-------------------------------------
+  df3<-df%>%
+    group_by(location_lact_list, lact_group_repro, date_ref_start, date_ref_end) |>
+     summarize(ct_animal_days_elig = sum(elig_days), 
+              ct_animals = n_distinct(id_animal), 
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|> 
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group_repro)%>%
+    mutate(deno_type = 'lact_repro')
+
+  # #lact _group standard----------------------------------
+  df4<-df%>%
+    group_by(location_lact_list, lact_group, date_ref_start, date_ref_end) |>
+     summarize(ct_animal_days_elig = sum(elig_days), 
+              ct_animals = n_distinct(id_animal), 
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|> 
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group)%>%
+    mutate(deno_type = 'lact_group')
+   
+  # #lact_group_5-------------------------------------
+  df5<-df%>%
+    group_by(location_lact_list, lact_group_5, date_ref_start, date_ref_end) |>
+     summarize(ct_animal_days_elig = sum(elig_days), 
+              ct_animals = n_distinct(id_animal), 
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|> 
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group_5)%>%
+    mutate(deno_type = 'lact_5')
+  
+  #lact_group_5-------------------------------------
+  # df6<-df%>%
+  #   #filter(elig_days>0)%>%
+  #   fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+  #   group_by(location_lact_list, lact_group_basic, day_of_phase_group, date_ref_start, date_ref_end) |> 
+  #   summarize(ct_animal_days_elig = sum(elig_days), 
+  #             ct_animals = n_distinct(id_animal), 
+  #             ct_animal_lactations = n_distinct(id_animal_lact))%>%
+  #   ungroup()|> 
+  #   mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+  #   mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+  #   rename(`Lactation Group` = lact_group_basic)%>%
+  #   mutate(deno_type = 'dop_lact_basic')
+  
+ 
+  #final df---------------------------
+  df10<-bind_rows(df2, df3, df4,
+                  df5#, df6
+                  )%>%
+    distinct()
+  
+  deno_dataframe <-bind_rows(deno_dataframe, df10) 
+  
+  print(calendar$date_calendar[[i]])
+    
+}
+  
+
+
+
+
+```
+
+
+
+
+### Plot Counts by Lactation Groups
+
+This is a plot of the granular dataframe.  It displays the count of cows on each reference date.
+
+```{r}
+#fast method-------------------
+ggplot(deno_dataframe%>%filter(!(deno_type %in% 'dop_lact_basic')))+
+  geom_point(aes(x = date_ref_start, y = ct_animal_periods, color = `Lactation Group`))+
+  ylim(c(0, NA))+
+  facet_grid(location_lact_list~deno_type, scales = 'free_y')
+
+#fast method-------------------
+ggplot(deno_dataframe%>%filter(deno_type %in% 'dop_lact_basic'))+
+  geom_point(aes(x = date_ref_start, y = ct_animal_periods, color = day_of_phase_group))+
+  ylim(c(0, NA))+
+  facet_grid(location_lact_list~`Lactation Group`, scales = 'free_y')#+
+  #theme(legend.position = 'top')
+
+
+```
+
+
+
+
+## Write out denominator
+
+Denominator is written out using the days of granularity in the file name. 
+
+```{r}
+
+denominator_granular<-deno_dataframe%>%
+  
+
+write_parquet(denominator_granular, 
+              paste0('data/intermediate_files/denominator_by_lact_group_period', params$denominator_granularity, '.parquet'))
+
+
+#display table--------------------
+fxn_DT_base(head(denominator_granular, 500))
+
+```
