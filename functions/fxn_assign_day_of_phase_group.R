@@ -11,13 +11,14 @@ fxn_assign_day_of_phase_group<-function(df, cut_by_days = 30, top_cut = 400, top
      #test<-df%>% #for testing
     mutate(dop_group = cut(day_of_phase, 
                            right = FALSE,
-                           breaks = c(-Inf, seq(0, top_cut, by = cut_by_days), top_cut+1),
+                           breaks = c(-Inf, seq(0, top_cut, by = cut_by_days), top_cut+1, Inf),
                            ordered_result = TRUE))%>%
     mutate(day_of_phase_group = case_when(
       
       day_of_phase<0~paste0('<0'),
       (lact_number==0)&(day_of_phase>top_cut_hfr)~paste0(top_cut_hfr+1, '+'),
       day_of_phase>top_cut~paste0(top_cut+1, '+'), 
+      is.na(day_of_phase)~'Unknown',
       TRUE~dop_group
     ))%>%
     select(-dop_group)#%>%

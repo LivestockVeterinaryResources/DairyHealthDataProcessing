@@ -10,6 +10,9 @@ execute:
   warning: false
 params:
   denominator_granularity: 365
+  cut_by_days: 30
+  top_cut: 400
+  top_cut_hfr: 500
 ---
 
 ```{r}
@@ -49,34 +52,38 @@ data_pull_max<-max(animals$data_pull_date_max)
 ```
 
 
-## define calendar days for calculations 
+## Define calendar days for calculations 
 
-This creates a list of calendar days from 1200 days prior to the most recent event date
+This creates a list of calendar days from 1200 days prior to the most recent event date.  
+It exceeds the days back slightly (see "get_factor_for_days_back") to ensure a full 3 years of time_periods.
 
 ```{r}
 get_factor_for_days_back<-ceiling(1200/params$denominator_granularity)
+
 #get a list of dates for 1200 days before the last event
 calendar<-tibble(date_calendar = seq.Date(
                  from = data_pull_max-((get_factor_for_days_back+1)*params$denominator_granularity), 
                  to = data_pull_max, 
                  by = params$denominator_granularity))%>%
-  mutate(date_period_end = date_calendar, 
-         date_period_start = lag(date_calendar-1))%>%
-  filter(!(is.na(date_period_end)))%>%
-  filter(!(is.na(date_period_start)))
+  mutate(date_time_period_end = date_calendar, 
+         date_time_period_start = lag(date_calendar-1))%>%
+  filter(!(is.na(date_time_period_end)))%>%
+  filter(!(is.na(date_time_period_start)))
+
+head(calendar)
 
 ```
 
 
-## define list of animals
+## Define the list of animals
 
 This is the base data for denominator calculations.  
-Each row is a unique animal lactation (id_animal). 
-This is then joined to the animal data to make sure all dates for eligibility are available if needed.  
+Each row is a unique animal lactation (id_animal_lact), from the `animal_lactations.parquet` file. 
+This is then joined to the animal data (`animals.parquet`) to make sure all dates for eligibility are available if needed.  
 
 In this base version of denominators, an animal is eligible to be counted if she exists on the reference day.  You can modify this if you choose.
-
-There are example functions for all_lactation, milking, dry. Code can easily be modified to accept other eligibility criteria.
+There are example functions for all_lactation, milking, dry. 
+Code can easily be modified to accept other eligibility criteria.
 
 
 ```{r}
@@ -97,6 +104,8 @@ deno_dry<-deno_base%>%
 
 ### set base type used for calculations
 
+Turn on only one of these lines in this chunk
+
 ```{r}
 set_deno_base_type<-deno_all_lact #any animal is eligible
 #set_deno_base_type<-deno_milking #only milking animals are eligible
@@ -105,27 +114,20 @@ set_deno_base_type<-deno_all_lact #any animal is eligible
 ```
 
 
-### plot variables in base data
-```{r, fig.height=12}
-# sk_deno<-skimr::skim(deno_base)
-# 
-# ggplot(sk_deno)+
-#   geom_bar(aes(x = reorder(skim_variable, complete_rate), y = complete_rate, fill = skim_type), 
-#            stat = 'identity')+
-#   facet_wrap(skim_type~., scales = 'free', ncol = 1)+
-#   coord_flip()+
-#   scale_fill_viridis_d()
 
-```
+## Count cows on each calendar day for different lacation groups
 
+This loops over the list of calendar days and counts the number of days each cow is eligible within the time_period.  It prints out the date as it does it so you can see progress. The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  
+The speed is limited by the length of the list of calendar dates until very very large herds are used.
 
+Mulitple denominator types are generated.  
 
+-  animal days (`ct_animal_days_eligible`) - total animal days eligible within the time_period
+-  animal time_periods (`ct_animal_time_periods`) - animal days / number of days in time_period
+-  animals (`ct_animals`) - number of animals with at least 1 day eligible within the time_period
+-  animal lactations (`ct_animal_lactations`) - number of animal lactations with at least one day eligible within the time_period
 
-## Count cows on each calendar day for differnt lacation groups
-
-This loops over the list of calendar days and counts the number of eligible cows each date.  It prints out the date as it does it so you can see progress.  The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  The speed is limited by the length of the list of calendar dates until very very large herds are used.
-
-It calculates for each lactation group, as well as each dim group. There is also a calculation for the interaction of lact_group_repro and dim. 
+These value are calculated for each lactation group within the time_period, as well as for each dim group within lactation group. (see section below on denominator types) 
 
 ```{r, message = FALSE}
 
@@ -139,18 +141,18 @@ for (i in seq_along(calendar$date_calendar)){
   #faster------------------------------------------
   df_pre<-set_deno_base_type%>%
     #test%>%
-    mutate(date_ref_start = calendar$date_period_start[[i]], 
-           date_ref_end = calendar$date_period_end[[i]])%>%
+    mutate(date_ref_start = calendar$date_time_period_start[[i]], 
+           date_ref_end = calendar$date_time_period_end[[i]])%>%
     mutate(elig_days = case_when(
-      date_elig_start>date_ref_end~0, #lactation began after period ended
-      date_elig_end<date_ref_start~0, #lactation ended before period started
-      ((date_elig_start<=date_ref_start)&(date_elig_end>=date_ref_end))~as.numeric(date_ref_end-date_ref_start), #eligible for entire period, inclusive at begining but not end
-      ((date_elig_start<=date_ref_start)&(date_elig_end<=date_ref_end))~as.numeric(date_elig_end-date_ref_start), #eligible at start but not at end of period
-      ((date_elig_start>date_ref_start)&(date_elig_end>=date_ref_end))~as.numeric(date_ref_end-date_elig_start), #eligible at end but not at start of period.
-      ((date_elig_start>date_ref_start)&(date_elig_end<=date_ref_end))~as.numeric(date_elig_end-date_elig_start), #eligible within period but not at begining or end
+      date_elig_start>date_ref_end~0, #lactation began after time_period ended
+      date_elig_end<date_ref_start~0, #lactation ended before time_period started
+      ((date_elig_start<=date_ref_start)&(date_elig_end>=date_ref_end))~as.numeric(date_ref_end-date_ref_start), #eligible for entire time_period, inclusive at begining but not end
+      ((date_elig_start<=date_ref_start)&(date_elig_end<=date_ref_end))~as.numeric(date_elig_end-date_ref_start), #eligible at start but not at end of time_period
+      ((date_elig_start>date_ref_start)&(date_elig_end>=date_ref_end))~as.numeric(date_ref_end-date_elig_start), #eligible at end but not at start of time_period.
+      ((date_elig_start>date_ref_start)&(date_elig_end<=date_ref_end))~as.numeric(date_elig_end-date_elig_start), #eligible within time_period but not at begining or end
       TRUE~as.numeric(NA)
     ))%>%
-    mutate(day_of_phase = case_when( #this is the day of phase at the reference period start
+    mutate(day_of_phase = case_when( #this is the day of phase at the reference time_period start
       lact_number==0~as.numeric(date_ref_start-date_birth), 
       lact_number>0~as.numeric(date_ref_start-date_fresh), 
       TRUE~as.numeric(NA)
@@ -173,8 +175,8 @@ for (i in seq_along(calendar$date_calendar)){
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|> 
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group_basic)%>%
     mutate(deno_type = 'lact_basic')
   
@@ -185,8 +187,8 @@ for (i in seq_along(calendar$date_calendar)){
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|> 
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group_repro)%>%
     mutate(deno_type = 'lact_2+')
 
@@ -197,8 +199,8 @@ for (i in seq_along(calendar$date_calendar)){
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|> 
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group)%>%
     mutate(deno_type = 'lact_3+')
    
@@ -209,63 +211,71 @@ for (i in seq_along(calendar$date_calendar)){
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|> 
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group_5)%>%
-    mutate(deno_type = 'lact_5')
+    mutate(deno_type = 'lact_5+')
   
   #Day of Phase-------------------------------------
   df6<-df%>%
     #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
+                                  top_cut = params$top_cut, 
+                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
     group_by(location_lact_list, lact_group_basic, day_of_phase_group, date_ref_start, date_ref_end) |>
     summarize(ct_animal_days_elig = sum(elig_days),
               ct_animals = n_distinct(id_animal),
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|>
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group_basic)%>%
     mutate(deno_type = 'dop_lact_basic')
   
   df7<-df%>%
     #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
+                                  top_cut = params$top_cut, 
+                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
     group_by(location_lact_list, lact_group_repro, day_of_phase_group, date_ref_start, date_ref_end) |>
     summarize(ct_animal_days_elig = sum(elig_days),
               ct_animals = n_distinct(id_animal),
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|>
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group_repro)%>%
-    mutate(deno_type = 'dop_lact_repro')
+    mutate(deno_type = 'dop_lact_2+')
   
   df8<-df%>%
     #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
+                                  top_cut = params$top_cut, 
+                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
     group_by(location_lact_list, lact_group, day_of_phase_group, date_ref_start, date_ref_end) |>
     summarize(ct_animal_days_elig = sum(elig_days),
               ct_animals = n_distinct(id_animal),
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|>
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group)%>%
-    mutate(deno_type = 'dop_lact_group')
+    mutate(deno_type = 'dop_lact_3+')
   
   df9<-df%>%
     #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
+                                  top_cut = params$top_cut, 
+                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
     group_by(location_lact_list, lact_group_5, day_of_phase_group, date_ref_start, date_ref_end) |>
     summarize(ct_animal_days_elig = sum(elig_days),
               ct_animals = n_distinct(id_animal),
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
     ungroup()|>
-    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
     rename(`Lactation Group` = lact_group_5)%>%
-    mutate(deno_type = 'dop_lact_5')
+    mutate(deno_type = 'dop_lact_5+')
   
  
   #final df---------------------------
@@ -281,7 +291,9 @@ for (i in seq_along(calendar$date_calendar)){
 }
   
 
-
+deno_final<-deno_dataframe%>%
+  rename(date_time_period_end = date_ref_end, 
+         date_time_period_start = date_ref_start)
 
 
 ```
@@ -290,21 +302,40 @@ for (i in seq_along(calendar$date_calendar)){
 
 
 
+## Denominator Types
+
+Two basic types of denominators are generated:
+
+-  Counts by Lactation Group
+-  Counts by Lactation Group and Day of Phase (Days in milk for cows, days of age for heifers)
 
 ### Plot Counts by Lactation Groups
 
-This is a plot of the granular dataframe.  It displays the count of cows on each reference date.
+This plot displays the count of animal time_periods on each reference date.  
+However, any of the metric options can be used: `elig_days`, `ct_animal_time_periods`, `ct_animals`, `ct_animal_lactations`
+
+
+Animal time_periods is the easiest to relate back to the number of animals likely to be standing on the farm.
+For short time_periods of time these numbers are usually identical, but for longer time_periods your choice of metric will make a difference.
+If you wish to explore comparisons between denominator count metrics further please run the `report_test_new_denominators.qmd` file. Or explore the data in your own comparative report.
 
 ```{r}
-#fast method-------------------
-ggplot(deno_dataframe%>%filter(!(deno_type %in% 'dop_lact_basic')))+
-  geom_point(aes(x = date_ref_start, y = ct_animal_periods, color = `Lactation Group`))+
+ggplot(deno_final%>%filter(!(str_detect(deno_type, 'dop_'))))+
+  geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = `Lactation Group`))+
   ylim(c(0, NA))+
-  facet_grid(location_lact_list~deno_type, scales = 'free_y')
+  facet_grid(location_lact_list~deno_type, scales = 'free_y')+
+  theme_bw()+
+  labs(title = 'Animal time_periods (ct_animal_time_periods)')
+```
+### Plot Counts by Day of Phase
 
-#fast method-------------------
-ggplot(deno_dataframe%>%filter(deno_type %in% 'dop_lact_basic'))+
-  geom_point(aes(x = date_ref_start, y = ct_animal_periods, color = day_of_phase_group))+
+The default day of phase cut points are every 30 days, with a max of 400 for cows and 500 for heifers.
+These settings can be modified if you wish by adjusting the the options in the `fxn_assign_dop`.
+
+```{r}
+
+ggplot(deno_final%>%filter(deno_type %in% 'dop_lact_basic'))+
+  geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = day_of_phase_group))+
   ylim(c(0, NA))+
   facet_grid(location_lact_list~`Lactation Group`, scales = 'free_y')#+
   #theme(legend.position = 'top')
@@ -313,25 +344,36 @@ ggplot(deno_dataframe%>%filter(deno_type %in% 'dop_lact_basic'))+
 ```
 
 
+## Check for missing values and errors
+
+### Missing values
+
+```{r}
+sk_deno<-skimr::skim(deno_final)
+
+ggplot(sk_deno)+
+  geom_col(aes(x = reorder(skim_variable, complete_rate), y = complete_rate, fill = skim_type), fill = 'grey')+
+    geom_col(data = sk_deno%>%filter(complete_rate<1), 
+             aes(x = reorder(skim_variable, complete_rate), y = complete_rate, fill = skim_type), fill = 'red')+
+
+  coord_flip()
+```
 
 
 ## Write out denominator
 
 Denominator is written out using the days of granularity in the file name. 
+Errors are also written out for further investigation.
+
 
 ```{r}
+write_parquet(deno_final, 
+              paste0('data/intermediate_files/denominator_by_lact_group_time_period', params$denominator_granularity, '.parquet'))
 
-sk_deno<-skimr::skim(deno_dataframe)
-
-test<-deno_dataframe%>%
-  filter(is.na(date_ref_start))
-
-write_parquet(deno_dataframe, 
-              paste0('data/intermediate_files/denominator_by_lact_group_period', params$denominator_granularity, '.parquet'))
 
 
 #display table--------------------
-fxn_DT_base(head(deno_dataframe, 500))
+fxn_DT_base(head(deno_final, 500))
 
 ```
 
