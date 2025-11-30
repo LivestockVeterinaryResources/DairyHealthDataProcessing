@@ -137,8 +137,8 @@ rm(list = ls()) # clean environment
 quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
 
 ## under development:
-quarto::quarto_render("step3_create_denominators_by_group.qmd") # inventories by lactation group, calender time, phase time
-quarto::quarto_render("step3_create_denominators_by_breed.qmd") # inventory with example of custom variable
+# quarto::quarto_render("step3_create_denominators_by_group.qmd") # inventories by lactation group, calender time, phase time
+# quarto::quarto_render("step3_create_denominators_by_breed.qmd") # inventory with example of custom variable
 
 
 # Step 4 Report Templates------------------------

@@ -9,7 +9,7 @@ execute:
   message: false
   warning: false
 params:
-  denominator_granularity: 21
+  denominator_granularity: 365
 ---
 
 ```{r}
@@ -62,7 +62,8 @@ calendar<-tibble(date_calendar = seq.Date(
                  by = params$denominator_granularity))%>%
   mutate(date_period_end = date_calendar, 
          date_period_start = lag(date_calendar-1))%>%
-  filter(!(is.na(date_period_end)))
+  filter(!(is.na(date_period_end)))%>%
+  filter(!(is.na(date_period_start)))
 
 ```
 
@@ -136,7 +137,7 @@ errors<-NULL
 for (i in seq_along(calendar$date_calendar)){
   
   #faster------------------------------------------
-  df<-set_deno_base_type%>%
+  df_pre<-set_deno_base_type%>%
     #test%>%
     mutate(date_ref_start = calendar$date_period_start[[i]], 
            date_ref_end = calendar$date_period_end[[i]])%>%
@@ -155,8 +156,10 @@ for (i in seq_along(calendar$date_calendar)){
       TRUE~as.numeric(NA)
     ))
   
+  df<-df_pre%>%filter(elig_days>0)
+  
   #errors-----------------------------
-  df_error <-df%>%
+  df_error <-df_pre%>%
     filter(is.na(elig_days))%>%
     select(elig_days, contains('date_elig'), contains('date_ref'), date_birth, date_fresh, date_archive, everything())
 
@@ -185,7 +188,7 @@ for (i in seq_along(calendar$date_calendar)){
     mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
     mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
     rename(`Lactation Group` = lact_group_repro)%>%
-    mutate(deno_type = 'lact_repro')
+    mutate(deno_type = 'lact_2+')
 
   # #lact _group standard----------------------------------
   df4<-df%>%
@@ -197,7 +200,7 @@ for (i in seq_along(calendar$date_calendar)){
     mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
     mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
     rename(`Lactation Group` = lact_group)%>%
-    mutate(deno_type = 'lact_group')
+    mutate(deno_type = 'lact_3+')
    
   # #lact_group_5-------------------------------------
   df5<-df%>%
@@ -211,24 +214,63 @@ for (i in seq_along(calendar$date_calendar)){
     rename(`Lactation Group` = lact_group_5)%>%
     mutate(deno_type = 'lact_5')
   
-  #lact_group_5-------------------------------------
-  # df6<-df%>%
-  #   #filter(elig_days>0)%>%
-  #   fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
-  #   group_by(location_lact_list, lact_group_basic, day_of_phase_group, date_ref_start, date_ref_end) |> 
-  #   summarize(ct_animal_days_elig = sum(elig_days), 
-  #             ct_animals = n_distinct(id_animal), 
-  #             ct_animal_lactations = n_distinct(id_animal_lact))%>%
-  #   ungroup()|> 
-  #   mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
-  #   mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
-  #   rename(`Lactation Group` = lact_group_basic)%>%
-  #   mutate(deno_type = 'dop_lact_basic')
+  #Day of Phase-------------------------------------
+  df6<-df%>%
+    #filter(elig_days>0)%>%
+    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    group_by(location_lact_list, lact_group_basic, day_of_phase_group, date_ref_start, date_ref_end) |>
+    summarize(ct_animal_days_elig = sum(elig_days),
+              ct_animals = n_distinct(id_animal),
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|>
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group_basic)%>%
+    mutate(deno_type = 'dop_lact_basic')
+  
+  df7<-df%>%
+    #filter(elig_days>0)%>%
+    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    group_by(location_lact_list, lact_group_repro, day_of_phase_group, date_ref_start, date_ref_end) |>
+    summarize(ct_animal_days_elig = sum(elig_days),
+              ct_animals = n_distinct(id_animal),
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|>
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group_repro)%>%
+    mutate(deno_type = 'dop_lact_repro')
+  
+  df8<-df%>%
+    #filter(elig_days>0)%>%
+    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    group_by(location_lact_list, lact_group, day_of_phase_group, date_ref_start, date_ref_end) |>
+    summarize(ct_animal_days_elig = sum(elig_days),
+              ct_animals = n_distinct(id_animal),
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|>
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group)%>%
+    mutate(deno_type = 'dop_lact_group')
+  
+  df9<-df%>%
+    #filter(elig_days>0)%>%
+    fxn_assign_day_of_phase_group(cut_by_days = 30, top_cut = 400, top_cut_hfr = 500)%>% #modify the cut points if desired
+    group_by(location_lact_list, lact_group_5, day_of_phase_group, date_ref_start, date_ref_end) |>
+    summarize(ct_animal_days_elig = sum(elig_days),
+              ct_animals = n_distinct(id_animal),
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|>
+    mutate(days_in_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_periods = ct_animal_days_elig/days_in_period)%>%
+    rename(`Lactation Group` = lact_group_5)%>%
+    mutate(deno_type = 'dop_lact_5')
   
  
   #final df---------------------------
   df10<-bind_rows(df2, df3, df4,
-                  df5#, df6
+                  df5, df6, df7, df8, df9
                   )%>%
     distinct()
   
@@ -243,6 +285,8 @@ for (i in seq_along(calendar$date_calendar)){
 
 
 ```
+
+
 
 
 
@@ -277,14 +321,18 @@ Denominator is written out using the days of granularity in the file name.
 
 ```{r}
 
-denominator_granular<-deno_dataframe%>%
-  
+sk_deno<-skimr::skim(deno_dataframe)
 
-write_parquet(denominator_granular, 
+test<-deno_dataframe%>%
+  filter(is.na(date_ref_start))
+
+write_parquet(deno_dataframe, 
               paste0('data/intermediate_files/denominator_by_lact_group_period', params$denominator_granularity, '.parquet'))
 
 
 #display table--------------------
-fxn_DT_base(head(denominator_granular, 500))
+fxn_DT_base(head(deno_dataframe, 500))
 
 ```
+
+
