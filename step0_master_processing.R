@@ -51,9 +51,12 @@ fxn_assign_id_animal <- fxn_assign_id_animal_parnell
 
 ### denominator granularity-----------------------
 #Create a list of time periods (number of days) by which denominators will be created.  
-#The standard options are 21, 30, 90, 365.  
-#However, you can add or delete as you wish, except for yearly. Yearly needs to stay
-denominator_time_periods<-c(21, 30, 90, 365) #do NOT delete the yearly option or you will break the data_dictionary
+#The standard options are 21, 30, 90, 365.  However any number works.
+#You can add or delete as you wish, except for yearly. Yearly needs to stay
+denominator_time_periods<-c(#21, 
+                            30, 
+                            #90, 
+                            365) #do NOT delete the yearly option or you will break the data_dictionary
 
 ### parsing---------
 ## parse_free_text options:
@@ -138,7 +141,7 @@ source("step2_create_intermediate_files.R") # fundamental files: animals.parquet
 
 ### Step 3 Create Denominators ---------------------
 ## under development:
-#Create denominator files by time periods ------------------------
+####Create denominator files by time periods ------------------------
 for (i in seq_along(denominator_time_periods)){
   quarto::quarto_render(
     input = "step3_denominators_by_lactation_group.qmd",
@@ -150,7 +153,8 @@ for (i in seq_along(denominator_time_periods)){
     )
   )
 }
-# standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
+
+##### standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
 quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
 

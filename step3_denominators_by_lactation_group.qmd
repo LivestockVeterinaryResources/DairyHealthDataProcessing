@@ -25,8 +25,34 @@ source('functions/fxn_denominator_eligibility.R')
 source('functions/fxn_standardize_cow_breed.R')
 source('functions/fxn_assign_day_of_phase_group.R')
 
+fxn_add_dop<-function(df){
+    df%>%
+      left_join(dim_cuts_complete, relationship = "many-to-many")%>%
+    filter(!(day_of_phase_start>dop_end))%>%
+    filter(!(day_of_phase_end<dop_start))%>%
+    mutate(dop_complete  = case_when(
+      (dop_start>=day_of_phase_start)&(dop_end<=day_of_phase_end)~'complete', 
+      TRUE~'incomplete'
+    ))
+  }
+  
+fxn_summarize_deno<-function(df){
+    df%>%
+      summarize(ct_animal_days_elig = sum(elig_days),
+              ct_animals = n_distinct(id_animal),
+              ct_animal_lactations = n_distinct(id_animal_lact))%>%
+    ungroup()|>
+    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
+    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)
+  }
+  
+
 
 ```
+
+## Read in the Base Data
+
+Denominators are created from animals.parquet, animal_lactations.parquet, and a few parameters from events.parquet
 
 ```{r}
 #denominator base files -------------------
@@ -113,6 +139,28 @@ set_deno_base_type<-deno_all_lact #any animal is eligible
 
 ```
 
+## Create cut points for day of phase
+
+```{r}
+ dim_cuts<-tibble(dop_start = c(-Inf, seq(0, params$top_cut, by = params$cut_by_days)))%>%
+             mutate(dop_end = case_when(
+               (dop_start == (-Inf))~0, 
+               dop_start == max(dop_start)~Inf,
+               TRUE~ dop_start + (params$cut_by_days-1))
+               )%>%
+             mutate(dop_in_interval = dop_end-dop_start)
+  
+age_cuts<-tibble(dop_start = c(-Inf, seq(0, params$top_cut_hfr, by = params$cut_by_days)))%>%
+             mutate(dop_end = case_when(
+               (dop_start == (-Inf))~0, 
+               dop_start == max(dop_start)~Inf,
+               TRUE~ dop_start + (params$cut_by_days-1))
+               )%>%
+             mutate(dop_in_interval = dop_end-dop_start)%>%
+             mutate(lact_number = 0)
+```
+
+
 
 
 ## Count cows on each calendar day for different lacation groups
@@ -120,14 +168,14 @@ set_deno_base_type<-deno_all_lact #any animal is eligible
 This loops over the list of calendar days and counts the number of days each cow is eligible within the time_period.  It prints out the date as it does it so you can see progress. The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  
 The speed is limited by the length of the list of calendar dates until very very large herds are used.
 
-Mulitple denominator types are generated.  
+Mulitple denominator metrics are generated.  
 
 -  animal days (`ct_animal_days_eligible`) - total animal days eligible within the time_period
 -  animal time_periods (`ct_animal_time_periods`) - animal days / number of days in time_period
 -  animals (`ct_animals`) - number of animals with at least 1 day eligible within the time_period
 -  animal lactations (`ct_animal_lactations`) - number of animal lactations with at least one day eligible within the time_period
 
-These value are calculated for each lactation group within the time_period, as well as for each dim group within lactation group. (see section below on denominator types) 
+These values are calculated for each lactation group within the time_period, as well as for each dim group within lactation group. (see section below on denominator types) 
 
 ```{r, message = FALSE}
 
@@ -152,13 +200,18 @@ for (i in seq_along(calendar$date_calendar)){
       ((date_elig_start>date_ref_start)&(date_elig_end<=date_ref_end))~as.numeric(date_elig_end-date_elig_start), #eligible within time_period but not at begining or end
       TRUE~as.numeric(NA)
     ))%>%
-    mutate(day_of_phase = case_when( #this is the day of phase at the reference time_period start
+    mutate(day_of_phase_start = case_when( #this is the day of phase at the reference time_period start
       lact_number==0~as.numeric(date_ref_start-date_birth), 
       lact_number>0~as.numeric(date_ref_start-date_fresh), 
       TRUE~as.numeric(NA)
+    ))%>%
+    mutate(day_of_phase_end = case_when( #this is the day of phase at the reference time_period start
+      lact_number==0~as.numeric(date_ref_end-date_birth), 
+      lact_number>0~as.numeric(date_ref_end-date_fresh), 
+      TRUE~as.numeric(NA)
     ))
   
-  df<-df_pre%>%filter(elig_days>0)
+  df<-df_pre%>%filter(elig_days>0) #this restricts to only animals with at least 1 eligible day
   
   #errors-----------------------------
   df_error <-df_pre%>%
@@ -216,64 +269,48 @@ for (i in seq_along(calendar$date_calendar)){
     rename(`Lactation Group` = lact_group_5)%>%
     mutate(deno_type = 'lact_5+')
   
-  #Day of Phase-------------------------------------
+  #Day of Phase (dop)-------------------------------------
+  
+   lact_numbers<-tibble(lact_number = sort(unique(df$lact_number)))
+  
+   
+   dim_cuts_complete <- bind_rows(tidyr::crossing(lact_numbers%>%filter(lact_number>0), dim_cuts), age_cuts)
+   
+  
+   #Day of phase data frames -------------------------------
   df6<-df%>%
-    #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
-                                  top_cut = params$top_cut, 
-                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
-    group_by(location_lact_list, lact_group_basic, day_of_phase_group, date_ref_start, date_ref_end) |>
-    summarize(ct_animal_days_elig = sum(elig_days),
-              ct_animals = n_distinct(id_animal),
-              ct_animal_lactations = n_distinct(id_animal_lact))%>%
-    ungroup()|>
-    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
+    fxn_add_dop()%>%
+    group_by(location_lact_list, lact_group_basic, 
+             dop_start, dop_end,  dop_in_interval, dop_complete, 
+             date_ref_start, date_ref_end) |> 
+    fxn_summarize_deno()%>%
     rename(`Lactation Group` = lact_group_basic)%>%
     mutate(deno_type = 'dop_lact_basic')
   
   df7<-df%>%
-    #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
-                                  top_cut = params$top_cut, 
-                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
-    group_by(location_lact_list, lact_group_repro, day_of_phase_group, date_ref_start, date_ref_end) |>
-    summarize(ct_animal_days_elig = sum(elig_days),
-              ct_animals = n_distinct(id_animal),
-              ct_animal_lactations = n_distinct(id_animal_lact))%>%
-    ungroup()|>
-    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
+    fxn_add_dop()%>%
+    group_by(location_lact_list, lact_group_repro, 
+             dop_start, dop_end,  dop_in_interval, dop_complete, 
+             date_ref_start, date_ref_end) |>
+    fxn_summarize_deno()%>%
     rename(`Lactation Group` = lact_group_repro)%>%
     mutate(deno_type = 'dop_lact_2+')
   
   df8<-df%>%
-    #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
-                                  top_cut = params$top_cut, 
-                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
-    group_by(location_lact_list, lact_group, day_of_phase_group, date_ref_start, date_ref_end) |>
-    summarize(ct_animal_days_elig = sum(elig_days),
-              ct_animals = n_distinct(id_animal),
-              ct_animal_lactations = n_distinct(id_animal_lact))%>%
-    ungroup()|>
-    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
+    fxn_add_dop()%>%
+    group_by(location_lact_list, lact_group, 
+             dop_start, dop_end,  dop_in_interval, dop_complete, 
+             date_ref_start, date_ref_end) |>
+    fxn_summarize_deno()%>%
     rename(`Lactation Group` = lact_group)%>%
     mutate(deno_type = 'dop_lact_3+')
   
   df9<-df%>%
-    #filter(elig_days>0)%>%
-    fxn_assign_day_of_phase_group(cut_by_days = params$cut_by_days, 
-                                  top_cut = params$top_cut, 
-                                  top_cut_hfr = params$top_cut_hfr)%>% #modify the cut points if desired
-    group_by(location_lact_list, lact_group_5, day_of_phase_group, date_ref_start, date_ref_end) |>
-    summarize(ct_animal_days_elig = sum(elig_days),
-              ct_animals = n_distinct(id_animal),
-              ct_animal_lactations = n_distinct(id_animal_lact))%>%
-    ungroup()|>
-    mutate(days_in_time_period = as.numeric(date_ref_end-date_ref_start))%>%
-    mutate(ct_animal_time_periods = ct_animal_days_elig/days_in_time_period)%>%
+    fxn_add_dop()%>%
+    group_by(location_lact_list, lact_group_5, 
+             dop_start, dop_end,  dop_in_interval, dop_complete, 
+             date_ref_start, date_ref_end) |>
+    fxn_summarize_deno()%>%
     rename(`Lactation Group` = lact_group_5)%>%
     mutate(deno_type = 'dop_lact_5+')
   
@@ -293,7 +330,8 @@ for (i in seq_along(calendar$date_calendar)){
 
 deno_final<-deno_dataframe%>%
   rename(date_time_period_end = date_ref_end, 
-         date_time_period_start = date_ref_start)
+         date_time_period_start = date_ref_start)%>%
+  mutate(day_of_phase_group = paste0(dop_start, ' to ', dop_end))
 
 
 ```
@@ -325,12 +363,16 @@ ggplot(deno_final%>%filter(!(str_detect(deno_type, 'dop_'))))+
   ylim(c(0, NA))+
   facet_grid(location_lact_list~deno_type, scales = 'free_y')+
   theme_bw()+
-  labs(title = 'Animal time_periods (ct_animal_time_periods)')
+  labs(title = 'Animal Time Periods (ct_animal_time_periods)')
 ```
 ### Plot Counts by Day of Phase
 
 The default day of phase cut points are every 30 days, with a max of 400 for cows and 500 for heifers.
-These settings can be modified if you wish by adjusting the the options in the `fxn_assign_dop`.
+These settings can be modified if you wish by adjusting the the params in this quarto document when rendered.
+
+In the dop files there is an additional variable named `dop_complete`.  This variable groups the counts by whether or not the dop interval was complete or partial.
+
+Notice that the dop for heifers and cows is different.  Keep this in mind when reporting.
 
 ```{r}
 

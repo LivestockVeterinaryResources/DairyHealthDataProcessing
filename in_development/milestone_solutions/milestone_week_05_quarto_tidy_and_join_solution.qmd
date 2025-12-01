@@ -8,8 +8,6 @@ embed-resources: true
 ```{r}
 library(tidyverse)
 library(quarto)
-library(arrow)
-library(waldo)
 
 solution<-read_rds('data_milestones/solutions_week_05_pivotlonger.rds')
 
@@ -21,7 +19,7 @@ Now that you can tidy data, pivot longer or wider, and then join tables to other
 
 In this lesson we will explore one method of creating denominators.
 
-The chunk below calls a script which will create a standard denominator file and save it in \`data/intermediate_files\` folder named `denominator_by_lact_group_time_periodXXX.parquet`.
+The chunk below calls a script which will create a standard denominator file and save it in \`data/intermediate_files\` folder named`denominator_by_lact_group_time_periodXXX.parquet`.
 
 The "XXX" in the file name represents the number of days within each time period used to denominator calculations.
 
@@ -33,7 +31,7 @@ quarto::quarto_render(
   input = "../step3_denominators_by_lactation_group.qmd",
   execute_dir = dirname("../step3_denominators_by_lactation_group.qmd"),
   execute_params = list(
-    denominator_granularity = 365,
+    denominator_granularity = 90,
     cut_by_days = 30,
     top_cut = 400,
     top_cut_hfr = 500
@@ -46,7 +44,6 @@ Run this code chunk to read in the denominator file you just created.
 
 ```{r}
 deno365<-read_parquet('../data/intermediate_files/denominator_by_lact_group_time_period365.parquet')
-
 ```
 
 ## Part 1 - Explore lactation group denominators
@@ -54,13 +51,14 @@ deno365<-read_parquet('../data/intermediate_files/denominator_by_lact_group_time
 There are multiple denominator types to choose from in this file. Write some code in the chunk below to list the names of the different values in the deno_type variable
 
 ```{r}
-
+sort(unique(deno365$deno_type))
 ```
 
 You will notice that there are 2 basic types:
 
--   lactation groups (begin with "lact\_")
--   day of phase plus lactation group (begin with "dop\_")
+ - lactation groups (begin with "lact\_")
+
+\- day of phase plus lactation group (begin with "dop\_")
 
 In order to explore these options further, write some code in the chunk below that pivots the data so that you can graphically compare metric types more easily.
 
@@ -74,7 +72,13 @@ head(solution)
 
 ```{r}
 #write your code to pivot the table here
+deno365_long<-deno365%>%
+  pivot_longer(cols = c('ct_animal_lactations', 'ct_animals', 'ct_animal_time_periods'), 
+               names_to = 'metric', 
+               values_to = 'ct' )
 
+
+write_rds(deno365_long, 'data_milestones/solutions_week_05_pivotlonger.rds')
 ```
 
 Run the chunk below to see if your solution matches
@@ -139,7 +143,7 @@ You need to modify the "XXX" place holder so that it matches the number you put 
 denoNEW<-read_parquet('../data/intermediate_files/denominator_by_lact_group_time_periodXXX.parquet')
 ```
 
-Use this code chunk to explore the new denominator
+Use this code chunk to explore your new denominator
 
 ```{r}
 
@@ -147,8 +151,7 @@ Use this code chunk to explore the new denominator
 
 ## Part 2 - Extension
 
-Think about the data you described in milestone 4. Standard denominators like the one above are often not good enough.
-
+Think about the data you described in milestone 4.\
 Use your new data wrangling skills to create the perfect denominator for your questions about this data.
 
 The goal for the extension is to create a usable denominator either for the disease you described in milestone 4 or for some other data of interest.

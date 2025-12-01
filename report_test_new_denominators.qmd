@@ -70,7 +70,7 @@ herd_deno_monthly_new_long<-herd_deno_monthly_new%>%
 #dim cats-----------------------------------
 herd_deno_dim_new = read_parquet('data/intermediate_files/denominator_by_lact_group_time_period365.parquet')%>%
   filter(date_time_period_start>(today()-1200))%>%
-  filter((deno_type %in% c("dop_lact_basic", 'dop_lact_3+', 'dop_lact_5+')))
+  filter((deno_type %in% c("dop_lact_3+",    "dop_lact_5+",    "dop_lact_basic")))
 
 herd_deno_dim_new_long<-herd_deno_dim_new%>%
   pivot_longer(cols = c('ct_animal_lactations', 'ct_animals', 'ct_animal_time_periods'), 
@@ -123,30 +123,48 @@ ggplot()+
 ### plot dim cats
 
 ```{r}
-herd_deno_dim<-read_parquet('data/intermediate_files/herd_dim_denominators.parquet')%>%
-  mutate(date = lubridate::ymd(paste0(time_period, '-01-01')))
 
-ggplot()+
-  geom_point(data = herd_deno_dim,
-             aes(x = date, y = `count`), color = 'blue', shape = 15)+
-  # geom_point(data = herd_deno_dim,
-  #            aes(x = date, y = count_animals), color = 'black', shape = 15)+
-  geom_point(data = herd_deno_dim_new_long,
-             aes(x = date_time_period_start, y = ct, color = metric))+
-  
-  facet_grid(location_lact_list~`Lactation Group`, scales = 'free_y')+
+get_location_lact_list<-sort(unique(herd_deno_dim_new_long$location_lact_list))
+
+for (i in seq_along(get_location_lact_list)){
+herd_deno_dim<-read_parquet('data/intermediate_files/herd_dim_denominators.parquet')%>%
+  mutate(date = lubridate::ymd(paste0(time_period, '-01-01')))%>%
+  filter(`Lactation Group` %in% c('Heifer', 'LACT > 0'))%>%
+  mutate(day_of_phase_group = case_when(
+    DIM %in% '0_30'~"0 to 29", 
+    DIM %in% '30_60'~"30 to 59", 
+    DIM %in% '60_90'~"60 to 89",
+    DIM %in% '90_120'~"90 to 119",
+    TRUE~'Other'))%>%
+  filter(!(day_of_phase_group %in% 'Other'))%>%
+  mutate(metric = 'ct_animal_lactations')
+
+p<-ggplot()+
+  geom_col(data = herd_deno_dim_new_long%>%
+               filter(`Lactation Group` %in% 'LACT > 0')%>%
+               filter(day_of_phase_group %in% c("0 to 29",    "30 to 59",   "60 to 89",   "90 to 119")),
+             aes(x = date_time_period_start, y = ct, fill = factor(dop_complete, 
+                                                                   levels = c( 'incomplete', 'complete'))))+
+    geom_point(data = herd_deno_dim,
+             aes(x = date, y = `count`), color = 'black', shape = 15, size = 2)+
+
+  facet_grid(day_of_phase_group~metric, scales = 'free_y')+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1), 
-        legend.position = 'top')+
+        legend.position = 'right')+
   labs(fill = '', 
-       title = 'Denominator Options', 
-       subtitle = 'Square = Old, Circle = New')+
-  scale_color_manual(values = c('ct_animal_lactations' = 'blue', 
-                                'ct_animals' = 'black', 
-                                'ct_animal_time_periods' = 'red'))
+       title = paste0(get_location_lact_list[i], ' - Denominator Options (LACT > 0)'), 
+       subtitle = 'Black Square = Old Deno')+
+  scale_fill_manual(values = c( 'salmon', 'grey'))
+print(p)
+}
 ```
 
+
+
 ## Monthly
+
+Shorter time frames are less complex and metrics are nearly identical
 
 ### plot monthly
 ```{r}
