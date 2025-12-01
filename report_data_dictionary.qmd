@@ -122,56 +122,65 @@ fxn_graph_file_skim("herd_season_denominators.parquet")
 
 ### Calendar Time
 
-``` {r}
-#| fig.height: 3
+These denominators are created based on the cut points provided in master processing.  
+You may choose any number of days in each period and add additional denominators.  
+Standard options are: 21, 30, 90, 365 days.
+The denominator file name will have the number of days in the period in that file.
 
-fxn_graph_file_skim("denominator_calendar_time.parquet") 
+The examples below come from the Yearly denominator file.  However the format is the same regarless of period length. 
 
-```
 
-### Time Period
-
-``` {r}
-#| fig.height: 3
-
-fxn_graph_file_skim("denominator_time_period.parquet") 
-
-```
-
-### Phase Time
+#### Yearly Denominators
 
 ``` {r}
 #| fig.height: 3
 
-fxn_graph_file_skim("denominator_phase_time.parquet") 
+fxn_graph_file_skim("denominator_by_lact_group_time_period365.parquet") 
 
 ```
 
-## Custom Variable Denominator Template (breed_simple)
+#### Denominator Types
 
-### Calendar Time (custom variable "breed_simple")
+There are 2 basic types of denominators in these files: 
 
-``` {r}
-#| fig.height: 3
+1)  Counts by Lactation Group
 
-fxn_graph_file_skim("denominator_calendar_time_custom_breed.parquet") 
+2)  Counts by Lactation Group and Day of Phase (Days in Milk for cows, Days of Age for Heifers)
+
+##### Counts by Lactation Group
+
+These have a deno_type that begins with "lact_" are lactation group counts.
+
+
+```{r}
+deno365<-read_parquet("data/intermediate_files/denominator_by_lact_group_time_period365.parquet")
+
+sort(unique(deno365$deno_type))
+```
+
+Here is a plot comparing denominator type options
+
+```{r}
+ggplot(deno365%>%filter(!(str_detect(deno_type, 'dop_'))))+
+  geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = `Lactation Group`))+
+  ylim(c(0, NA))+
+  facet_grid(location_lact_list~deno_type, scales = 'free_y')+
+  theme_bw()+
+  labs(title = 'Animal Periods (ct_animal_periods)')
 
 ```
 
-### Time Period (custom variable "breed_simple")
+Here is a plot displaying the counts when the denominator type `dop_lact_basic' is selected.
+This plot only shows selected day of phase categories for simplicity. 
 
-``` {r}
-#| fig.height: 3
-
-fxn_graph_file_skim("denominator_time_period_custom_breed.parquet") 
-
-```
-
-### Phase Time (custom variable "breed_simple")
-
-``` {r}
-#| fig.height: 3
-
-fxn_graph_file_skim("denominator_phase_time_custom_breed.parquet") 
+```{r}
+ggplot(deno365%>%
+         filter(deno_type %in% 'dop_lact_basic')%>%
+         filter(day_of_phase_group %in% c(sort(unique(deno365$day_of_phase_group))[c(1, 8, 13, 14)])))+
+  geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = day_of_phase_group))+
+  ylim(c(0, NA))+
+  facet_grid(location_lact_list~`Lactation Group`, scales = 'free_y')#+
+  #theme(legend.position = 'top')
 
 ```
+

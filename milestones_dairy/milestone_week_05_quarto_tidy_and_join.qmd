@@ -1,0 +1,170 @@
+---
+title: "Milestone 5 - Denominators (Tidy and Join)"
+format: html
+date: "`r Sys.Date()`"
+embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+library(quarto)
+library(arrow)
+library(waldo)
+
+solution<-read_rds('data_milestones/solutions_week_05_pivotlonger.rds')
+
+```
+
+## Denominators
+
+Now that you can tidy data, pivot longer or wider, and then join tables to others, you are both unstoppable . . . and dangerous.
+
+In this lesson we will explore one method of creating denominators.
+
+The chunk below calls a script which will create a standard denominator file and save it in \`data/intermediate_files\` folder named `denominator_by_lact_group_time_periodXXX.parquet`.
+
+The "XXX" in the file name represents the number of days within each time period used to denominator calculations.
+
+When you run the chunk below it will - generate a denominator file with a time period of 365 days - read that file into your environment and name it deno365. (it will take a bit of time to run)
+
+```{r initial denominator generation, message==FALSE}
+
+quarto::quarto_render(
+  input = "../step3_denominators_by_lactation_group.qmd",
+  execute_dir = dirname("../step3_denominators_by_lactation_group.qmd"),
+  execute_params = list(
+    denominator_granularity = 365,
+    cut_by_days = 30,
+    top_cut = 400,
+    top_cut_hfr = 500
+  )
+)
+
+```
+
+Run this code chunk to read in the denominator file you just created.
+
+```{r}
+deno365<-read_parquet('../data/intermediate_files/denominator_by_lact_group_time_period365.parquet')
+
+```
+
+## Part 1 - Explore lactation group denominators
+
+There are multiple denominator types to choose from in this file. Write some code in the chunk below to list the names of the different values in the deno_type variable
+
+```{r}
+
+```
+
+You will notice that there are 2 basic types:
+
+-   lactation groups (begin with "lact\_")
+-   day of phase plus lactation group (begin with "dop\_")
+
+In order to explore these options further, write some code in the chunk below that pivots the data so that you can graphically compare metric types more easily.
+
+You should pivot the columns: "ct_animal_time_periods", "ct_animals" , "ct_animal_lactations" Name your new pivoted dataframe `deno365_long`. Name your new variables: `metric` and `ct`
+
+Run this chunk to see an example of what your final table should look like
+
+```{r}
+head(solution)
+```
+
+```{r}
+#write your code to pivot the table here
+
+```
+
+Run the chunk below to see if your solution matches
+
+```{r}
+waldo::compare(solution, deno365_long)
+
+```
+
+Part 2 - Compare denominators
+
+Finding the right denominator is often more challenging than creating numerators.\
+Run the chunk below to see a graphical comparison of the metrics available in deno_type `lact_basic`
+
+```{r}
+#### plot lact group counts
+
+ggplot()+
+  geom_point(data = deno365_long%>%filter(deno_type %in% 'lact_basic'),
+             aes(x = date_time_period_start, y = ct, color = metric, fill = metric, shape = metric), 
+             size = 3, alpha = .3, stroke = 2)+
+  
+  facet_grid(location_lact_list~`Lactation Group`, scales = 'free_y')+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+        legend.position = 'top')+
+  labs(fill = '', 
+       color = '', 
+       shape = '',
+       title = 'Denominator Options')+
+  scale_shape_manual(values = c(21,22,24,25))
+
+```
+
+In order to get more familiar with the denominator creation function you can read the markdown report in the reports folder and/or look at the code in the denominator `step3_denominators_by_lactation_group.qmd` file.
+
+Modify the code below (***change the numeric values for the execute_params***) to create different time periods or day of phase cut points. Then describe the new denominator you generated using a graph, table or both.
+
+```{r}
+
+quarto::quarto_render(
+  input = "../step3_denominators_by_lactation_group.qmd",
+  execute_dir = dirname("../step3_denominators_by_lactation_group.qmd"),
+  execute_params = list(
+    denominator_granularity = 365, #modify this number to create time periods of different lengths (i.e. try  21 or 90 days)
+      cut_by_days = 30, #this controls the number of days of phase (dim for cows, age for heifers) in each category.  A lower number will create more categories, a higher number will create fewer
+      top_cut = 400, #What is the max DIM you care about? this puts a ceiling on the number of categories so when you have an outlier it doesn't give you too many groups
+      top_cut_hfr = 500 #what is the max days of age you care about in heifers
+    )
+)
+
+ 
+```
+
+The new file you created can be found in the data/intermediate_files folder and will be named using the denominator_granularity that you set.
+
+Here is a template to read in the new file you created.
+
+You need to modify the "XXX" place holder so that it matches the number you put for denominator granularity in the chunk above.
+
+```{r}
+denoNEW<-read_parquet('../data/intermediate_files/denominator_by_lact_group_time_periodXXX.parquet')
+```
+
+Use this code chunk to explore the new denominator
+
+```{r}
+
+```
+
+## Part 2 - Extension
+
+Think about the data you described in milestone 4. Standard denominators like the one above are often not good enough.
+
+Use your new data wrangling skills to create the perfect denominator for your questions about this data.
+
+Options for creating denominators include:
+
+1)  modify the code that creates your denoNEW to create time periods and or day of phase cut points that you want to use for your data in milestone 4.
+
+2)  use your new join skills to join `animal_lactations.parquet` to `animals.parquet` and create your own denominator from scratch that improves your ability to answer a question about your data in milestone 4.
+
+3)  Create a different denominator in a completely different way. (for some questions the best denominator is a subset of events pivoted wider)
+
+NOTE: Denominators can be challenging. If you get stuck:
+
+-   First articulate what you want to do, step by step, in English
+
+-   Then add a blank code chunk for each step
+
+-   Begin filling in code
+
+-   Ask the group for help if you get completely stuck.

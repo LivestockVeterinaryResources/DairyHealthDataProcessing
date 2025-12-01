@@ -126,6 +126,13 @@ archives <- events_formatted |>
   mutate(date_archive_diff = as.numeric(date_archive_max - date_archive))
 
 ## freshs - each row is animal/lactation------------
+
+fresh_from_item<-events_formatted%>%
+  group_by(id_animal_lact)%>%
+  summarize(date_fresh_from_item = min(date_fresh), 
+            date_fresh_from_item_max = max(date_fresh_from_item))%>%
+  filter(!(is.na(date_fresh_from_item)))
+
 freshs <- events_formatted |>
   filter(event == "FRESH") |>
   group_by(id_animal_lact) |>
@@ -134,7 +141,13 @@ freshs <- events_formatted |>
     date_fresh_max = max(date_event)
   ) |>
   distinct() |>
-  mutate(qc_date_fresh_diff = as.numeric(date_fresh_max - date_fresh))
+  mutate(qc_date_fresh_diff = as.numeric(date_fresh_max - date_fresh))%>%
+  full_join(fresh_from_item)%>%
+  mutate(date_fresh = case_when(
+    is.na(date_fresh)~date_fresh_from_item,
+    TRUE~date_fresh
+  ))
+
 
 fresh_date_next <- read_parquet("data/intermediate_files/events_all_columns.parquet") %>%
   filter(event %in% "FRESH") %>%
