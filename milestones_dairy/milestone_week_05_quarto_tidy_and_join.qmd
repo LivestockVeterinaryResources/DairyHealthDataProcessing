@@ -151,19 +151,17 @@ Think about the data you described in milestone 4. Standard denominators like th
 
 Use your new data wrangling skills to create the perfect denominator for your questions about this data.
 
-The goal for the extension is to create a usable denominator either for the disease you described in milestone 4 or for some other data of interest.
-
 Options for creating denominators include:
 
 1)  modify the code that creates your denoNEW to create time periods and or day of phase cut points that you want to use for your data in milestone 4.
 
 2)  use your new join skills to join `animal_lactations.parquet` to `animals.parquet` and create your own denominator from scratch that improves your ability to answer a question about your data in milestone 4.
 
-3)  Create a different denominator that you need to answer a question. (for some questions the best denominator is a subset of events pivoted wider)
+3)  Create a different denominator in a completely different way. (for some questions the best denominator is a subset of events pivoted wider)
 
 NOTE: Denominators can be challenging. If you get stuck:
 
--   First articulate what you want to do, step by step, in english
+-   First articulate what you want to do, step by step, in English
 
 -   Then add a blank code chunk for each step
 
