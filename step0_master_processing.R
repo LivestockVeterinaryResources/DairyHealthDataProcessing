@@ -49,6 +49,15 @@ source("functions/fxn_treatment.R")
 # fxn_assign_id_animal <- fxn_assign_id_animal_default
 fxn_assign_id_animal <- fxn_assign_id_animal_parnell
 
+### denominator granularity-----------------------
+#Create a list of time periods (number of days) by which denominators will be created.  
+#The standard options are 21, 30, 90, 365.  However any number works.
+#You can add or delete as you wish, except for yearly. Yearly needs to stay
+denominator_time_periods<-c(#21, 
+                            30, 
+                            #90, 
+                            365) #do NOT delete the yearly option or you will break the data_dictionary
+
 ### parsing---------
 ## parse_free_text options:
 fxn_parse_remark <- fxn_parse_remark_default
@@ -79,6 +88,8 @@ set_outcome_gap_animal <- 1
 set_outcome_gap_lactation <- 1
 
 
+
+
 ## Set up processing -------------------------------
 #**** Modify This Section***
 #*
@@ -92,11 +103,6 @@ clean_slate <- FALSE # this will delete all data in data/event_files and data/in
 # if you already have the data that you want in data/event_files set it to false
 get_EXAMPLE_data_from_google_drive <- TRUE
 
-### denomiantor settings----------
-# number of days in each denominator count,
-# smaller numbers will be more accurate but take longer
-denominator_granularity <- 100
-
 ### milk data setings---------
 # if you also want to pull in milk data set this to true
 milk_data_exists <- FALSE
@@ -106,7 +112,9 @@ milk_data_exists <- FALSE
 # if this is true it will run a function to deduplicate rows - this usually makes sense but not always.
 auto_de_duplicate <- TRUE
 
-
+#******************************************************************************
+#******************************************************************************
+#*
 # PROCESS FILES--------------------------
 #*** Do NOT modify this section*** unless you are very sure you understand what you want
 #*
@@ -126,19 +134,30 @@ if (get_EXAMPLE_data_from_google_drive == TRUE) {
 }
 
 ### Step 1 Read in data-------------
-source("step1_read_in_data.R")
+source("step1_read_in_data.R") #creates ***events.parquet*** reads in the data, formats dates, adds lactation groups and other basic data prep steps
 
 ### Step 2 create Intermediate Files----------------------
-source("step2_create_intermediate_files.R") # fundamental files
+source("step2_create_intermediate_files.R") # fundamental files: animals.parquet, animal_lactations.parquet, events.parquet
 
 ### Step 3 Create Denominators ---------------------
-# standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
+## under development:
+####Create denominator files by time periods ------------------------
+for (i in seq_along(denominator_time_periods)){
+  quarto::quarto_render(
+    input = "step3_denominators_by_lactation_group.qmd",
+    execute_params = list(
+      denominator_granularity = denominator_time_periods[[i]],
+      cut_by_days = 30,
+      top_cut = 400,
+      top_cut_hfr = 500
+    )
+  )
+}
+
+##### standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
 quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
 
-## under development:
-quarto::quarto_render("step3_create_denominators_by_group.qmd") # inventories by lactation group, calender time, phase time
-quarto::quarto_render("step3_create_denominators_by_breed.qmd") # inventory with example of custom variable
 
 
 # Step 4 Report Templates------------------------
