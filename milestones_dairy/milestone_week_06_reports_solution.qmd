@@ -73,7 +73,7 @@ lame_protocol_graph <- function() {
   filter(date_event >= date_min_pull) %>%
   select(location_event, id_animal, event, date_event, 
          protocols_letters1) |> 
-  group_by(protocols_letters1) |> 
+  group_by(event, protocols_letters1) |> 
   count() |> 
   arrange(desc(n)) |>
   ungroup()  |> 
@@ -84,6 +84,7 @@ lame_protocol_graph <- function() {
   theme_minimal()+
   coord_flip()+
   theme(legend.position = "none")+
+  facet_wrap(.~event, scales = "free_y")+
   scale_fill_viridis_d(na.value = "black")+
   labs(x = "Lameness Protocols",
        y = "Count of Events")
@@ -96,10 +97,11 @@ na_explore <- function() {
 na_lame_events <- lame_events %>% 
       filter(is.na(protocols_letters1) 
          )  |> 
-  group_by(location_event, remark) %>%
+  group_by(location_event, event, remark) %>%
   count() %>%
-  arrange(desc(n)) |> 
-  ungroup()
+    ungroup() |> 
+  arrange(desc(n))
+
 }
 
 
@@ -131,29 +133,43 @@ In the data set there were:
 
 2.  `r number_trim` trim events.
 
-# Objective
+## Objective
 
 We will start by exploring the lameness events reported in the data.
 
 Your objective is to recreate the analysis show below.
 
--   For @fig_explore_lame the scale is viridis (of course :) )
+-   For @fig-explore_lame the scale is viridis (of course :) )
 
 -   To get na's to show up as black you need to use the na.value
     argument in scale_fill_viridis_d().
+    
+### Explore recorded lameness/trim protocols
+
+-   Use the protocols1 variable to get the information about the
+    lameness/trim protocols used.
+
 
 ```{r}
 #| label: fig-explore_lame
+#| echo: true
+#| fig-cap: "Lameness Protocols Used in the Past Year"
 
-# I hid my code to give you some coding to do this week but your code should show up here
+# I hid my code to give you some coding to do this week 
+# but your code should show up here
 
-lame_protocol_graph()
+plot <- lame_protocol_graph()
+
+plot
+
 
 ```
 
-# NA exploration
+### NA exploration
 
 Let's explore the NA's to see if there's a pattern
+
+
 
 ```{r}
 #| label: na-lame-events
