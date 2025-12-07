@@ -51,18 +51,18 @@ Run this chuck below. It will open the example report in your browser.  You shou
 #| eval: false
 
 # 1. Define the file path
-file_path <- "images/milestone_6.html"
+file_path <- "images/milestone_6.htm"
 
 # 2. Open the browser
 browseURL(file_path)
 ```
 
 
-## Objective
+Objective
 
-### Explore recorded lameness/trim protocols
+Explore recorded lameness/trim protocols
 
--   Use the protocols1 variable to get the information about the
+Use the protocols1 variable to get the information about the
     lameness/trim protocols used.
 
 ```{r}
@@ -71,7 +71,7 @@ browseURL(file_path)
 
 ```
 
-### NA exploration
+NA exploration
 
 ```{r}
 
@@ -84,7 +84,7 @@ rmarkdown::paged_table(na_lame_events)
 
 ```
 
-# Extension
+Extension
 
 For this week extension create a template for your future reports
 
