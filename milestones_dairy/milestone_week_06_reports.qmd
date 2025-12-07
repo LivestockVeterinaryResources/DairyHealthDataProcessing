@@ -1,0 +1,152 @@
+---
+title: "Week 6 Milestone Template Report"
+author: Dairy Cow Foot Doc
+date: "`r Sys.Date()`"
+format:
+  html:
+    theme: darkly
+    df_print: paged
+    toc: true
+    toc-location: left
+    number-sections: true
+    code-fold: true
+    cap-location: margin
+execute:
+  message: false
+  warning: false
+embed-resources: true
+params:
+  event:
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,
+  dtplyr,
+  gt,
+  arrow,
+  rmarkdown,
+  lubridate,
+  quarto, 
+  arrow,
+  zoo
+  )
+
+events_formatted <- read_parquet(
+  '../data/intermediate_files/events_formatted.parquet')
+
+# create variables for inline code
+farm_name <- unique(events_formatted$location_event)
+
+date_max_pull <- max(events_formatted$date_event, na.rm = TRUE)
+date_min_pull <- date_max_pull - years(1)
+
+# create dataset to explore NA's
+lame_events <- events_formatted %>%
+  filter(event %in% c('LAME', "TRIM")) |> 
+  filter(date_event >= date_min_pull & date_event <= date_max_pull)
+
+number_lame <- lame_events |> 
+  filter(event == "LAME") |> 
+  count(event) |> 
+  pull(n)
+
+number_trim <- lame_events |> 
+  filter(event == "TRIM") |> 
+  count(event) |> 
+  pull(n)
+
+
+```
+
+```{=html}
+<!-- The objective of this milestone is to start the creation of a
+template you can use for reproducible reports going forward. Most of
+this milestone will focus on customizing the look of the report that you
+can use for future reports. We will also explore of the lameness data as
+part of this and build on the denominator stuff from week 5. It is
+likely that you will use this template in future milestones.
+A few notes:  1) The logo contains a clickable link 3) to use an image put it in the image folder 3)Any data (including farm name) that is reported in the text should use an inline text code chunk -->
+```
+
+[![](images/logo%20no%20background.png){fig-alt="link to organization's github"
+fig-align="center" width="100"}](https://github.com/Dairy-Cow-Foot-Doc)
+
+# Report for `r farm_name`
+
+-   This report shows data from the past year from **`r date_min_pull`
+    to `r date_max_pull`**.
+
+## Events reported
+
+In the data set there were:
+
+1.  `r number_lame` lame events record this year
+
+2.  `r number_trim` trim events.
+
+# Objective
+
+We will start by exploring the lameness events reported in the data.
+
+Your objective is to recreate the analysis show below.
+
+-   For @fig-explore_lame_events The scale is viridis (of course :) )
+
+-   To get na's to show up as black you need to use the na.value
+    argument in scale_fill_viridis_d().
+
+```{r}
+#| label: fig-explore_lame_events
+
+lame_events_protocols <- lame_events %>%
+  filter(date_event >= date_min_pull) %>%
+  select(location_event, id_animal, event, date_event, 
+         protocols_letters1) |> 
+  group_by(protocols_letters1) |> 
+  count() |> 
+  arrange(desc(n)) |>
+  ungroup()  |> 
+  ggplot()+
+  geom_col(aes(x = fct_reorder(protocols_letters1, n), 
+               y = n, 
+               fill = protocols_letters1))+
+  theme_minimal()+
+  coord_flip()+
+  theme(legend.position = "none")+
+  scale_fill_viridis_d(na.value = "black")+
+  labs(x = "Lameness Protocols",
+       y = "Count of Events")
+
+lame_events_protocols
+
+  
+```
+
+# NA exploration
+
+Let's explore the NA's to see if there's a pattern
+
+```{r}
+#| label: na-lame-events
+#| echo: true
+
+na_lame_events <- lame_events %>% 
+      filter(is.na(protocols_letters1) 
+         )  |> 
+  group_by(location_event, remark) %>%
+  count() %>%
+  arrange(desc(n)) |> 
+  ungroup()
+
+rmarkdown::paged_table(na_lame_events)
+
+```
+
+# Extension
+
+For this week extension customize the report to use your business' logo and use a theme/font colour scheme you prefer and that you could use for the reports you will generated with your skills learned in this course.
