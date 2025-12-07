@@ -14,6 +14,7 @@ format:
 execute:
   message: false
   warning: false
+  echo: false
 embed-resources: true
 params:
   event:
@@ -63,6 +64,47 @@ number_trim <- lame_events |>
 
 ```
 
+```{r}
+#| label: functions to hide my code
+
+# plot for lameness protocols
+lame_protocol_graph <- function() {
+  lame_events_protocols <- lame_events %>%
+  filter(date_event >= date_min_pull) %>%
+  select(location_event, id_animal, event, date_event, 
+         protocols_letters1) |> 
+  group_by(protocols_letters1) |> 
+  count() |> 
+  arrange(desc(n)) |>
+  ungroup()  |> 
+  ggplot()+
+  geom_col(aes(x = fct_reorder(protocols_letters1, n), 
+               y = n, 
+               fill = protocols_letters1))+
+  theme_minimal()+
+  coord_flip()+
+  theme(legend.position = "none")+
+  scale_fill_viridis_d(na.value = "black")+
+  labs(x = "Lameness Protocols",
+       y = "Count of Events")
+}
+
+
+# na exploration table
+
+na_explore <- function() {
+na_lame_events <- lame_events %>% 
+      filter(is.na(protocols_letters1) 
+         )  |> 
+  group_by(location_event, remark) %>%
+  count() %>%
+  arrange(desc(n)) |> 
+  ungroup()
+}
+
+
+```
+
 ```{=html}
 <!-- The objective of this milestone is to start the creation of a
 template you can use for reproducible reports going forward. Most of
@@ -95,36 +137,18 @@ We will start by exploring the lameness events reported in the data.
 
 Your objective is to recreate the analysis show below.
 
--   For @fig-explore_lame_events The scale is viridis (of course :) )
+-   For @fig_explore_lame the scale is viridis (of course :) )
 
 -   To get na's to show up as black you need to use the na.value
     argument in scale_fill_viridis_d().
 
 ```{r}
-#| label: fig-explore_lame_events
+#| label: fig-explore_lame
 
-lame_events_protocols <- lame_events %>%
-  filter(date_event >= date_min_pull) %>%
-  select(location_event, id_animal, event, date_event, 
-         protocols_letters1) |> 
-  group_by(protocols_letters1) |> 
-  count() |> 
-  arrange(desc(n)) |>
-  ungroup()  |> 
-  ggplot()+
-  geom_col(aes(x = fct_reorder(protocols_letters1, n), 
-               y = n, 
-               fill = protocols_letters1))+
-  theme_minimal()+
-  coord_flip()+
-  theme(legend.position = "none")+
-  scale_fill_viridis_d(na.value = "black")+
-  labs(x = "Lameness Protocols",
-       y = "Count of Events")
+# I hid my code to give you some coding to do this week but your code should show up here
 
-lame_events_protocols
+lame_protocol_graph()
 
-  
 ```
 
 # NA exploration
@@ -135,18 +159,18 @@ Let's explore the NA's to see if there's a pattern
 #| label: na-lame-events
 #| echo: true
 
-na_lame_events <- lame_events %>% 
-      filter(is.na(protocols_letters1) 
-         )  |> 
-  group_by(location_event, remark) %>%
-  count() %>%
-  arrange(desc(n)) |> 
-  ungroup()
+# put your code to explore NA's here
+na_lame_events <- na_explore()
 
+# we will learn better ways to show tables later but for now this works
 rmarkdown::paged_table(na_lame_events)
 
 ```
 
 # Extension
 
-For this week extension customize the report to use your business' logo and use a theme/font colour scheme you prefer and that you could use for the reports you will generated with your skills learned in this course.
+For this week extension create a template for your future reports
+
+-   customize the report to use your business' logo
+
+-   use a theme/font colour scheme you prefer
