@@ -146,7 +146,7 @@ Your objective is to recreate the analysis show below.
     
 ### Explore recorded lameness/trim protocols
 
--   Use the protocols1 variable to get the information about the
+-   Use the protocols_letters1 variable to get the information about the
     lameness/trim protocols used.
 
 
