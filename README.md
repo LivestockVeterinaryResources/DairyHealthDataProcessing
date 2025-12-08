@@ -13,10 +13,11 @@ the Data/ subfolders will not be shared to git unless they are in the
 Data/SharedFiles folder.
 
 More details about the data structure can be found in the resources
-folder: DataProcessingDocumentation.pptx.  
+folder: DataProcessingDocumentation.pptx.
 
-Template files/functions can also be found in the resources folder. 
-These are meant to be starter scripts for common (but non standard) functions 
+Template files/functions can also be found in the resources folder.
+These are meant to be starter scripts for common (but non standard)
+functions
 
 ------------------------------------------------------------------------
 
@@ -32,12 +33,12 @@ FIRST - Pull the data and save in the **event_files folder**
 
 -   Pull events from dairy comp using one option from the code below.
 
-    -   Option 1 Pull 5 years in one file: EVENTS\\2S2000CH #1 #2 #4 #5
+    -   Option 1 Pull 5 years in one file: EVENTS\\2S2000CHN #1 #2 #4 #5
         #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
 
     -   Option 2 pull smaller time frames using "days back" starting
         with "S""days back" and ending with "L""days back":
-        EVENTS\\2S99L0CH #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31
+        EVENTS\\2S99L0CHN #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31
         #32 #38 #40 #43
 
     -   Option 3 automate the pull from a Google drive location.
