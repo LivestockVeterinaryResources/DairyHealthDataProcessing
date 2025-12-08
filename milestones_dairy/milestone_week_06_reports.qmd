@@ -1,0 +1,93 @@
+---
+title: "Week 6 Milestone Template Report"
+format:
+  html
+embed-resources: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,
+  dtplyr,
+  gt,
+  arrow,
+  rmarkdown,
+  lubridate,
+  quarto, 
+  arrow,
+  zoo
+  )
+
+# data you will need for this report
+events_formatted <- read_parquet(
+  '../data/intermediate_files/events_formatted.parquet')
+
+# filter this data for LAME and TRIM in the event variable
+
+
+```
+
+```{=html}
+
+<!-- The objective of this milestone is to start the creation of a
+template you can use for reproducible reports going forward. Most of
+this milestone will focus on customizing the look of the report that you
+can use for future reports. We will also explore of the lameness data.We will use this template in future milestones.
+A few notes:  
+1) The logo contains a clickable link 
+2) to use an image put it in the image folder (the one in the report is called 
+  logo_no_background.png)
+3)Any data (including farm name) that is reported in the text should use an inline text code chunk -->
+```
+
+Run this chuck below. It will open the example report in your browser.  You should delete this chunk in your final report
+
+```{r}
+#| label: open-html-r
+#| eval: false
+
+# 1. Define the file path
+file_path <- "images/milestone_6.htm"
+
+# 2. Open the browser
+browseURL(file_path)
+```
+
+
+Objective
+
+Explore recorded lameness/trim protocols
+
+Use the protocols_letters1 variable to get the information about the
+    lameness/trim protocols used.
+
+```{r}
+
+# put your graph code here
+
+```
+
+NA exploration
+
+```{r}
+
+
+# put your code to explore NA's here and name it na_lame_event so the code
+# below will work
+
+# we will learn better ways to show tables later but for now this works
+rmarkdown::paged_table(na_lame_events)
+
+```
+
+Extension
+
+For this week extension create a template for your future reports
+
+-   customize the report to use your business' logo
+
+-   use a theme/font colour scheme you prefer
