@@ -149,10 +149,25 @@ for (i in seq_along(denominator_time_periods)){
       denominator_granularity = denominator_time_periods[[i]],
       cut_by_days = 30,
       top_cut = 400,
-      top_cut_hfr = 500
+      top_cut_hfr = 700
     )
   )
 }
+
+####Create denominator files by CALENDAR time periods ------------------------
+
+for (i in seq_along(denominator_time_periods)){
+  quarto::quarto_render(
+    input = "step3_denominators_by_calendar_time_period.qmd",
+    execute_params = list(
+      denominator_granularity = denominator_time_periods[[i]],
+      cut_by_days = 100,
+      top_cut = 400,
+      top_cut_hfr = 700
+    )
+  )
+}
+
 
 ##### standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
