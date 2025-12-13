@@ -1,20 +1,4 @@
----
-title: "Create Calendar Denominators"
-format: 
-  html:
-    embed-resources: true
-editor: source
-execute:
-  echo: true
-  message: false
-  warning: false
-params:
-  cut_by_days: 100
-  top_cut: 400
-  top_cut_hfr: 700
----
 
-```{r}
 library(tidyverse)
 library(arrow)
 library(dtplyr)
@@ -47,13 +31,9 @@ fxn_summarize_deno<-function(df){
   
 
 
-```
+## Read in the Base Data-----------------
 
-## Read in the Base Data
 
-Denominators are created from animals.parquet, animal_lactations.parquet, and a few parameters from events.parquet
-
-```{r}
 #denominator base files -------------------
 animals<-read_parquet('data/intermediate_files/animals.parquet') #each row is an animal
 
@@ -74,17 +54,16 @@ animal_event_existance<-read_parquet('data/intermediate_files/events_all_columns
 data_pull_min<-min(animals$data_pull_date_min)
 data_pull_max<-max(animals$data_pull_date_max)
 
-```
 
 
-## Define calendar days for calculations 
 
-This creates a list of calendar days from 1200 days prior to the most recent event date.  
-It exceeds the days back slightly (see "get_factor_for_days_back") to ensure a full 3 years of time_periods.
+## Define calendar days for calculations ---------------------------------
 
-```{r}
+#This creates a list of calendar days from 1200 days prior to the most recent event date.  
 
-get_bookend<-max(animal_event_existance$animal_date_event_max)
+
+
+get_bookend<-max(animal_event_existance$animal_date_event_max) #this controls the date range according to most recent event in data
 
 calendar_granular<-tibble(date_calendar = seq.Date(get_bookend, (get_bookend-1500), by = -1))
 
@@ -99,7 +78,7 @@ fxn_create_calendar_summary<-function(time_period_type = 'month'){
   mutate(days_in_period = date_time_period_end-(date_time_period_start+1))
 }
 
-#-------------------------
+#options are options from the unit argument in floordate
 
 calendar_years<-fxn_create_calendar_summary(time_period_type = 'year')
 calendar_halfyears<-fxn_create_calendar_summary(time_period_type = 'halfyear')
@@ -114,21 +93,10 @@ calendar <-bind_rows(calendar_years, calendar_halfyears, calendar_seasons, calen
   mutate(date_calendar = date_time_period_start)
 write_parquet(calendar, 'intermediate_files/calendar_from_calender_time_periods.parquet')
 
-```
 
 
-## Define the list of animals
-
-This is the base data for denominator calculations.  
-Each row is a unique animal lactation (id_animal_lact), from the `animal_lactations.parquet` file. 
-This is then joined to the animal data (`animals.parquet`) to make sure all dates for eligibility are available if needed.  
-
-In this base version of denominators, an animal is eligible to be counted if she exists on the reference day.  You can modify this if you choose.
-There are example functions for all_lactation, milking, dry. 
-Code can easily be modified to accept other eligibility criteria.
 
 
-```{r}
 #base data frame for denominator.  Each row is an animal lactation, joined to animal data so that all important dates are available
 deno_base<-animal_lactations |> 
   left_join(animals) %>%
@@ -142,22 +110,20 @@ deno_milking<-deno_base%>%
 
 deno_dry<-deno_base%>%
   fxn_deno_eligible_dry() #animals are eligible only when dry
-```
+
 
 ### set base type used for calculations
 
-Turn on only one of these lines in this chunk
+#Turn on only one of these lines in this chunk
 
-```{r}
 set_deno_base_type<-deno_all_lact #any animal is eligible
 #set_deno_base_type<-deno_milking #only milking animals are eligible
 #set_deno_base_type<-deno_dry #only dry animals are eligible
 
-```
 
 ## Create cut points for day of phase
 
-```{r}
+
  dim_cuts<-tibble(dop_start = c(-Inf, seq(0, params$top_cut, by = params$cut_by_days)))%>%
              mutate(dop_end = case_when(
                (dop_start == (-Inf))~0, 
@@ -174,26 +140,10 @@ age_cuts<-tibble(dop_start = c(-Inf, seq(0, params$top_cut_hfr, by = params$cut_
                )%>%
              mutate(dop_in_interval = dop_end-dop_start)%>%
              mutate(lact_number = 0)
-```
-
-
 
 
 ## Count cows on each calendar day for different lacation groups
 
-This loops over the list of calendar days and counts the number of days each cow is eligible within the time_period.  It prints out the date as it does it so you can see progress. The loop speed is pretty much the same regardless of how many rows (animals) are in the base data.  
-The speed is limited by the length of the list of calendar dates until very very large herds are used.
-
-Mulitple denominator metrics are generated.  
-
--  animal days (`ct_animal_days_eligible`) - total animal days eligible within the time_period
--  animal time_periods (`ct_animal_time_periods`) - animal days / number of days in time_period
--  animals (`ct_animals`) - number of animals with at least 1 day eligible within the time_period
--  animal lactations (`ct_animal_lactations`) - number of animal lactations with at least one day eligible within the time_period
-
-These values are calculated for each lactation group within the time_period, as well as for each dim group within lactation group. (see section below on denominator types) 
-
-```{r, message = FALSE}
 
 #make a place to put the results
 deno_dataframe<-NULL
@@ -351,90 +301,10 @@ deno_final<-deno_dataframe%>%
   mutate(day_of_phase_group = paste0(dop_start, ' to ', dop_end))
 
 
-```
-
-
-
-
-
-## Denominator Types
-
-Two basic types of denominators are generated:
-
--  Counts by Lactation Group
--  Counts by Lactation Group and Day of Phase (Days in milk for cows, days of age for heifers)
-
-### Plot Counts by Lactation Groups
-
-This plot displays the count of animal time_periods on each reference date.  
-However, any of the metric options can be used: `elig_days`, `ct_animal_time_periods`, `ct_animals`, `ct_animal_lactations`
-
-
-Animal time_periods is the easiest to relate back to the number of animals likely to be standing on the farm.
-For short time_periods of time these numbers are usually identical, but for longer time_periods your choice of metric will make a difference.
-If you wish to explore comparisons between denominator count metrics further please run the `report_test_new_denominators.qmd` file. Or explore the data in your own comparative report.
-
-```{r}
-ggplot(deno_final%>%
-         filter(!(str_detect(deno_type, 'dop_'))))+
-  geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = `Lactation Group`))+
-  ylim(c(0, NA))+
-  facet_grid(location_lact_list~deno_type, scales = 'free_y')+
-  theme_bw()+
-  labs(title = 'Animal Time Periods (ct_animal_time_periods)')
-```
-### Plot Counts by Day of Phase
-
-The default day of phase cut points are every 30 days, with a max of 400 for cows and 500 for heifers.
-These settings can be modified if you wish by adjusting the the params in this quarto document when rendered.
-
-In the dop files there is an additional variable named `dop_complete`.  This variable groups the counts by whether or not the dop interval was complete or partial.
-
-Notice that the dop for heifers and cows is different.  Keep this in mind when reporting.
-
-```{r}
-
-ggplot(deno_final%>%filter(deno_type %in% 'dop_lact_basic'))+
-  geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = day_of_phase_group))+
-  ylim(c(0, NA))+
-  facet_grid(location_lact_list~`Lactation Group`, scales = 'free_y')#+
-  #theme(legend.position = 'top')
-
-
-```
-
-
-## Check for missing values and errors
-
-### Missing values
-
-```{r}
-sk_deno<-skimr::skim(deno_final)
-
-ggplot(sk_deno)+
-  geom_col(aes(x = reorder(skim_variable, complete_rate), y = complete_rate, fill = skim_type), fill = 'grey')+
-    geom_col(data = sk_deno%>%filter(complete_rate<1), 
-             aes(x = reorder(skim_variable, complete_rate), y = complete_rate, fill = skim_type), fill = 'red')+
-
-  coord_flip()
-```
-
-
-## Write out denominator
-
-Denominator is written out using the days of granularity in the file name. 
-Errors are also written out for further investigation.
-
-
-```{r}
 write_parquet(deno_final, 
               paste0('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
 
 
 
-#display table--------------------
-fxn_DT_base(head(deno_final, 500))
-
-```
 
 
