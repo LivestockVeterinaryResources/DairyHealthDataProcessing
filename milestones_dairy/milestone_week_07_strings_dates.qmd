@@ -1,0 +1,198 @@
+---
+title: "Week 7 Milestone Factors"
+author: "<img src='images/logo.png' width='50' /> <br> Dairy Cow Foot Doc"
+date: "`r Sys.Date()`"
+format:
+  html:
+    theme: flatly
+    df_print: paged
+    toc: true
+    toc-location: left
+    number-sections: false
+    code-fold: true
+execute:
+  message: false
+  warning: false
+  echo: false
+embed-resources: true
+params:
+  event:
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,
+  dtplyr,
+  gt,
+  arrow,
+  rmarkdown,
+  lubridate,
+  quarto, 
+  arrow,
+  zoo
+  )
+
+events_formatted_all <- read_parquet(
+  '../data/intermediate_files/events_all_columns.parquet') 
+
+solution <- readr::read_rds("data_milestones/solutions_week_07.rds")
+
+# create variables for inline code
+
+
+
+```
+
+
+```{=html}
+<!-- The objective of this milestone is to use the template report you created last week to create another report while learning how to call functions from other places.
+Then you will learn the skills from this week to create a graph that takes data from text and date fields. You will use factor skills to order the graph properly to make your point cleaer.
+A few notes:  1) I put the code on how to insert an image in the header in the yaml change it to use your logo. 2)Any data (including farm name) that is reported in the text should use an inline text code chunk -->
+```
+
+Run this chuck below. It will open the example report in your browser.  You should delete this chunk in your final report
+
+```{r}
+#| label: open-html-r
+#| eval: false
+
+# 1. Define the file path
+file_path <- "images/milestone_7.htm"
+
+# 2. Open the browser
+browseURL(file_path)
+```
+
+
+# Report for farm name
+
+-   This report shows data from the past year from min date to max data
+
+## Objective
+
+Your objective is to recreate the solution dataset by doing the following with the raw_data table.
+
+-   id_animal is a combination of source_file_path, ID, BDAT
+-   Herd is extracted from the source_file_path
+extract the protocol data from the text fields
+-   protocols1 and remark1 contain the first set of character strings before a non character string is found.
+-   convert the exported data fields to real dates
+
+## Your Code Creation
+
+```{r}
+#| label: your code
+
+# put your code here to create the parsed variables. name it solution_data
+```
+
+
+```{r}
+#| label: create-solution-data
+
+waldo::compare(solution_data, solution)
+
+
+
+```
+### Create DIM Categories
+
+Then on the new data table.  
+
+-  Create a dim_cat that splits DIM into 6 categories.
+-  Order this variable in the correct order so if you were to graph it the categories would make sense and would not be in numerical or alphabetical order
+
+```{r}
+#| label: dim-cat-order
+#| echo: true
+
+# put your DIM category code here
+
+
+
+```
+
+### Import Function
+
+Then import this function from Github
+This function will create new variables for LAME and TRIM remarks in your data set that now has clean protocol and remark fields and an associated dim_cat variable.
+The function is called fxn_code_lesions() and it takes 3 input variables
+event_var, protocol_var, remark_var.  
+
+```{r}
+#| label: import-functions
+#| echo: true
+
+raw_url <- "https://raw.githubusercontent.com/Dairy-Cow-Foot-Doc/os_functions/main/fxn_code_lesions.R"
+
+source(raw_url)
+
+```
+
+### Create New Variables
+
+Then use this function to create new variables for the lesions in your data set.
+```{r}
+#| label: add-new-variables
+#| echo: true
+
+# put your code for recoding the variables here
+
+```
+
+
+## Plot Data
+-  Summarize this new data for the past 12 months to create a graph that looks similar to this 
+
+```{r}
+#| label: fig-example_lame
+#| fig-cap: "Lameness Lesions by DIM Category"
+#| echo: true
+
+# this might be helpful for your grap labels.
+
+all_lesions <- c("dd", "footrot", 'wld', "sole_ulcer","injury", 
+                             "cork", "other", "hemorrhage",
+                             "sole_fracture", "toe_ulcer", "thin",
+                             "inf", "noninf", "toe", "axial", "lesion")
+
+
+# you can use this with the !!! we discussed last week to relabels the factor
+  lesion_labels <- c(
+    "Digital Dermatitis" = "dd",
+    "Footrot" = "footrot",
+    "White Line Disease" = "wld",
+     "Sole Ulcer" = "sole_ulcer",
+    "Hemorrhage" = "hemorrhage",
+    "Sole Fracture" = "sole_fracture",
+     "Toe Ulcer" = "toe_ulcer",
+     "Thin Soles" = "thin",
+     "Corkscrew Claw" = "cork",
+     "Injury" = "injury",
+     "Infectious" = "inf",
+     "Non-Infectious" = "noninf",
+     "Toe" = "toe",
+     "Axial" = "axial",
+     "Other Lesions" = "other",
+     "Lesion Present" = "lesion"
+  )
+
+
+  
+
+
+```
+
+
+    
+# Extension
+
+For this week extension continue to create standard things would want to report
+
+Ideas (or hints for next week include)
+
+start doing math with dates so we can calculate time to event data (cull/repeat)
