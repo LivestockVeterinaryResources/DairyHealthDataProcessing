@@ -75,7 +75,7 @@ fxn_create_calendar_summary<-function(time_period_type = 'month'){
   summarize(date_time_period_end = max(date_calendar), 
             date_time_period_start = min(date_calendar))%>%
   ungroup()%>%
-  mutate(days_in_period = date_time_period_end-(date_time_period_start+1))
+  mutate(days_in_period = date_time_period_end-(date_time_period_start-1))
 }
 
 #options are options from the unit argument in floordate
@@ -87,11 +87,15 @@ calendar_bimonth<-fxn_create_calendar_summary(time_period_type = 'bimonth')
 calendar_months<-fxn_create_calendar_summary(time_period_type = 'month')
 calendar_weeks<-fxn_create_calendar_summary(time_period_type = 'week')
 
-
+#select calendar type--------------------------------
+calendar<-fxn_create_calendar_summary(time_period_type = 'week')
 #------------------------------
-calendar <-bind_rows(calendar_years, calendar_halfyears, calendar_seasons, calendar_bimonth, calendar_months, calendar_weeks)%>%
-  mutate(date_calendar = date_time_period_start)
-write_parquet(calendar, 'intermediate_files/calendar_from_calender_time_periods.parquet')
+
+# select_calendar_type = 'weeks'
+# calendar <-bind_rows(calendar_years, calendar_halfyears, calendar_seasons, calendar_bimonth, calendar_months, calendar_weeks)%>%
+#   mutate(date_calendar = date_time_period_start)%>%
+#   filter(time_period_typ)
+write_parquet(calendar, 'data/intermediate_files/calendar_from_calender_time_periods.parquet')
 
 
 
@@ -148,6 +152,8 @@ age_cuts<-tibble(dop_start = c(-Inf, seq(0, params$top_cut_hfr, by = params$cut_
 #make a place to put the results
 deno_dataframe<-NULL
 errors<-NULL
+
+
 
 #i = 3
 for (i in seq_along(calendar$date_calendar)){
