@@ -58,6 +58,12 @@ denominator_time_periods<-c(#21,
                             #90, 
                             365) #do NOT delete the yearly option or you will break the data_dictionary
 
+### day of phase parameters-----------------------------------
+## set the parameters for grouping by DIM or heifers by days of age
+set_cut_by_days = 100 #number of days in each group
+set_top_cut = 400 #the final group for cow DIM with be this number and anything higher
+set_top_cut_hfr = 700 #the final group for heifer days of age with be this number and anything higher
+
 ### parsing---------
 ## parse_free_text options:
 fxn_parse_remark <- fxn_parse_remark_default
@@ -144,29 +150,25 @@ source("step2_create_intermediate_files.R") # fundamental files: animals.parquet
 ####Create denominator files by time periods ------------------------
 for (i in seq_along(denominator_time_periods)){
   quarto::quarto_render(
-    input = "step3_denominators_by_lactation_group.qmd",
+    input = "step3_denominators_by_time_period.qmd",
     execute_params = list(
       denominator_granularity = denominator_time_periods[[i]],
-      cut_by_days = 30,
-      top_cut = 400,
-      top_cut_hfr = 700
+      cut_by_days = set_cut_by_days,
+      top_cut = set_top_cut,
+      top_cut_hfr = set_top_cut_hfr
     )
   )
 }
 
 ####Create denominator files by CALENDAR time periods ------------------------
-
-for (i in seq_along(denominator_time_periods)){
   quarto::quarto_render(
-    input = "step3_denominators_by_calendar_time_period.qmd",
+    input = "step3_denominators_by_calendar_time.qmd",
     execute_params = list(
-      denominator_granularity = denominator_time_periods[[i]],
-      cut_by_days = 100,
-      top_cut = 400,
-      top_cut_hfr = 700
+      cut_by_days = set_cut_by_days,
+      top_cut = set_top_cut,
+      top_cut_hfr = set_top_cut_hfr
     )
   )
-}
 
 
 ##### standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))

@@ -1,8 +1,12 @@
 ---
-title: "Untitled"
-format: html
-date: "`r Sys.Date()`"
-embed-resources: true
+title: "Create Calendar Denominators"
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  message: false
+  warning: false
 ---
 
 
@@ -11,28 +15,7 @@ library(tidyverse)
 library(quarto)
 library(arrow)
 
-#Create denominator files by year
-quarto::quarto_render(
-  input = "step3_denominators_by_lactation_group.qmd",
-  execute_params = list(
-    denominator_granularity = 365,
-      cut_by_days = 30,
-      top_cut = 400,
-      top_cut_hfr = 500
-  )
-)
 
-
-#Create denominator files by month
-quarto::quarto_render(
-  input = "step3_denominators_by_lactation_group.qmd",
-  execute_params = list(
-    denominator_granularity = 30,
-      cut_by_days = 30,
-      top_cut = 400,
-      top_cut_hfr = 500
-  )
-)
 ```
 ## lact group
 

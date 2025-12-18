@@ -1,16 +1,18 @@
 ---
-title: "Create Calendar Denominators"
+title: "Create Denominators"
 format: 
   html:
     embed-resources: true
-    code-fold: true
+editor: source
 execute:
+  echo: true
   message: false
   warning: false
 params:
+  denominator_granularity: 365
   cut_by_days: 100
   top_cut: 400
-  top_cut_hfr: 700
+  top_cut_hfr: 500
 ---
 
 ```{r}
@@ -82,37 +84,19 @@ This creates a list of calendar days from 1200 days prior to the most recent eve
 It exceeds the days back slightly (see "get_factor_for_days_back") to ensure a full 3 years of time_periods.
 
 ```{r}
+get_factor_for_days_back<-ceiling(1200/params$denominator_granularity)
 
-get_bookend<-max(animal_event_existance$animal_date_event_max)
+#get a list of dates for 1200 days before the last event
+calendar<-tibble(date_calendar = seq.Date(
+                 from = data_pull_max-((get_factor_for_days_back+1)*params$denominator_granularity), 
+                 to = data_pull_max, 
+                 by = params$denominator_granularity))%>%
+  mutate(date_time_period_end = date_calendar, 
+         date_time_period_start = lag(date_calendar-1))%>%
+  filter(!(is.na(date_time_period_end)))%>%
+  filter(!(is.na(date_time_period_start)))
 
-calendar_granular<-tibble(date_calendar = seq.Date(get_bookend, (get_bookend-1500), by = -1))
-
-fxn_create_calendar_summary<-function(time_period_type = 'month'){
-  calendar_granular%>%
-  mutate(calendar_period_type = time_period_type, 
-         calendar_period = floor_date(date_calendar, unit = time_period_type) )%>%
-  group_by(calendar_period_type, calendar_period)%>%
-  summarize(date_time_period_end = max(date_calendar), 
-            date_time_period_start = min(date_calendar))%>%
-  ungroup()%>%
-  mutate(days_in_period = (date_time_period_end-date_time_period_start)+1)%>%
-    select(calendar_period_type, calendar_period, contains('date'), days_in_period)
-}
-
-#-------------------------
-
-calendar_years<-fxn_create_calendar_summary(time_period_type = 'year')
-calendar_halfyears<-fxn_create_calendar_summary(time_period_type = 'halfyear')
-calendar_seasons<-fxn_create_calendar_summary(time_period_type = 'season')
-calendar_bimonth<-fxn_create_calendar_summary(time_period_type = 'bimonth')
-calendar_months<-fxn_create_calendar_summary(time_period_type = 'month')
-calendar_weeks<-fxn_create_calendar_summary(time_period_type = 'week')
-
-
-#------------------------------
-calendar <-bind_rows(calendar_years, calendar_halfyears, calendar_seasons, calendar_bimonth, calendar_months, calendar_weeks)%>%
-  mutate(date_calendar = date_time_period_start)
-write_parquet(calendar, 'data/intermediate_files/calendar_from_calender_time_periods.parquet')
+head(calendar)
 
 ```
 
@@ -193,7 +177,7 @@ Mulitple denominator metrics are generated.
 
 These values are calculated for each lactation group within the time_period, as well as for each dim group within lactation group. (see section below on denominator types) 
 
-```{r, message = FALSE, include = FALSE}
+```{r, message = FALSE}
 
 #make a place to put the results
 deno_dataframe<-NULL
@@ -206,8 +190,7 @@ for (i in seq_along(calendar$date_calendar)){
   df_pre<-set_deno_base_type%>%
     #test%>%
     mutate(date_ref_start = calendar$date_time_period_start[[i]], 
-           date_ref_end = calendar$date_time_period_end[[i]], 
-           calendar_time_period_type = calendar$calendar_period_type[[i]])%>%
+           date_ref_end = calendar$date_time_period_end[[i]])%>%
     mutate(elig_days = case_when(
       date_elig_start>date_ref_end~0, #lactation began after time_period ended
       date_elig_end<date_ref_start~0, #lactation ended before time_period started
@@ -240,7 +223,7 @@ for (i in seq_along(calendar$date_calendar)){
   # #lact group basic------------------------------
   df2<-df%>%
     filter(!(is.na(elig_days)))%>%
-    group_by(location_lact_list, lact_group_basic, calendar_time_period_type,  date_ref_start, date_ref_end) |>
+    group_by(location_lact_list, lact_group_basic, date_ref_start, date_ref_end) |>
      summarize(ct_animal_days_elig = sum(elig_days), 
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
@@ -252,7 +235,7 @@ for (i in seq_along(calendar$date_calendar)){
   
   # #lact_group_5-------------------------------------
   df3<-df%>%
-    group_by(location_lact_list, lact_group_repro, calendar_time_period_type, date_ref_start, date_ref_end) |>
+    group_by(location_lact_list, lact_group_repro, date_ref_start, date_ref_end) |>
      summarize(ct_animal_days_elig = sum(elig_days), 
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
@@ -264,7 +247,7 @@ for (i in seq_along(calendar$date_calendar)){
 
   # #lact _group standard----------------------------------
   df4<-df%>%
-    group_by(location_lact_list, lact_group, calendar_time_period_type, date_ref_start, date_ref_end) |>
+    group_by(location_lact_list, lact_group, date_ref_start, date_ref_end) |>
      summarize(ct_animal_days_elig = sum(elig_days), 
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
@@ -276,7 +259,7 @@ for (i in seq_along(calendar$date_calendar)){
    
   # #lact_group_5-------------------------------------
   df5<-df%>%
-    group_by(location_lact_list, lact_group_5, calendar_time_period_type, date_ref_start, date_ref_end) |>
+    group_by(location_lact_list, lact_group_5, date_ref_start, date_ref_end) |>
      summarize(ct_animal_days_elig = sum(elig_days), 
               ct_animals = n_distinct(id_animal), 
               ct_animal_lactations = n_distinct(id_animal_lact))%>%
@@ -297,7 +280,7 @@ for (i in seq_along(calendar$date_calendar)){
    #Day of phase data frames -------------------------------
   df6<-df%>%
     fxn_add_dop()%>%
-    group_by(location_lact_list, lact_group_basic, calendar_time_period_type,
+    group_by(location_lact_list, lact_group_basic, 
              dop_start, dop_end,  dop_in_interval, dop_complete, 
              date_ref_start, date_ref_end) |> 
     fxn_summarize_deno()%>%
@@ -306,7 +289,7 @@ for (i in seq_along(calendar$date_calendar)){
   
   df7<-df%>%
     fxn_add_dop()%>%
-    group_by(location_lact_list, lact_group_repro, calendar_time_period_type,
+    group_by(location_lact_list, lact_group_repro, 
              dop_start, dop_end,  dop_in_interval, dop_complete, 
              date_ref_start, date_ref_end) |>
     fxn_summarize_deno()%>%
@@ -315,7 +298,7 @@ for (i in seq_along(calendar$date_calendar)){
   
   df8<-df%>%
     fxn_add_dop()%>%
-    group_by(location_lact_list, lact_group, calendar_time_period_type,
+    group_by(location_lact_list, lact_group, 
              dop_start, dop_end,  dop_in_interval, dop_complete, 
              date_ref_start, date_ref_end) |>
     fxn_summarize_deno()%>%
@@ -324,7 +307,7 @@ for (i in seq_along(calendar$date_calendar)){
   
   df9<-df%>%
     fxn_add_dop()%>%
-    group_by(location_lact_list, lact_group_5, calendar_time_period_type,
+    group_by(location_lact_list, lact_group_5, 
              dop_start, dop_end,  dop_in_interval, dop_complete, 
              date_ref_start, date_ref_end) |>
     fxn_summarize_deno()%>%
@@ -375,8 +358,7 @@ For short time_periods of time these numbers are usually identical, but for long
 If you wish to explore comparisons between denominator count metrics further please run the `report_test_new_denominators.qmd` file. Or explore the data in your own comparative report.
 
 ```{r}
-ggplot(deno_final%>%
-         filter(!(str_detect(deno_type, 'dop_'))))+
+ggplot(deno_final%>%filter(!(str_detect(deno_type, 'dop_'))))+
   geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = `Lactation Group`))+
   ylim(c(0, NA))+
   facet_grid(location_lact_list~deno_type, scales = 'free_y')+
@@ -428,7 +410,7 @@ Errors are also written out for further investigation.
 
 ```{r}
 write_parquet(deno_final, 
-              paste0('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
+              paste0('data/intermediate_files/denominator_by_lact_group_time_period', params$denominator_granularity, '.parquet'))
 
 
 
