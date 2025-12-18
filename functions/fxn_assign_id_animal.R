@@ -9,7 +9,7 @@ fxn_assign_id_animal_default<-function(df){
 
 fxn_assign_id_animal_parnell<-function(df){
   df%>%
-    mutate(id_animal = paste0(str_sub(source_file_path, 19, 47), '_', ID, '_', BDAT), 
-           id_animal_lact = paste0(str_sub(source_file_path, 19, 47), '_', ID, '_', BDAT, '_', LACT)
+    mutate(id_animal = paste0(str_sub(source_file_path, 18, 47), '_', ID, '_', BDAT), 
+           id_animal_lact = paste0(str_sub(source_file_path, 18, 47), '_', ID, '_', BDAT, '_', LACT)
     )
 }
