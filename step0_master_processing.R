@@ -169,6 +169,7 @@ for (i in seq_along(denominator_time_periods)){
     )
   )
 
+#### run the report named (report_how_to_use_denominators.qmd) to learn to use denominators
 
 ##### standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
