@@ -101,7 +101,7 @@ set_outcome_gap_lactation <- 1
 
 ### clean up old data ---------------------------------
 #*** DANGER*** make sure you understand this setting if you change it to TRUE
-clean_slate <- TRUE # this will delete all data in data/event_files and data/intermediate files
+clean_slate <- FALSE # this will delete all data in data/event_files and data/intermediate files
 
 ### EXAMPLE data google drive-----------
 # set this to TRUE to pull EXAMPLE data from google drive.
