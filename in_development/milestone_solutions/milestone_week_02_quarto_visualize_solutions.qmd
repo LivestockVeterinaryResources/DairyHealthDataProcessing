@@ -22,10 +22,9 @@ library(waldo) #we use this to create answer keys for these exercises
 
 In this milestone, you'll use ggplot2 to visualize the distribution of age_left for a subset of the data. But before you begin, you'll need to import the animals data set. Unlike with Milestone 1, the animals data set has not been pre-loaded for you to use in R.
 
-
 ## Recreation
 
-### Part 1 - Import
+### Part 1 - Import (practice paths)
 
 In the code chunk below, use a command from the arrow package to read in the animals data set.
 
@@ -34,11 +33,13 @@ In the code chunk below, use a command from the arrow package to read in the ani
 * Save the data set as an object in your environment named `animals`.
 
 
+
+
 ```{r}
 #| label: recreation-import
 #hint the function to read in a parquet file is the same as the code to read a csv file except replace 'csv' with 'parquet'
 
-animals<-read_parquet('../data/intermediate_files/animals.parquet')
+animals<-read_parquet('../../data/intermediate_files/animals.parquet')
 
 
 ```
@@ -55,9 +56,9 @@ Run the code chunk below to see a plot. Your task is to recreate this plot.
 ggplot(animals%>%filter(age_left>365))+
   geom_histogram(aes(x = age_left), color = 'red')
   
-ggsave('images/milestone02.png')
+ggsave('../../milestones_dairy/images/milestone02.png')
 
-knitr::include_graphics("images/milestone02.png")
+knitr::include_graphics("../../milestones_dairy/images/milestone02.png")
 ```
 
 Use `ggplot()` in the chunk below to re-create the plot above. Before plotting, you will first need to filter your data set to only include observations from cattle where age_left is more than 1 year.

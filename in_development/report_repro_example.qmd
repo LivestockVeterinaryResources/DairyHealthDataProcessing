@@ -1,0 +1,693 @@
+---
+title: "Bred Interval Report"
+format:
+  html:
+    page-layout: full
+    theme: flatly
+    df_print: paged
+    toc: true
+    toc-location: left
+    number-sections: false
+    code-fold: true
+execute:
+  message: false
+  warning: false
+embed-resources: true
+---
+
+```{r}
+
+#title: "<img src='images/logo.png' width='50' /> <br>Bred Interval Report"
+
+library(tidyverse)
+library(arrow)
+library(gt)
+
+source('functions/fxn_add_event_counts.R')
+source('functions/fxn_event_type.R')
+source('functions/fxn_dt_base.R')
+```
+
+## Data Utilized
+
+This report begins by reading in all the events. Then it filters them to only events that are associated with "repro", as well as FRESH, SOLD, DIED. The repro events are listed here:
+
+```{r get data}
+events<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+  fxn_assign_event_type_from_file()
+
+repro_events2<-events%>%
+  filter((event_type %in% 'repro')|(event %in% 'FRESH')|(event %in% 'DIED')|(event %in% 'SOLD'))%>%
+  fxn_add_event_counts()%>%
+  mutate(floordate_season = floor_date(date_event, unit = 'month'))
+
+list_repro_events_used<-repro_events2%>%filter(event_type %in% 'repro')
+
+sort(unique(list_repro_events_used$event))
+```
+
+## Event Processing
+
+Events are then filtered to ensure that event counts are accurate (the lactation didn't start prior to pull date) The interval in days to the next bred event is calculated. When there was not a subsequent bred event, a reason for no subsequent breeding was defined. Further processing details can be examined within the code.
+
+```{r process events}
+
+repro_events3<-repro_events2%>%
+  mutate(qc_complete_sequence = case_when(
+    (lact_number == 0) ~ date_birth>min(events$date_event), 
+    lact_number > 0 ~ date_fresh > min (events$date_event), 
+    TRUE~ as.logical(NA))
+  )%>%
+  arrange(id_animal, date_event)%>%
+  group_by(id_animal_lact)%>%
+  mutate(lact_start = min(date_event))%>%
+  ungroup()%>%
+  mutate(repro_seq_new = ((event %in% c('OPEN', 'BRED', 'ABORT', 'FRESH'))|(date_event == lact_start)))%>%
+  select(id_animal_lact, 
+         lact_number, 
+         contains('event_count'), 
+         event, 
+         contains('remark'), 
+         contains('protocols'), 
+         R, 
+         repro_seq_new,
+         everything()
+         )%>%
+  arrange(id_animal_lact, date_event)%>%
+  rowid_to_column()%>%
+  mutate(repro_seq = case_when(
+    repro_seq_new>0~paste0('repro_seq_', rowid), 
+    TRUE~as.character(NA)
+  ))%>%
+  fill(repro_seq)
+
+incomplete_sequences<-repro_events3%>%
+  filter(qc_complete_sequence == FALSE)
+
+repro_events3_complete<-repro_events3%>%
+  filter(qc_complete_sequence == TRUE)
+
+repro_seq_summary<-repro_events3%>%
+  mutate(event_details = paste0(event, '_', event_count_lact))%>%
+arrange(herdid, id_animal_lact, date_event)%>%
+   group_by(herdid, id_animal_lact, repro_seq)%>%
+     mutate(list_events = paste0(event, collapse = ','), 
+            dim_event_min = min(dim_event), 
+            dim_event_max = max(dim_event))%>%
+  ungroup()%>%
+  select(herdid, id_animal_lact, repro_seq, list_events, dim_event_min, dim_event_max, event_details,  dim_event)%>%
+  pivot_wider(names_from = event_details, 
+              values_from = dim_event)%>%
+    mutate(detect_bred = str_detect(list_events, 'BRED|.BRED|BRED.|.BRED.'), 
+           detect_abort = str_detect(list_events, 'ABORT|.ABORT|ABORT.|.ABORT.'), 
+           detect_open = str_detect(list_events, 'OPEN|.OPEN|OPEN.|.OPEN.'),
+           detect_preg = str_detect(list_events, 'PREG|.PREG|PREG.|.PREG.'),
+           detect_fresh = str_detect(list_events, 'FRESH|.FRESH|FRESH.|.FRESH.'),
+           detect_dnb = str_detect(list_events, 'DNB|.DNB|DNB.|.DNB.'), 
+           detect_died = str_detect(list_events, 'DIED|.DIED|DIED.|.DIED.'),
+           detect_sold = str_detect(list_events, 'SOLD|.SOLD|SOLD.|.SOLD.')
+           )%>%
+    select(contains('detect'), everything())
+
+```
+
+## What is the timing of the first bred event
+
+The timing of all subsequent bred events relies on the first bred event to occur.
+This graphic displays variation in this value across lactation groups.
+
+### Previous 30 days
+
+```{r}
+
+prev30<-30
+prev365<-365
+
+bred1<-repro_events3_complete%>%
+  filter(event %in% 'BRED')%>%
+  filter(event_count_lact == 1)
+
+#-----------------------------------------------
+
+
+bred1_summary_prev30<-bred1%>%
+  filter(date_event>(max(events$date_event)-prev30))%>%
+  mutate(floordate_for_plot = case_when(
+    floordate_month > (max(events$date_event)-30)~ floordate_month, 
+    floordate_month <= (max(events$date_event)-30) ~ floor_date(date_event, unit = 'year'),
+    TRUE~floordate_month)
+  )%>%
+  filter(floordate_season> (max(events$date_event)-900))%>%
+  group_by(herdid, lact_group_5, floordate_for_plot)%>%
+  summarize(n = sum(n()), 
+            mean = mean(dim_event, na.rm = TRUE),
+            sd = sd(dim_event, na.rm = TRUE),
+            median = median(dim_event, na.rm = TRUE),
+            min = min(dim_event, na.rm = TRUE),
+            max = max(dim_event, na.rm = TRUE),
+            covar = sd/mean,
+            q1 = quantile(dim_event, probs = 0.01),
+            q2 = quantile(dim_event, probs = 0.02),
+            q3 = quantile(dim_event, probs = 0.03),
+            q5 = quantile(dim_event, probs = 0.05),
+            q10 = quantile(dim_event, probs = 0.10),
+            q25 = quantile(dim_event, probs = 0.25),
+            q50 = quantile(dim_event, probs = 0.50),
+            q75 = quantile(dim_event, probs = 0.75),
+            q90 = quantile(dim_event, probs = 0.90),
+            q95 = quantile(dim_event, probs = 0.95),
+            q97 = quantile(dim_event, probs = 0.97),
+            q98 = quantile(dim_event, probs = 0.98),
+            q99 = quantile(dim_event, probs = 0.99)
+            )%>%
+  ungroup()%>%
+  mutate(flag = case_when(
+    ((lact_group_5 %in% 'Heifer')&(q97>425))~'high', 
+    ((lact_group_5 %in% 'Heifer')&(q1<300))~'low', 
+    # (((lact_group_5 %in% 'Heifer'))&(q97>450))~'outlier', 
+    # (((lact_group_5 %in% 'Heifer'))&(q1<300))~'outlier', 
+    # 
+    #  ((!(lact_group_5 %in% 'Heifer'))&(q97>100))~'outlier', 
+    # ((!(lact_group_5 %in% 'Heifer'))&(q1<35))~'outlier', 
+
+    ((!(lact_group_5 %in% 'Heifer'))&(q97>90))~'high', 
+    ((!(lact_group_5 %in% 'Heifer'))&(q1<40))~'low', 
+    
+    TRUE~'expected')
+    )%>%
+  mutate(floordate_for_plot = factor(floordate_for_plot))
+```
+
+#### Plot DIM at Bred1
+
+```{r, fig.height=12}
+set_line_width <- 2.5
+
+ggplot(bred1_summary%>%
+         filter(!(lact_group_5 %in% 'Heifer')))+
+  geom_linerange(aes(xmin = q1, xmax = q99, y = floordate_for_plot, color = flag), color = 'black', alpha = .1, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q2, xmax = q98, y = floordate_for_plot, color = flag), color = 'black', alpha = .1, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q3, xmax = q97, y = floordate_for_plot, color = flag), color = 'black', alpha = .2, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q10, xmax = q90, y = floordate_for_plot, color = flag), color = 'black', alpha = .5, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q25, xmax = q75, y = floordate_for_plot, color = flag), color = 'black', alpha = 1, linewidth = set_line_width)+
+    geom_linerange(aes(xmin = q3, xmax = q97, y = floordate_for_plot, color = flag), linewidth = set_line_width)+
+  geom_text(aes(x = q1, y = floordate_for_plot, label = paste0(round(q3, digits = 0))), hjust = 1)+
+    geom_text(aes(x = q97, y = floordate_for_plot, label = paste0(round(q97, digits = 0))), hjust = 0)+
+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  xlab('Days in Milk')+
+  ylab('')+
+
+  facet_grid(lact_group_5~herdid)+
+  coord_cartesian(xlim = c(40, 120))+
+
+  scale_color_manual(values = c('expected' = 'grey30', 'high' = 'red', 'low' = 'blue', 'outlier' = 'gold'))+
+  labs(title = 'Cows (LACT > 0)')
+```
+
+
+```{r}
+ggplot(bred1%>%filter(!(lact_group_5 %in% 'Heifer')))+
+  geom_violin(aes(x = dim_event, y = lact_group_5, fill = herdid ), method = 'width', fill = 'grey', color = NA)+
+    geom_boxplot(aes(x = dim_event, y = lact_group_5 ), 
+                 width = 0.3, fill = 'grey30', color = 'grey60', outlier.color = NA, alpha = 0.5)+
+
+  geom_point(data = bred1_summary, 
+             aes(x = q1, y = lact_group_5))+
+  facet_grid(floordate_for_plot~herdid)+
+  coord_cartesian(xlim = c(40, 120))+
+  theme_bw()+
+  theme()
+```
+
+
+```{r, fig.height=6}
+ggplot(bred1_summary%>%
+         filter((lact_group_5 %in% 'Heifer')))+
+  geom_linerange(aes(xmin = q1, xmax = q99, y = floordate_for_plot, color = flag), color = 'black', alpha = .1, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q2, xmax = q98, y = floordate_for_plot, color = flag), color = 'black', alpha = .1, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q3, xmax = q97, y = floordate_for_plot, color = flag), color = 'black', alpha = .2, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q10, xmax = q90, y = floordate_for_plot, color = flag), color = 'black', alpha = .5, linewidth = set_line_width)+
+  geom_linerange(aes(xmin = q25, xmax = q75, y = floordate_for_plot, color = flag), color = 'black', alpha = 1, linewidth = set_line_width)+
+    geom_linerange(aes(xmin = q3, xmax = q97, y = floordate_for_plot, color = flag), linewidth = set_line_width)+
+  geom_text(aes(x = q1, y = floordate_for_plot, label = paste0(round(q3, digits = 0))), hjust = 1)+
+    geom_text(aes(x = q97, y = floordate_for_plot, label = paste0(round(q97, digits = 0))), hjust = 0)+
+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  xlab('Days in Milk')+
+  ylab('')+
+
+  facet_grid(lact_group_5~herdid)+
+  #coord_cartesian(xlim = c(40, 120))+
+
+  scale_color_manual(values = c('expected' = 'grey30', 'high' = 'red', 'low' = 'blue', 'outlier' = 'gold'))+
+  labs(title = 'Heifers (LACT = 0)')
+
+
+```
+
+#### Table of Values
+```{r}
+
+gt()
+
+```
+
+
+## What is the interval between bred events?
+
+Only events 356 days prior to data pull are reported here.  
+You can change this interval in the code below if you wish.
+
+```{r categorize outcomes}
+test<-repro_events3%>%
+  filter(date_event > (max(events$date_event)-365))%>%
+  #filter(id_animal_lact %in% unique(check$id_animal_lact)[1])%>%
+  #filter(id_animal %in% '2108e6_27451_09/14/19')%>%
+  select(event, contains('seq'), contains('count'), everything())
+
+test2<-test%>%
+  filter(event %in% 'BRED')%>%
+  group_by(id_animal_lact, event)%>%
+  mutate(lag_date_event = lag(date_event), 
+         lead_date_event = lead(date_event) )%>%
+  ungroup()%>%
+  mutate(event_gap_previous = as.numeric(date_event - lag_date_event), 
+         event_gap_next = as.numeric(lead_date_event - date_event), 
+         event_details = paste0(event, '_', event_count_lact))%>%
+  mutate(rebreed_category = case_when(
+    (!(event %in% 'BRED'))~ 'not bred event',
+    event_gap_next < 15 ~ 'early', 
+    event_gap_next < 28 ~ 'heat', 
+    event_gap_next < 48 ~ 'resynch', 
+    event_gap_next >= 49 ~ 'late', 
+    is.na(event_gap_next)~ 'not rebred',
+    TRUE~'Unknown'
+  ))%>%
+    select(rebreed_category, event, event_details,  contains('gap'), everything())%>%
+  left_join(repro_seq_summary)%>%
+  select(list_events, contains('detect'), everything())%>%
+  mutate(detect_recent = date_event> (max(events$date_event)-48))%>%
+  mutate(rebreed_category2 = case_when(
+    (!(rebreed_category %in% 'not rebred'))~'rebred', 
+      (detect_preg >0)~ 'pregant', 
+      (detect_dnb > 0) ~ 'dnb',
+      (detect_died >0)~ 'died', 
+      (detect_sold >0) ~ 'sold', 
+      (detect_recent >0 ~ 'pending'),
+      TRUE~'not rebred'
+  ))%>%
+  select(list_events, rebreed_category2, rebreed_category, contains('detect'), everything())
+  
+rebreed_category1_summary<-test2%>%
+    filter(!(is.na(event_gap_next)))%>%
+    group_by(herdid, lact_group_5, event)%>%
+    mutate(total_events = sum(n()))%>%
+    ungroup()%>%
+    group_by(herdid, lact_group_5, event, rebreed_category, total_events)%>%
+    summarize(count_events = sum(n()))%>%
+    ungroup()%>%
+    mutate(pct = count_events/total_events)%>%
+    mutate(Percent = round(pct*100, digits = 0))%>%
+    mutate(Percent = case_when(
+      Percent < 1 ~ paste0(rebreed_category, '\n<1%'), 
+      TRUE~ paste0(rebreed_category, '\n', Percent, '%')
+    ))
+
+rebreed_category_plot_bred<-rebreed_category1_summary%>%
+  filter(event %in% 'BRED')%>%
+  filter(!(rebreed_category %in% c('not bred event')))%>%
+  mutate(days = case_when(
+    rebreed_category %in% c("died") ~ 100,
+        rebreed_category %in% c("not rebred") ~ 90,
+    rebreed_category %in% c("pending") ~ 70,
+    rebreed_category %in% c("pregant") ~ 100,
+    rebreed_category %in% c( "sold") ~ 100,
+    rebreed_category %in% c("Unknown") ~ 100,
+    rebreed_category %in% c('dnb') ~ 100,
+
+    rebreed_category %in% c("early")~5,
+    rebreed_category %in% c("heat")~21,
+        rebreed_category %in% c("late")~50,
+    rebreed_category %in% c("resynch")~35,
+    TRUE~ as.numeric(NA))
+  )
+
+rebreed_category2_summary<-test2%>%
+    #filter((is.na(event_gap_next)))%>%
+    group_by(herdid, lact_group_5, event)%>%
+    mutate(total_events = sum(n()))%>%
+    ungroup()%>%
+    group_by(herdid, lact_group_5, event, rebreed_category2, total_events)%>%
+    summarize(count_events = sum(n()))%>%
+    ungroup()%>%
+    mutate(pct = count_events/total_events)%>%
+    mutate(Percent = round(pct*100, digits = 0))%>%
+    mutate(Percent = case_when(
+      Percent < 1 ~ paste0(rebreed_category2, '\n<1%'), 
+      TRUE~ paste0(rebreed_category2, '\n', Percent, '%')
+    ))
+
+rebreed_category_plot_bred2<-rebreed_category2_summary%>%
+  filter(event %in% 'BRED')%>%
+  filter(!(rebreed_category2 %in% c('not bred event')))%>%
+  mutate(days = case_when(
+    rebreed_category2 %in% c("died") ~ 100,
+        rebreed_category2 %in% c("not rebred") ~ 90,
+    rebreed_category2 %in% c("pending") ~ 70,
+    rebreed_category2 %in% c("pregant") ~ 100,
+    rebreed_category2 %in% c( "sold") ~ 100,
+    rebreed_category2 %in% c("Unknown") ~ 100,
+    rebreed_category2 %in% c('dnb') ~ 100,
+
+    rebreed_category2 %in% c("early")~5,
+    rebreed_category2 %in% c("heat")~21,
+        rebreed_category2 %in% c("late")~50,
+    rebreed_category2 %in% c("resynch")~35,
+    TRUE~ as.numeric(NA))
+  )
+
+```
+
+```{r plot function}
+
+colors_rebreed_cat<-c( "died" = 'red', 
+                       "early" = 'blue', 
+                       "heat" = 'white', 
+                       "late"  = 'red', 
+                       "not bred event" = 'grey40', 
+                       "not rebred"  = 'red', 
+                       "pregant" = 'black', 
+                       "resynch" = 'black' ,
+                       "sold"  = 'grey40', 
+                       'dnb' = 'grey40',
+                       "Unknown"  = 'grey40', 
+                       'pending' = 'grey40')
+
+fxn_plot_intervals<-function(select_herd){
+p<-ggplot(test2%>%filter(event %in% 'BRED')%>%filter(herdid %in% select_herd))+
+    geom_rect(aes(xmin = 17, xmax = 27, ymin = -Inf, ymax = Inf), fill = 'grey50')+
+  geom_bar(aes(x = event_gap_next, fill = factor(lact_number) ), fill = 'grey20')+
+    geom_bar(data = test2%>%
+               filter(event %in% 'BRED')%>%
+               filter(herdid %in% select_herd)%>%
+               filter(rebreed_category %in% c('early')), 
+             aes(x = event_gap_next, fill = factor(lact_number) ), fill = 'blue')+
+      geom_bar(data = test2%>%
+               filter(event %in% 'BRED')%>%
+               filter(herdid %in% select_herd)%>%
+               filter(rebreed_category %in% c('late')), 
+             aes(x = event_gap_next, fill = factor(lact_number) ), fill = 'red')+
+  geom_text(data = rebreed_category_plot_bred%>%
+              filter(herdid %in% select_herd)%>%
+              filter(days<100)%>%
+              filter(!(rebreed_category %in% 'heat')), 
+            aes(x = days, y = Inf, label = Percent, color = rebreed_category), vjust = 1)+
+  geom_text(data = rebreed_category_plot_bred%>%
+              filter(herdid %in% select_herd)%>%
+              filter(days<100)%>%
+              filter((rebreed_category %in% 'heat')), 
+            aes(x = days, y = Inf, label = Percent, color = rebreed_category), vjust = 1, fontface = 'bold')+
+   geom_text(data = rebreed_category_plot_bred%>%
+              filter(herdid %in% select_herd)%>%
+              filter(rebreed_category %in% 'not rebred'), 
+            aes(x = days, y = Inf, label = Percent, color = rebreed_category), vjust = 1)+
+
+
+  facet_grid(lact_group_5~herdid, scales = 'free')+
+  #theme_minimal()+
+  theme_bw()+
+  theme(legend.position = 'none')+
+  coord_cartesian(xlim = c(0, 100))+
+  scale_color_manual(values = colors_rebreed_cat)+
+  labs(title = paste0(select_herd), 
+       subtitle = paste0('Date Range: ', 
+                         format(min(test2$date_event), '%b %d, %Y'), 
+                         ' - ', 
+                         format(max(test2$date_event), '%b %d, %Y') ) )
+ 
+ print(p)
+}
+
+```
+
+## First Example Herd
+
+### Visualize "Days to next BRED"
+
+```{r}
+fxn_plot_intervals(select_herd = "2108e6")
+
+```
+
+### Table of Values
+
+```{r}
+
+
+tbl<-rebreed_category_plot_bred%>%
+  filter(herdid %in% "2108e6")%>%
+  select(-days)%>%
+  mutate(Percent = case_when(
+    pct<0.0001~ round(pct*100, digits = 3), 
+        pct<0.001~ round(pct*100, digits = 2), 
+        pct<0.01~ round(pct*100, digits = 1), 
+    TRUE~round(pct*100, digits = 0))
+    )%>%
+  filter(total_events > 500)%>%
+  select(herdid, lact_group_5, rebreed_category,  Percent )%>%
+  pivot_wider(names_from = rebreed_category, 
+              values_from = Percent)%>%
+  rename(`Lactation Group` = lact_group_5)%>%
+    select(`Lactation Group`, early, heat, resynch, `late`,  everything())
+  #select(`Lactation Group`, early, heat, resynch, `late`, pregant, `not rebred`, dnb, died, sold, pending, Unknown, everything())
+
+
+
+
+tbl %>%
+  gt() %>%
+  # Apply heatmap styling to all numeric columns
+  data_color(
+    columns = where(is.numeric),
+    palette = "Greys",           # You can also use "viridis", "RdYlGn", etc.
+    direction = "column",        # Colors based on values within each column
+    alpha = 0.1                  # Adjust transparency
+  ) %>%
+  # This forces the text color to stay uniform regardless of the background
+  tab_style(
+    style = cell_text(color = "black"),
+    locations = cells_body()
+  ) %>%
+  # Optional: Make it look professional
+  tab_header(
+    title = paste0(unique(tbl$herdid)),
+    subtitle = "Repro Sequence Outcomes (% of BRED events)"
+  ) %>%
+  opt_all_caps()
+```
+
+## Second Example Herd
+
+### Visualize "Days to next BRED"
+
+```{r}
+fxn_plot_intervals(select_herd = unique(events$herdid)[[2]])
+
+
+
+```
+
+### Table of Values
+
+```{r}
+tbl<-rebreed_category_plot_bred%>%
+  filter(herdid %in% unique(events$herdid)[[2]])%>%
+  select(-days)%>%
+  mutate(Percent = case_when(
+    pct<0.0001~ round(pct*100, digits = 3), 
+        pct<0.001~ round(pct*100, digits = 2), 
+        pct<0.01~ round(pct*100, digits = 1), 
+    TRUE~round(pct*100, digits = 0))
+    )%>%
+  filter(total_events > 500)%>%
+  select(herdid, lact_group_5, rebreed_category,  Percent )%>%
+  pivot_wider(names_from = rebreed_category, 
+              values_from = Percent)%>%
+  rename(`Lactation Group` = lact_group_5)%>%
+    select(`Lactation Group`, early, heat, resynch, `late`,  everything())
+  #select(`Lactation Group`, early, heat, resynch, `late`, pregant, `not rebred`, dnb, died, sold, pending, Unknown, everything())
+
+
+
+
+tbl %>%
+  gt() %>%
+  # Apply heatmap styling to all numeric columns
+  data_color(
+    columns = where(is.numeric),
+    palette = "Greys",           # You can also use "viridis", "RdYlGn", etc.
+    direction = "column",        # Colors based on values within each column
+    alpha = 0.1                  # Adjust transparency
+  ) %>%
+  # This forces the text color to stay uniform regardless of the background
+  tab_style(
+    style = cell_text(color = "black"),
+    locations = cells_body()
+  ) %>%
+  # Optional: Make it look professional
+  tab_header(
+    title = paste0(unique(tbl$herdid)),
+    subtitle = "Repro Sequence Outcomes (% of BRED events)"
+  ) %>%
+  opt_all_caps()
+```
+
+## What were the outcomes of BRED events?
+
+There were many bred events that have no subsequent breeding. 
+There are many reasons for this: Pregnancy, DNB, LEFT, etc
+
+This section explores the reasons for no subsequent bred event.
+
+```{r}
+
+colors_rebreed_category2<-c("died" = 'black', 
+                            "sold" = 'grey30', 
+                            "dnb" = 'grey50', 
+                            "not rebred" = '#c51b7d', 
+                            
+                            "pending" = '#80cdc1',   
+                            "rebred" = '#35978f', 
+                            "pregant" = '#01665e')
+
+plot_df<-rebreed_category2_summary%>%
+  mutate(rebreed_category2 = factor(rebreed_category2, 
+                                    levels = c("not rebred", "dnb", "sold", "died", 
+                                               "pending",   "rebred", "pregant"  )))
+
+list_bad_outcomes<- c("died", "dnb", "not rebred", "sold")
+list_good_outcomes<-c("pending",    "pregant",    "rebred")     
+
+
+
+ggplot(plot_df%>%
+            filter(rebreed_category2 %in% list_bad_outcomes))+
+    #geom_hline(yintercept = 0.15)+
+  geom_bar(aes(x =lact_group_5 , y = pct, fill = rebreed_category2),  stat = 'identity')+
+  facet_wrap(.~herdid)+
+  labs(title = 'Percent of Bred Events -  Non-Optimial Outcomes' , 
+       fill = '')+
+  scale_fill_manual(values = colors_rebreed_category2)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(labels = scales::label_percent(accuracy = 1))
+
+# ggplot(plot_df%>%
+#             filter(rebreed_category2 %in% list_good_outcomes))+
+#   geom_hline(yintercept = 0.85)+
+#   geom_bar(aes(x =lact_group_5 , y = pct, fill = rebreed_category2),  stat = 'identity')+
+#   facet_wrap(.~herdid)+
+#   labs(title = 'Percent of Bred Events -  Good Outcomes' )+
+#   scale_fill_manual(values = colors_rebreed_category2)+
+#   theme_bw()+
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+#   scale_y_continuous(labels = scales::label_percent(accuracy = 1))
+
+ggplot(plot_df)+
+  geom_bar(aes(x =lact_group_5 , y = pct, fill = rebreed_category2),  stat = 'identity')+
+    #geom_hline(yintercept = 0.95)+
+  geom_text(data = plot_df%>%filter(rebreed_category2 %in% 'not rebred'), 
+            aes(x = lact_group_5, y = 1, label = paste(round(pct*100, digits = 0), '%')), color = '#c51b7d', vjust = 0)+
+  facet_wrap(.~herdid)+
+  labs(title = 'Percent of Bred Events -  Good Outcomes', 
+       subitle = 'Percent value on column indicates % not rebred', 
+       fill = '')+
+  scale_fill_manual(values = colors_rebreed_category2)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(labels = scales::label_percent(accuracy = 1))
+
+
+
+```
+
+```{r}
+tbl_outcomes<-plot_df%>%
+  mutate(outcome_sign = case_when(
+    rebreed_category2 %in% list_good_outcomes~'Good', 
+    rebreed_category2 %in% list_bad_outcomes~'Non-Optimal', 
+   TRUE~rebreed_category2)
+)%>%
+  group_by(herdid, lact_group_5, outcome_sign)%>%
+  summarize(total_pct_outcome = sum(pct))%>%
+  ungroup()%>%
+  mutate(Percent = round(total_pct_outcome*100, digits = 0))
+```
+
+
+## Show events identified as "repro" events
+
+Here are the events we start with grouped by herd and season.\
+In the plots the dots are colored if ther is higher variation than expected. Events with low count numbers are not colored as the variation is expected to be high when there are low counts
+
+Have there been any changes in how events are used?
+
+```{r plot event counts}
+list_herds<-sort(unique(repro_events2$herdid))
+
+#i=1
+for (i in seq_along(list_herds)){
+plot_data<-repro_events2%>%
+  filter(herdid %in% list_herds[i])%>%
+  group_by(herdid, event, floordate_season)%>%
+  summarize(count_events = sum(n()))%>%
+  ungroup()
+
+pdata_summary<-plot_data%>%
+  group_by(herdid, event)%>%
+  summarize(mean = mean(count_events), 
+            sd = sd(count_events), 
+            median = median(count_events),
+            covar = sd/mean, 
+            min = min(count_events), 
+            max = max(count_events), 
+             
+            diff_min_max = max-min)
+
+ high_covar<-pdata_summary%>%
+   filter(covar>0.7)
+ mod_covar<-pdata_summary%>%
+   filter(covar>0.5)
+ 
+ low_counts<-pdata_summary%>%
+   filter(median<50)
+ 
+ 
+
+  p<-ggplot()+
+  geom_rect(data = pdata_summary, 
+            aes(xmin = min(plot_data$floordate_season), 
+                xmax = min(plot_data$floordate_season), 
+                ymin = (mean-sd), 
+                ymax = (mean+sd)))+
+  geom_point(data = plot_data, 
+             aes(x = floordate_season, y = count_events), jitter = position_jitter())+
+       geom_point(data = plot_data%>%filter(event %in% mod_covar$event), 
+             aes(x = floordate_season, y = count_events), jitter = position_jitter(), color = 'blue')+
+    geom_point(data = plot_data%>%filter(event %in% high_covar$event), 
+             aes(x = floordate_season, y = count_events), jitter = position_jitter(), color = 'red')+
+     geom_point(data = plot_data%>%filter(event %in% low_counts$event), 
+             aes(x = floordate_season, y = count_events), jitter = position_jitter(), color = 'grey40')+
+  facet_wrap(.~event, scales = 'free')+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    labs(title = paste0(list_herds[i]))
+
+print(p)
+  
+}
+
+```

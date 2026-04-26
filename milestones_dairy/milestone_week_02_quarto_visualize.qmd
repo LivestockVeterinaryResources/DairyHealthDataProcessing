@@ -27,17 +27,33 @@ library(waldo) #we use this to create answer keys for these exercises
 
 In this milestone, you'll use ggplot2 to visualize the distribution of age_left for a subset of the data. But before you begin, you'll need to import the animals data set. Unlike with Milestone 1, the animals data set has not been pre-loaded for you to use in R.
 
-
 ## Recreation
 
 ### Part 1 - Import
 
-In the code chunk below, use a command from the arrow package to read in the animals data set.
+Your goal in this part is to read the animals.parquet file into your environment as an object named ***"animals"***.
 
-* The animals data set lives in the file `animals.parquet` (think of parquet as just another file extension like .csv, or .doc), which is stored in the `data/intermediate_files` folder in your working directory.  However, this quarto document lives in a folder below the working directory, so when you call the file path you need to use "../" at the beginning of the path to tell it to look for the path beginning one level higher than where this quarto document is stored. 
+-   The animals data set lives in the file `animals.parquet` (think of parquet as just another file extension like .csv, or .doc), which is stored in the `data/intermediate_files` folder in your working directory.
 
-* Save the data set as an object in your environment named `animals`.
+Hint: Start by finding out what your working directory is (hint, for a quarto document it is where that document is saved)
 
+```{r}
+getwd()
+```
+
+This shows you that we are currently in the folder named "milestones_dairy". This folder lives in the main folder you created for this project.
+
+Next we want to find confirm where the animals.parquet file is located. It is in "data/intermediate_files". You can use the `list.files` function to prove this.
+
+(Hint: remember that paths generally need to be in quotes)
+
+(Hint: "../" means "move up a level")
+
+```{r}
+list.files('../data/intermediate_files')
+```
+
+Now it is your turn. Write some code in this chunk that will read in the file named "animals.parquet", and name it "animals" in your environment.
 
 ```{r}
 #| label: recreation-import
@@ -50,8 +66,7 @@ In the code chunk below, use a command from the arrow package to read in the ani
 
 ### Part 2 - Visualize
 
-Run the code chunk below to see a plot. Your task is to recreate this plot. 
-
+Run the code chunk below to see a plot. Your task is to recreate this plot.
 
 ```{r}
 #| label: recreate-this
@@ -62,7 +77,6 @@ knitr::include_graphics("images/milestone02.png")
 
 Use `ggplot()` in the chunk below to re-create the plot above. Before plotting, you will first need to filter your data set to only include observations from cattle where age_left is more than 1 year.
 
-
 ```{r}
 #| label: recreation-visualize
 
@@ -70,24 +84,19 @@ Use `ggplot()` in the chunk below to re-create the plot above. Before plotting, 
 
 ```
 
-
-
-
 ## Extension
 
 Using the code chunk below, investigate a research question about this data, using the visualization skills you learned this week. Some ideas:
 
-1. How does the distribution of age_left differ between breeds? Consider exploring these distributions with other geoms.
-2. What relationships do you see between age_left and other variables of interest in the data set?
-3. [any other research question of interest]
+1.  How does the distribution of age_left differ between breeds? Consider exploring these distributions with other geoms.
+2.  What relationships do you see between age_left and other variables of interest in the data set?
+3.  \[any other research question of interest\]
 
-Alternately, working with a data set of your own, complete the following: 
+Alternately, working with a data set of your own, complete the following:
 
-1. Read in your data
-2. Filter your data using a logical test/condition 
-3. Graph this data subset using at least one geom 
-
-
+1.  Read in your data
+2.  Filter your data using a logical test/condition
+3.  Graph this data subset using at least one geom
 
 ```{r}
 #| label: extension
@@ -96,4 +105,3 @@ Alternately, working with a data set of your own, complete the following:
 
 
 ```
-

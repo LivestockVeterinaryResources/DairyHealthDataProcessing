@@ -81,7 +81,7 @@ This section displays the active animals.  This is a good place to check that th
 
 ```{r}
 active_animals<-animal_lactations%>%
-  filter(status %in% 'active')
+  filter(animal_lactation_status %in% 'active')
 
 ggplot(active_animals)+
   geom_bar(aes(x = lact_group))+
@@ -339,19 +339,19 @@ for (i in seq_along(calendar$date_calendar)){
     rename(`Lactation Group` = lact_group)%>%
     mutate(deno_type = 'dop_lact_3+')
   
-  df9<-df%>%
-    fxn_add_dop()%>%
-    group_by(location_lact_list, lact_group_5, calendar_time_period_type,
-             dop_start, dop_end,  dop_in_interval, dop_complete, 
-             date_ref_start, date_ref_end) |>
-    fxn_summarize_deno()%>%
-    rename(`Lactation Group` = lact_group_5)%>%
-    mutate(deno_type = 'dop_lact_5+')
+  # df9<-df%>%
+  #   fxn_add_dop()%>%
+  #   group_by(location_lact_list, lact_group_5, calendar_time_period_type,
+  #            dop_start, dop_end,  dop_in_interval, dop_complete, 
+  #            date_ref_start, date_ref_end) |>
+  #   fxn_summarize_deno()%>%
+  #   rename(`Lactation Group` = lact_group_5)%>%
+  #   mutate(deno_type = 'dop_lact_5+')
   
  
   #final df---------------------------
   df10<-bind_rows(df2, df3, df4,
-                  df5, df6, df7, df8, df9
+                  df5, df6, df7, df8#, df9
                   )%>%
     distinct()
   

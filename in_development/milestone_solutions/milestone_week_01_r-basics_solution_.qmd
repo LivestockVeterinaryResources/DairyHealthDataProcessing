@@ -12,7 +12,7 @@ library(skimr)
 library(waldo)
 
 # We will learn what this code does in Milestone 2
-animals <- read_parquet("../data/intermediate_files/animals.parquet")%>%
+animals <- read_parquet("../../data/intermediate_files/animals.parquet")%>%
   filter(!(is.na(age_left)))
 
 ```
@@ -43,14 +43,14 @@ animals
 
 number_of_rows<-nrow(animals)
 
-age_left<-mean(animals$age_left)
+average_age_left<-mean(animals$age_left)
 
 counts<-animals%>%count(breed, sex, location_list)
 
 #create solutions
-write_rds(number_of_rows, 'data_milestones/solutions_week_01_number_of_rows.rds')
-write_rds(age_left, 'data_milestones/solutions_week_01_age_left.rds')
-write_rds(counts, 'data_milestones/solutions_week_01_counts.rds')
+write_rds(number_of_rows, '../../milestones_dairy/data_milestones/solutions_week_01_number_of_rows.rds')
+write_rds(average_age_left, '../../milestones_dairy/data_milestones/solutions_week_01_age_left.rds')
+write_rds(counts, '../../milestones_dairy/data_milestones/solutions_week_01_counts.rds')
 
 
 
@@ -64,7 +64,7 @@ Check number_of_rows:
 
 ```{r, echo=FALSE}
 
-waldo::compare(number_of_rows, read_rds('data_milestones/solutions_week_01_number_of_rows.rds'))
+waldo::compare(number_of_rows, read_rds('../../milestones_dairy/data_milestones/solutions_week_01_number_of_rows.rds'))
 
 ```
 
@@ -72,7 +72,7 @@ Check age_left:
 
 ```{r, echo=FALSE}
 
-waldo::compare(age_left, read_rds('data_milestones/solutions_week_01_age_left.rds'))
+waldo::compare(age_left, read_rds('../../milestones_dairy/data_milestones/solutions_week_01_age_left.rds'))
 
 ```
 
@@ -80,7 +80,7 @@ Check counts:
 
 ```{r, echo=FALSE}
 
-waldo::compare(counts, read_rds('data_milestones/solutions_week_01_counts.rds'))
+waldo::compare(counts, read_rds('../../milestones_dairy/data_milestones/solutions_week_01_counts.rds'))
 
 ```
 
@@ -101,7 +101,7 @@ summary(animals)
 skim_animals<-skimr::skim(animals)
 
 #write solution
-write_rds(skim_animals, 'data_milestones/solutions_week_01_skim_animals.rds')
+write_rds(skim_animals, '../../milestones_dairy/data_milestones/solutions_week_01_skim_animals.rds')
 
 
 ```
@@ -109,7 +109,7 @@ write_rds(skim_animals, 'data_milestones/solutions_week_01_skim_animals.rds')
 Check your answer to `skim()`
 
 ```{r}
-waldo::compare(skim_animals, read_rds('data_milestones/solutions_week_01_skim_animals.rds'))
+waldo::compare(skim_animals, read_rds('../../milestones_dairy/data_milestones/solutions_week_01_skim_animals.rds'))
 ```
 
 ## Extension

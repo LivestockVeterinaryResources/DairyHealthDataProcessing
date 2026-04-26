@@ -33,10 +33,14 @@ animals <- events_formatted |>
   arrange(id_animal, date_event)%>%
   summarize(
     breed = paste0(sort(unique(breed)), collapse = ","),
-    sex = max(RC),
+    sex = case_when(
+      max(RC) == 0 ~ 'male', 
+      max(RC) > 0 ~ 'female', 
+      TRUE~ 'Unknown'),
     location_list = paste0(sort(unique(location_event)), collapse = ","), 
     location_first = first(location_event), 
-    location_last = last(location_event)
+    location_last = last(location_event), 
+    location_count = n_distinct(location_event)
   ) |>
   ungroup() %>%
   mutate(sex = case_when(
@@ -110,12 +114,14 @@ animal_lactations <- events_formatted |>
     lact_group, lact_group_basic, lact_group_repro, lact_group_5
   ) |>
   summarize(
-    status = paste0(sort(unique(status)), collapse = ','),
+    animal_lactation_status = paste0(sort(unique(animal_lact_status)), collapse = ','),
+    animal_lactation_event_list = paste0(sort(unique(event)), collapse = ','),
     date_lact_first_event = min(date_event),
     date_lact_last_event = max(date_event),
     location_lact_list = paste0(sort(unique(location_event)), collapse = ","), 
     location_lact_first = first(location_event), 
-    location_lact_last = last(location_event)
+    location_lact_last = last(location_event), 
+    location_lact_count = n_distinct(location_event)
   ) |>
   ungroup()
 
@@ -205,14 +211,14 @@ write_parquet(master_animal_lactations, "data/intermediate_files/animal_lactatio
 
 # parse events-------------------------
 
-events_parsed <- events_formatted %>%
-  ## assign disease------------
-  fxn_assign_disease() %>% # creates disease variable, function can be customized
-  ## assign treatment --------------------
-  fxn_assign_treatment() %>% # creates treatment variable, function can be customized
-  mutate(across(
-    .cols = c(disease, treatment),
-    .fns = ~ str_replace_na(.x, "Unknown")
-  )) # removes NA from disease and treatment variables
-
-write_parquet(events_parsed, "data/intermediate_files/events_parsed.parquet")
+# events_parsed <- events_formatted %>%
+#   ## assign disease------------
+#   fxn_assign_disease() %>% # creates disease variable, function can be customized
+#   ## assign treatment --------------------
+#   fxn_assign_treatment() %>% # creates treatment variable, function can be customized
+#   mutate(across(
+#     .cols = c(disease, treatment),
+#     .fns = ~ str_replace_na(.x, "Unknown")
+#   )) # removes NA from disease and treatment variables
+# 
+# write_parquet(events_parsed, "data/intermediate_files/events_parsed.parquet")
