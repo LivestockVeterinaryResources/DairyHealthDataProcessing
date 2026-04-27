@@ -18,10 +18,10 @@ library(arrow)
 ```{r file list}
 master_sk<-NULL
 
-list_intermediate_files<-list.files('data/intermediate_files')
+list_intermediate_files<-list.files(here::here('data/intermediate_files'))
 
 fxn_graph_file_skim <- function(file_name) {
-  df <- read_parquet(file.path('data/intermediate_files', file_name))
+  df <- read_parquet(here::here('data/intermediate_files', file_name))
   sk_df <- skimr::skim(df) %>%
     mutate(parquet_file_name = file_name) %>%
     arrange(skim_variable)
@@ -90,7 +90,7 @@ For a more detailed explanation of denominators see the report named "report_how
 
 fxn_graph_file_skim("denominator_by_calendar_time_period.parquet") 
 
-calendar_options<-read_parquet('data/intermediate_files/denominator_by_calendar_time_period.parquet')
+calendar_options<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
 
 
    

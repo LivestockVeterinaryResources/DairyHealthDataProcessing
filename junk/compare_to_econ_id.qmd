@@ -12,7 +12,7 @@ econ_id<-read_csv('junk/MMW ECONID 10.17.25.csv')
 
 
 
-deno_calendar<-read_parquet('data/intermediate_files/denominator_by_calendar_time_period.parquet')
+deno_calendar<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
 sort(unique(deno_calendar$deno_type))
 
 ```
@@ -74,7 +74,7 @@ ggplot()+
 
 
 ```{r}
-check_hfr_events<-read_parquet('data/intermediate_files/events_all_columns.parquet')%>%
+check_hfr_events<-read_parquet(here::here('data/intermediate_files/events_all_columns.parquet'))%>%
   filter(lact_number == 0)%>%
   mutate(floordate_month = floor_date(date_event, unit = 'months'))%>%
   group_by(floordate_month, event_type, event)%>%
@@ -148,7 +148,7 @@ ggplot(check_hfr_events%>%filter(event_type %in% 'unknown'))+
 ## Look at event sequences
 
 ```{r}
-check_hfr_events<-read_parquet('data/intermediate_files/events_all_columns.parquet')%>%
+check_hfr_events<-read_parquet(here::here('data/intermediate_files/events_all_columns.parquet'))%>%
   filter(lact_number == 0)%>%
   filter(date_birth>lubridate::ymd('2024-07-01'))%>%
   mutate(floordate_birth_quarter = floor_date(date_birth, 'quarter'))%>%
@@ -177,7 +177,7 @@ check_hfr_events%>%
   ggplot()+
   geom_point(aes(x = dim_event, y = id_animal, color = event_type))
 
-events<-read_parquet('data/intermediate_files/events_all_columns.parquet')
+events<-read_parquet(here::here('data/intermediate_files/events_all_columns.parquet'))
 
   max(events$date_event)
 

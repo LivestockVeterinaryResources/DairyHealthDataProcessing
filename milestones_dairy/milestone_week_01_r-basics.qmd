@@ -12,7 +12,7 @@ library(skimr)
 library(waldo)
 
 # We will learn what this code does in Milestone 2
-animals <- read_parquet("../data/intermediate_files/animals.parquet")%>%
+animals <- read_parquet(here::here('data/intermediate_files/animals.parquet'))%>%
   filter(!(is.na(age_left)))
 
 ```
@@ -71,7 +71,7 @@ Check number_of_rows:
 
 ```{r, echo=FALSE}
 
-waldo::compare(number_of_rows, read_rds('data_milestones/solutions_week_01_number_of_rows.rds'))
+waldo::compare(number_of_rows, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_01_number_of_rows.rds')))
 
 ```
 
@@ -79,7 +79,7 @@ Check age_left:
 
 ```{r, echo=FALSE}
 
-waldo::compare(average_age_left, read_rds('data_milestones/solutions_week_01_age_left.rds'))
+waldo::compare(average_age_left, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_01_age_left.rds')))
 
 ```
 
@@ -87,7 +87,7 @@ Check counts:
 
 ```{r, echo=FALSE}
 
-waldo::compare(counts, read_rds('data_milestones/solutions_week_01_counts.rds'))
+waldo::compare(counts, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_01_counts.rds')))
 
 ```
 
@@ -110,7 +110,7 @@ Write your code in the following chunk:
 Check your answer to `skim()`
 
 ```{r}
-waldo::compare(skim_animals, read_rds('data_milestones/solutions_week_01_skim_animals.rds'))
+waldo::compare(skim_animals, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_01_skim_animals.rds')))
 ```
 
 ## Extension

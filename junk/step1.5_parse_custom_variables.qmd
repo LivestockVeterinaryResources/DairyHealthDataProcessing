@@ -12,7 +12,7 @@ library(tidyverse)
 ### QC Source Farms
 
 ```{r}
-source('functions/fxn_sourcefarms.R') #custom function that parses cow id to identify source farm, it is farm specific
+source(here::here('functions/fxn_sourcefarms.R')) #custom function that parses cow id to identify source farm, it is farm specific
 ```
 
 

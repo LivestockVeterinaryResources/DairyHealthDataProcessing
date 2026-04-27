@@ -37,7 +37,7 @@ fxn_standardze_cow_breed<-function(df, default_pct = 0.05){
 # 
 # check<-animals%>%filter(breed %in% 'C,H,J')
 # 
-# test<-read_parquet('data/intermediate_files/events_all_columns.parquet')%>%
+# test<-read_parquet(here::here('data/intermediate_files/events_all_columns.parquet'))%>%
 #   filter(id_animal %in% check$id_animal)%>%
 #   arrange(id_animal, date_event)%>%
 #   select(location_event, breed, ID, date_birth, date_event, event, remark, protocols, everything())

@@ -23,9 +23,9 @@ library(tidyverse)
 library(arrow)
 library(gt)
 
-source('functions/fxn_add_event_counts.R')
-source('functions/fxn_event_type.R')
-source('functions/fxn_dt_base.R')
+source(here::here('functions/fxn_add_event_counts.R'))
+source(here::here('functions/fxn_event_type.R'))
+source(here::here('functions/fxn_dt_base.R'))
 ```
 
 ## Data Utilized
@@ -33,7 +33,7 @@ source('functions/fxn_dt_base.R')
 This report begins by reading in all the events. Then it filters them to only events that are associated with "repro", as well as FRESH, SOLD, DIED. The repro events are listed here:
 
 ```{r get data}
-events<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
   fxn_assign_event_type_from_file()
 
 repro_events2<-events%>%

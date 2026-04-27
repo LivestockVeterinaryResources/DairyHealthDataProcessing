@@ -22,9 +22,9 @@ library(tidyverse)
 library(arrow)
 library(data.table)
 
-source('functions/fxn_assign_day_of_phase_group.R')
-source('functions/fxn_add_event_counts.R')
-source('functions/fxn_create_dop.R')
+source(here::here('functions/fxn_assign_day_of_phase_group.R'))
+source(here::here('functions/fxn_add_event_counts.R'))
+source(here::here('functions/fxn_create_dop.R'))
 
 ```
 
@@ -33,8 +33,8 @@ source('functions/fxn_create_dop.R')
 
 ```{r}
 
-denominator_base<-read_parquet('data/intermediate_files/denominator_by_calendar_time_period.parquet')
-events_formatted <- read_parquet('data/intermediate_files/events_formatted.parquet')
+denominator_base<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
+events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
 ```
 
 ##  Example with lactation groups
@@ -55,7 +55,7 @@ Your final code should look something like this:
 
 ```{r, echo = TRUE}
 
-denominator<-read_parquet('data/intermediate_files/denominator_by_calendar_time_period.parquet')%>%
+denominator<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))%>%
   filter(calendar_time_period_type %in% 'month')%>% #choose denominator period type
   filter(deno_type %in% 'lact_3+')%>% #choose the type of lactation group
   distinct()%>%
@@ -72,7 +72,7 @@ Follow the comments documenting the steps for nummerator summary
 
 ```{r, echo = TRUE}
 
-mast_event_summary<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+mast_event_summary<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
   
   #select event of interest
   filter(event %in% 'MAST')%>% 
@@ -137,7 +137,7 @@ The most straight forward way to look at disease by day of phase is to begin wit
 
 ```{r}
 
-events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet')
+events_formatted<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
 
 #check on odd things - only 2 events with neg dim
 neg_dim<-events_formatted%>%filter(event %in% 'PNEU')%>%
@@ -164,8 +164,8 @@ To get incidence we first need our denominator. So, we need to start with a data
 
 
 ```{r}
-animals<-read_parquet('data/intermediate_files/animals.parquet')
-animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parquet')
+animals<-read_parquet(here::here('data/intermediate_files/animals.parquet'))
+animal_lactations<-read_parquet(here::here('data/intermediate_files/animal_lactations.parquet'))
 
 day_of_phase_min<-0
 day_of_phase_max<-60
@@ -185,7 +185,7 @@ The same steps apply as when using lactation groups, but in addition the day of 
 ### First, select your denominator. 
 
 ```{r, echo = TRUE}
-denominator_dop_pre<-read_parquet('data/intermediate_files/denominator_by_calendar_time_period.parquet')
+denominator_dop_pre<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
 
 tbl_deno_types<-denominator_dop_pre%>%
   group_by(deno_type)%>%
@@ -256,7 +256,7 @@ Example code is shown in the chunk below.
 
 ```{r, echo = TRUE}
 
-mast_event_summary_dop<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+mast_event_summary_dop<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
   
   #select event of interest
   filter(event %in% 'MAST')%>%  #select your disease or event

@@ -5,9 +5,9 @@ library(arrow)
 
 
 # read in functions -------------------
-source("functions/fxn_parse_free_text.R") # functions to parse remarks and protocols
-source("functions/fxn_event_type.R") # c function to categorize events
-source("functions/fxn_location.R") # custom function to specify event location
+source(here::here("functions/fxn_parse_free_text.R")) # functions to parse remarks and protocols
+source(here::here("functions/fxn_event_type.R")) # c function to categorize events
+source(here::here("functions/fxn_location.R")) # custom function to specify event location
 
 
 # set custom functions
@@ -24,14 +24,14 @@ fxn_detect_location_lesion <- fxn_detect_location_lesion_default # detect_locati
 
 # read in files-----------------
 
-list_files <- list.files("data/milk_files") # folder name where event files are located
+list_files <- list.files(here::here("data/milk_files")) # folder name where event files are located
 
 production <- NULL
 
 for (i in seq_along(list_files)) {
   df <- read_csv(
-    paste0(
-      "data/milk_files/",
+    here::here(
+      "data/milk_files",
       list_files[i]
     ),
     # reads in all data as character string
@@ -46,7 +46,7 @@ for (i in seq_along(list_files)) {
 production_columns <- colnames(production)
 
 # fix column names----------------------
-# source("functions/fxn_fix_item_names_prod.R")
+# source(here::here("functions/fxn_fix_item_names_prod.R"))
 
 # add a stop function here if all expected columns do not exist
 
@@ -132,7 +132,7 @@ production2 <- production2 |>
 # write out files-----------------------
 
 # main file ------------
-write_parquet(production2, "data/intermediate_files/production_all_columns.parquet") # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
+write_parquet(production2, here::here("data/intermediate_files/production_all_columns.parquet")) # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
 
 # formatted file -----------------------
 write_parquet(

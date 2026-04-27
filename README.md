@@ -106,6 +106,22 @@ The ones listed below are all in **qmd_files**
 
 ------------------------------------------------------------------------
 
+## Dependencies
+
+This project uses the [`{here}`](https://here.r-lib.org/) package for robust,
+project-root-relative file paths. All scripts and reports call `here::here()`
+explicitly (no `library(here)` required). Make sure the package is installed:
+
+```r
+install.packages("here")
+```
+
+All scripts should be run from (or rendered within) the project root — i.e.,
+the directory containing `LivestockHealthDataProcessing.Rproj`. The `{here}`
+package automatically detects this root via the `.Rproj` file.
+
+------------------------------------------------------------------------
+
 Code structure details and reference documents: tidyverse style guide
 <https://style.tidyverse.org/files.html>.\
 <https://design.tidyverse.org/>

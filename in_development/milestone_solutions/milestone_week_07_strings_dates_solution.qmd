@@ -43,7 +43,7 @@ events_formatted_all <- read_parquet(
 #          source_file_path)
   
 # pull solution data
-source('../functions/fxn_milestone7_solution.R')
+source(here::here('functions/fxn_milestone7_solution.R'))
 
 
 # create variables for inline code

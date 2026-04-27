@@ -5,26 +5,26 @@ library(arrow)
 
 
 #read in functions -------------------
-source('functions/fxn_de_duplicate.R') #removes duplicated rows
+source(here::here('functions/fxn_de_duplicate.R')) #removes duplicated rows
 
-source("functions/fxn_location.R") # function to specify event location
-source("functions/fxn_assign_id_animal.R") # parameters to use in animal id
+source(here::here("functions/fxn_location.R")) # function to specify event location
+source(here::here("functions/fxn_assign_id_animal.R")) # parameters to use in animal id
 
-source("functions/fxn_parse_free_text.R") # functions to parse remarks and protocols
-source("functions/fxn_event_type.R") # c function to categorize events
+source(here::here("functions/fxn_parse_free_text.R")) # functions to parse remarks and protocols
+source(here::here("functions/fxn_event_type.R")) # c function to categorize events
 
 
 # read in files-----------------
 
-list_files <- list.files("data/event_files") # folder name where event files are located
+list_files <- list.files(here::here("data/event_files")) # folder name where event files are located
 
 events <- NULL
 
 # i=1
 for (i in seq_along(list_files)) {
   df <- read_csv(
-    paste0(
-      "data/event_files/",
+    here::here(
+      "data/event_files",
       list_files[i]
     ),
     # reads in all data as character string
@@ -37,7 +37,7 @@ for (i in seq_along(list_files)) {
 
   # check colnames ------------------
   event_columns <- colnames(df)
-  source("functions/fxn_fix_item_names.R") # standardize column names for known variation in column names
+  source(here::here("functions/fxn_fix_item_names.R")) # standardize column names for known variation in column names
 
   events <- bind_rows(events, df)
 }
@@ -200,7 +200,7 @@ events <- events |>
 # write out files-----------------------
 
 # main file ------------
-write_parquet(events, 'data/intermediate_files/events_all_columns.parquet') # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
+write_parquet(events, here::here('data/intermediate_files/events_all_columns.parquet')) # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
 
 # formatted file -----------------------
 write_parquet(
@@ -279,7 +279,7 @@ qc_event_type <- events |>
   summarize(count = sum(n()), list_remark_letters1 = paste0(remark_letters1)) |>
   ungroup()
 
-write_parquet(qc_event_type, 'data/qc_files/qc_event_type.parquet')
+write_parquet(qc_event_type, here::here('data/qc_files/qc_event_type.parquet'))
 
 #create event type template---------------------
 template_event_type <- events |>

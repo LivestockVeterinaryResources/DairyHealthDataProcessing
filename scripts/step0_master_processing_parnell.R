@@ -24,18 +24,18 @@ pacman::p_load(
 )
 
 # read in functions -------------------
-source("functions/fxn_delete_files_clean_slate.R")
-source("functions/fxn_de_duplicate.R") # removes duplicated rows
+source(here::here("functions/fxn_delete_files_clean_slate.R"))
+source(here::here("functions/fxn_de_duplicate.R")) # removes duplicated rows
 
 
-source("functions/fxn_location.R") # function to specify event location
-source("functions/fxn_assign_id_animal.R") # parameters to use in animal id
+source(here::here("functions/fxn_location.R")) # function to specify event location
+source(here::here("functions/fxn_assign_id_animal.R")) # parameters to use in animal id
 
-source("functions/fxn_parse_free_text.R") # functions to parse remarks and protocols
-source("functions/fxn_event_type.R") # c function to categorize events
+source(here::here("functions/fxn_parse_free_text.R")) # functions to parse remarks and protocols
+source(here::here("functions/fxn_event_type.R")) # c function to categorize events
 
-source("functions/fxn_disease.R")
-source("functions/fxn_treatment.R")
+source(here::here("functions/fxn_disease.R"))
+source(here::here("functions/fxn_treatment.R"))
 
 # SETUP-----------------------------
 
@@ -131,26 +131,26 @@ if (clean_slate == TRUE) {
 
 ## process milk data ---------------------
 if (milk_data_exists == TRUE) {
-  source("step1a_read_in_production_data.R")
+  source(here::here("scripts/step1a_read_in_production_data.R"))
 }
 
 ## process event data -----------------
 if (get_EXAMPLE_data_from_google_drive == TRUE) {
-  source("step00_get_example_data_from_google_drive.R")
+  source(here::here("functions/step00_get_example_data_from_google_drive.R"))
 }
 
 ### Step 1 Read in data-------------
-source("step1_read_in_data.R") # creates ***events.parquet*** reads in the data, formats dates, adds lactation groups and other basic data prep steps
+source(here::here("scripts/step1_read_in_event_data.R")) # creates ***events.parquet*** reads in the data, formats dates, adds lactation groups and other basic data prep steps
 
 ### Step 2 create Intermediate Files----------------------
-source("step2_create_intermediate_files.R") # fundamental files: animals.parquet, animal_lactations.parquet, events.parquet
+source(here::here("scripts/step2_create_intermediate_files.R")) # fundamental files: animals.parquet, animal_lactations.parquet, events.parquet
 
 ### Step 3 Create Denominators ---------------------
 ## under development:
 #### Create denominator files by time periods ------------------------
 for (i in seq_along(denominator_time_periods)) {
   quarto::quarto_render(
-    input = "step3_denominators_by_time_period.qmd",
+    input = here::here("qmd_reports/step3_denominators_by_time_period.qmd"),
     execute_params = list(
       denominator_granularity = denominator_time_periods[[i]],
       cut_by_days = set_cut_by_days,
@@ -162,7 +162,7 @@ for (i in seq_along(denominator_time_periods)) {
 
 #### Create denominator files by CALENDAR time periods ------------------------
 quarto::quarto_render(
-  input = "step3_denominators_by_calendar_time.qmd",
+  input = here::here("qmd_reports/step3_denominators_by_calendar_time.qmd"),
   execute_params = list(
     cut_by_days = set_cut_by_days,
     top_cut = set_top_cut,
@@ -174,7 +174,7 @@ quarto::quarto_render(
 
 ##### standard denominators always group by location_event_list (animal level), and lactation group (basic (Heifer, Lact>0), repro (Heifer, 1, 2+), lact_group (Heifer, 1, 2, 3+), lact_group_5 (Heifer, 1, 2, 3, 4, 5+))
 rm(list = ls()) # clean environment
-quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
+quarto::quarto_render(here::here("qmd_reports/step3_create_denominators_lact_dim_season.qmd")) # denominators for lameness report
 
 
 
@@ -182,14 +182,14 @@ quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") # denomin
 rm(list = ls()) # clean environment
 
 ## quick check data reports--------------------------------
-quarto::quarto_render("report_explore_event_types.qmd")
-quarto::quarto_render("report_data_dictionary.qmd")
+quarto::quarto_render(here::here("qmd_reports/report_explore_event_types.qmd"))
+quarto::quarto_render(here::here("qmd_reports/report_data_dictionary.qmd"))
 
 ## Gerard's lameness report ---------------------------
-quarto::quarto_render("report_explore_lame.qmd")
+quarto::quarto_render(here::here("qmd_reports/report_explore_lame.qmd"))
 
 ## Example reports ---------------------------
-quarto::quarto_render("report_how_to_use_denominators.qmd")
+quarto::quarto_render(here::here("qmd_reports/report_how_to_use_denominators.qmd"))
 
 
 # FUTURE STUFF ---------------------------
