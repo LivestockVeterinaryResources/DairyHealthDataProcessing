@@ -508,7 +508,7 @@ les_graph <- df %>%
 
 
 farms <- farm_name
-years <- ("2025")
+years <- year(last_year_floor)
 lesion_labels <- c(
   lesion = "Any Lesion",
   dd = "Digital Dermatitis",
