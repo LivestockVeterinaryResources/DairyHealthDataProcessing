@@ -39,7 +39,7 @@ In the code chunk below, use a command from the arrow package to read in the ani
 #| label: recreation-import
 #hint the function to read in a parquet file is the same as the code to read a csv file except replace 'csv' with 'parquet'
 
-animals<-read_parquet('../../data/intermediate_files/animals.parquet')
+animals<-read_parquet(here::here('data/intermediate_files/animals.parquet'))
 
 
 ```

@@ -48,9 +48,9 @@ library(styler)
 
 #custom functions, turn off or on  on line 124 and 126
 
-source('functions/fxn_event_type.R') #custom function to identify source state based on farm
-source('functions/fxn_location_event.R') #custom function to specify event location
-source('functions/fxn_sourcefarms.R') #custom function to specify event location
+source(here::here('functions/fxn_event_type.R')) #custom function to identify source state based on farm
+source(here::here('functions/fxn_location_event.R')) #custom function to specify event location
+source(here::here('functions/fxn_sourcefarms.R')) #custom function to specify event location
 
 #set defaults ------------
 set_farm_name<-'Default Farm Name'
@@ -64,12 +64,12 @@ set_location_event<-'Default Event Location'
 
 ```{r read in files}
 
-list_files<-list.files('data/event_files') #folder name where event files are located
+list_files<-list.files(here::here('data/event_files')) #folder name where event files are located
 
 events<-NULL
 
 for (i in seq_along(list_files)){
-  df<-read_csv(paste0('data/event_files/', 
+  df<-read_csv(here::here('data/event_files', 
                       list_files[i]), 
                #reads in all data as character string
                col_types = cols(.default = 'c'))|> 
@@ -198,7 +198,7 @@ write_csv(template_event_type, 'data/template_files/template_event_type.csv') #t
 ```{r write out files}
 
 # main file ------------
-write_parquet(events2, 'data/intermediate_files/events_all_columns.parquet') # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
+write_parquet(events2, here::here('data/intermediate_files/events_all_columns.parquet')) # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
 
 # formatted file -----------------------
 write_parquet(events2%>%
@@ -220,7 +220,7 @@ qc_animal_enrollment<-events2|>
   summarize(ct_animals = n_distinct(id_animal))|>
   ungroup()
 
-write_parquet(qc_animal_enrollment, 'data/qc_files/qc_animal_enrollment.parquet')
+write_parquet(qc_animal_enrollment, here::here('data/qc_files/qc_animal_enrollment.parquet'))
 
 qc_event_type<-events2|>
   filter(event_type %in% 'Unknown')|>
@@ -228,14 +228,14 @@ qc_event_type<-events2|>
   summarize(count = sum(n()))|>
   ungroup()
 
-write_parquet(qc_event_type, 'data/qc_files/qc_event_type.parquet')
+write_parquet(qc_event_type, here::here('data/qc_files/qc_event_type.parquet'))
 
 qc_source_farm<-events2|>
   filter(source_farm %in% 'Unknown')|>
   group_by(Event, Protocols, source_farm)|>
   summarize(count = sum(n()))|>
   ungroup()
-write_parquet(qc_source_farm, 'data/qc_files/qc_source_farm.parquet')
+write_parquet(qc_source_farm, here::here('data/qc_files/qc_source_farm.parquet'))
 
 total_animals<-events2|>
   mutate(year = year(date_event))|>

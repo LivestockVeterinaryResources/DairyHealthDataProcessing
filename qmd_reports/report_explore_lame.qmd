@@ -21,19 +21,19 @@ library(gt)
 library(flextable)
 library(gtsummary)
 
-source('functions/fxn_dt_base.R') #functions to parse remarks and protocols
+source(here::here('functions/fxn_dt_base.R')) #functions to parse remarks and protocols
 
-animals <-read_parquet('data/intermediate_files/animals.parquet') |> 
+animals <-read_parquet(here::here('data/intermediate_files/animals.parquet')) |> 
    select(id_animal, date_left)
 
-events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet') |> 
+events_formatted<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet')) |> 
    filter(event %in% c("LAME", "FOOTRIM")) |>  
   left_join(animals)
 
 pull_date <- max(events_formatted$date_event)
 farm_name <- unique(events_formatted$location_event)
 
-herd_deno <- read_parquet('data/intermediate_files/herd_denominators.parquet') |> 
+herd_deno <- read_parquet(here::here('data/intermediate_files/herd_denominators.parquet')) |> 
   mutate(farm = location_lact_list)
  
 summarize_events<-events_formatted |> 
@@ -131,7 +131,7 @@ summarize_events <- summarize_events %>%
 
 # assign lesion
 
-source("functions/fxn_code_lesions.R")
+source(here::here("functions/fxn_code_lesions.R"))
 
 all_lesions <- c("dd", "footrot", 'wld', "sole_ulcer","injury", 
                              "cork", "other", "hemorrhage",
@@ -627,7 +627,7 @@ lame_cull <- lame_events2 |>
 
 ```{r}
 
-source("functions/fxn_time_to_cull.R")
+source(here::here("functions/fxn_time_to_cull.R"))
 
 library(survival)
 library(survminer)

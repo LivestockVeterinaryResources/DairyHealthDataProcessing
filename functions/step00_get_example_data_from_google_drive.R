@@ -61,7 +61,7 @@ for (i in 1:nrow(selected_files)) {
     {
       download.file(
         url = download_url,
-        destfile = file.path("data/event_files", file_name),
+        destfile = here::here("data/event_files", file_name),
         mode = "wb",
         quiet = FALSE
       )

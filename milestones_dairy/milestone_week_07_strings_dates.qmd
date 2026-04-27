@@ -41,7 +41,7 @@ events_formatted_all <- read_parquet(
   select(source_file_path, ID, BDAT, FDAT, LACT, ARDAT, Event, Date, 
          Protocols, Remark, R, T, B)
          
-source('../functions/fxn_milestone7_solution.R')
+source(here::here('functions/fxn_milestone7_solution.R'))
 
 # create variables for inline code
 

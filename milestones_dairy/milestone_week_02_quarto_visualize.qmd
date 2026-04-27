@@ -50,7 +50,7 @@ Next we want to find confirm where the animals.parquet file is located. It is in
 (Hint: "../" means "move up a level")
 
 ```{r}
-list.files('../data/intermediate_files')
+list.files(here::here('data/intermediate_files'))
 ```
 
 Now it is your turn. Write some code in this chunk that will read in the file named "animals.parquet", and name it "animals" in your environment.

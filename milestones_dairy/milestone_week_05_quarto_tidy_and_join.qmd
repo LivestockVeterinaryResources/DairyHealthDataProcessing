@@ -11,7 +11,7 @@ library(quarto)
 library(arrow)
 library(waldo)
 
-solution<-read_rds('data_milestones/solutions_week_05_pivotlonger.rds')
+solution<-read_rds(here::here('milestones_dairy/data_milestones/solutions_week_05_pivotlonger.rds'))
 
 ```
 
@@ -45,7 +45,7 @@ quarto::quarto_render(
 Run this code chunk to read in the denominator file you just created.
 
 ```{r}
-deno365<-read_parquet('../data/intermediate_files/denominator_by_lact_group_time_period365.parquet')
+deno365<-read_parquet(here::here('data/intermediate_files/denominator_by_lact_group_time_period365.parquet'))
 
 ```
 
@@ -136,7 +136,7 @@ Here is a template to read in the new file you created.
 You need to modify the "XXX" place holder so that it matches the number you put for denominator granularity in the chunk above.
 
 ```{r}
-denoNEW<-read_parquet('../data/intermediate_files/denominator_by_lact_group_time_periodXXX.parquet')
+denoNEW<-read_parquet(here::here('data/intermediate_files/denominator_by_lact_group_time_periodXXX.parquet'))
 ```
 
 Use this code chunk to explore the new denominator

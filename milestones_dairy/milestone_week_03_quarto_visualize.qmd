@@ -18,7 +18,7 @@ library(waldo) #we use this to create answer keys for these exercises
 
 
 #add some extra functions
-source('data_milestones/fxn_floor_dates.R')
+source(here::here('milestones_dairy/data_milestones/fxn_floor_dates.R'))
 
 ```
 
@@ -63,7 +63,7 @@ check<-tibble(list_columns = colnames(events_formatted))%>%
     sort()
 check
 
-waldo::compare(check, read_rds('data_milestones/solutions_week_03_check_columns.rds'))
+waldo::compare(check, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_03_check_columns.rds')))
            
 ```
 
@@ -74,7 +74,7 @@ Now run the code below to see the table you are trying to create.
 #| message: false
 
 
-solution <- readr::read_rds("data_milestones/solutions_week_03_summary_data.rds")
+solution <- readr::read_rds(here::here('milestones_dairy/data_milestones/solutions_week_03_summary_data.rds'))
 solution
 
 ```

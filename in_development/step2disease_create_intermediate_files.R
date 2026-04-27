@@ -2,7 +2,7 @@
 library(tidyverse)
 
 
-events_parsed<-read_parquet('data/intermediate_files/events_parsed.parquet')
+events_parsed<-read_parquet(here::here('data/intermediate_files/events_parsed.parquet'))
 
 
 
@@ -60,7 +60,7 @@ disease_animal_level_long<-selected_animal_level_events_assign_gap%>%
   ungroup()%>%
   mutate(disease_detail = paste0(disease, '_', disease_count))
 
-write_parquet(disease_animal_level_long, 'data/intermediate_files/disease_animal_level_long.parquet')
+write_parquet(disease_animal_level_long, here::here('data/intermediate_files/disease_animal_level_long.parquet'))
 
 ##create wide format disease----------------
 disease_animal_level_wide<-disease_animal_level_long%>%
@@ -129,7 +129,7 @@ disease_lactation_level_long<-selected_lactation_level_events_assign_gap%>%
   mutate(disease_detail = paste0(disease, '_', disease_count))
 
 
-write_parquet(disease_lactation_level_long, 'data/intermediate_files/disease_lactation_level_long.parquet')
+write_parquet(disease_lactation_level_long, here::here('data/intermediate_files/disease_lactation_level_long.parquet'))
 
 ##create wide format disease----------------
 disease_lactation_level_wide<-disease_lactation_level_long%>%
@@ -143,13 +143,13 @@ disease_lactation_level_wide<-disease_lactation_level_long%>%
 master_disease_animal_level_wide<-master_animals%>%
   left_join(disease_animal_level_wide)
 
-write_parquet(master_disease_animal_level_wide, 'data/intermediate_files/disease_animal_level_wide.parquet')
+write_parquet(master_disease_animal_level_wide, here::here('data/intermediate_files/disease_animal_level_wide.parquet'))
 
 ##lactation level------------------------------------------
 master_disease_lactation_level_wide<-master_animal_lactations%>%
   left_join(master_animals)%>%
   left_join(disease_lactation_level_wide)
 
-write_parquet(master_disease_lactation_level_wide, 'data/intermediate_files/disease_lactation_level_wide.parquet')
+write_parquet(master_disease_lactation_level_wide, here::here('data/intermediate_files/disease_lactation_level_wide.parquet'))
 
 
