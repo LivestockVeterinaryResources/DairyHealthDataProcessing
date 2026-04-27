@@ -45,14 +45,12 @@ pacman::p_load(
   zoo
   )
 
-events_formatted <- read_parquet(
-  '../data/intermediate_files/events_formatted.parquet') 
+events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))  
 
-animals <- read_parquet(
-  '../data/intermediate_files/animals.parquet')
 
-deno_cal <- read_parquet(
-  '../data/intermediate_files/denominator_by_calendar_time_period.parquet') |> 
+animals <- read_parquet(here::here('data/intermediate_files/animals.parquet'))
+
+deno_cal <- read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet')) |> 
   filter(deno_type == "lact_basic" & 
            calendar_time_period_type == "year") |> 
   select(-c(contains("dop"), day_of_phase_group))
@@ -90,7 +88,7 @@ You should delete this chunk in your final report
 #| eval: false
 
 # 1. Define the file path
-file_path <- "images/milestone_09.htm"
+file_path <- here::here("milestones_dairy/images/milestone_09.htm")
 
 # 2. Open the browser
 browseURL(file_path)

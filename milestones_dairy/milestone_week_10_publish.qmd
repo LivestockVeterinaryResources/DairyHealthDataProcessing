@@ -60,10 +60,10 @@ pacman::p_load(
 #| eval: false
 
 # 1. Define the file path
-file_paths <- c("images/farm_report_2024_herd_2108e.htm",
-                "images/farm_report_2024_herd_2755f.htm",
-                "images/farm_report_2025_herd_2108e.htm",
-                "images/farm_report_2025_herd_2755f.htm"
+file_paths <- c(here::here("milestones_dairy/images/farm_report_2024_herd_2108e.htm"),
+                here::here("milestones_dairy/images/farm_report_2024_herd_2755f.htm"),
+                here::here("milestones_dairy/images/farm_report_2025_herd_2108e.htm"),
+                here::here("milestones_dairy/images/farm_report_2025_herd_2755f.htm")
                 )
 
 # 2. Open the browser
