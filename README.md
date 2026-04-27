@@ -34,7 +34,8 @@ filter out what we don't need later
     "Remark" "R" "T" "B" "Protocols" "Technician"
 
 FIRST - Pull events from dairy comp using one option from the code
-below. Save the resulting csv file in the folder named **event_files**
+below. Save the resulting csv file in the folder named
+**data//event_files**
 
 ```         
 -   Option 1 Pull 5 years in one file: EVENTS\\2S2000CHN #1 #2 #4 #5
@@ -58,7 +59,7 @@ event_files)
 ```
 
 NEXT - if you want to look at production data, pull the data and save in
-the **milk_files** folder
+the **data//milk_files** folder
 
 ```         
 -   EVENTS #1 #11 #29 #6 #13\\4S2000H
@@ -75,7 +76,7 @@ to make sure
 
 LAST - Run STEP0_MASTER_PROCESSING.R
 
-FINALLY - Use the files in **intermediate files** folder to create
+FINALLY - Use the files in **data//intermediate files** folder to create
 reports.
 
 -   animals.parquet - each row is a unique animal
@@ -90,7 +91,7 @@ reports.
 
 You can view example reports in the **reports folder**. They will be in
 subfolders.\
-The ones listed below are all in qmd_files
+The ones listed below are all in **qmd_files**
 
 -   report_data_dictionary.html explains variables in intermediate files
 
