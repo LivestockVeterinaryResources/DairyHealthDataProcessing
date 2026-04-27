@@ -21,7 +21,6 @@ fxn_delete_processed_files() # this will delete  your previously processed data 
 #****************************************************************************
 #***************************************************************************
 
-
 ## process milk data ---------------------
 if (milk_data_exists == TRUE) {
   source(here::here("scripts/step1a_read_in_production_data.R"))

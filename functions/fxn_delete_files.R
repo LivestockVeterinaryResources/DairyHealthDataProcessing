@@ -1,8 +1,6 @@
 library(tidyverse)
 
 
-
-
 # just original event files ---------------------------------
 fxn_delete_event_files <- function() {
   ## Event files---------------------------
