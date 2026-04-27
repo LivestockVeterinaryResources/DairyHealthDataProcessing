@@ -46,7 +46,7 @@ print("step2 complete")
 #### Create denominator files by time periods ------------------------
 for (i in seq_along(denominator_time_periods)) {
   quarto::quarto_render(
-    input = here::here("qmd_files/step3_denominators_by_time_period.qmd")),
+    input = here::here("qmd_reports/step3_denominators_by_time_period.qmd"),
     execute_params = list(
       denominator_granularity = denominator_time_periods[[i]],
       cut_by_days = set_cut_by_days,
@@ -59,7 +59,7 @@ print("time period denominators created")
 
 #### Create denominator files by CALENDAR time periods ------------------------
 quarto::quarto_render(
-  input = here::here("qmd_files/step3_denominators_by_calendar_time.qmd")),
+  input = here::here("qmd_reports/step3_denominators_by_calendar_time.qmd"),
   execute_params = list(
     cut_by_days = set_cut_by_days,
     top_cut = set_top_cut,
