@@ -15,7 +15,7 @@ auto_de_duplicate <- TRUE # do you want to de-duplicate rows in the event files?
 
 ## day of phase parameters-----------------------------------
 # set the parameters for grouping by DIM or heifers by days of age
-set_cut_by_days <- 100 # number of days in each group
+set_cut_by_days <- 60 # number of days in each group
 set_top_cut <- 400 # the final group for cow DIM with be this number and anything higher
 set_top_cut_hfr <- 700 # the final group for heifer days of age with be this number and anything higher
 
@@ -34,8 +34,8 @@ denominator_time_periods <- c(
 # PROCESS FILES--------------------------
 #*** Do NOT modify this section***(unless you really know what you are doing)
 ## read in functions -------------------
-source("functions/fxn_pacman.R")
-source("functions/fxn_delete_files.R")
+source(here::here("functions/fxn_pacman.R"))
+source(here::here("functions/fxn_delete_files.R"))
 
 # CLEAN SLATE --------------
 if (clean_up_old_files == TRUE) {
@@ -43,21 +43,21 @@ if (clean_up_old_files == TRUE) {
 }
 
 ## process files ----------
-source("functions/fxn_process_files.R")
+source(here::here("functions/fxn_process_files.R"))
 
 
 # REPORTS ----------------
 # choose which reports to turn on by commenting/uncommenting them
-source("functions/fxn_pacman.R")
+source(here::here("functions/fxn_pacman.R"))
 fxn_pacman_all()
 
 ## Gerard's lameness report ---------------------------
-quarto::quarto_render("qmd_files/step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
-quarto::quarto_render("qmd_files/report_explore_lame.qmd")
+quarto::quarto_render("qmd_reports/step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
+quarto::quarto_render("qmd_reports/report_explore_lame.qmd")
 
 ## "HOW TO" reports ---------------------------
-quarto::quarto_render("qmd_files/report_how_to_use_denominators.qmd")
+quarto::quarto_render("qmd_reports/report_how_to_use_denominators.qmd")
 
 ## quick check data reports--------------------------------
-quarto::quarto_render("qmd_files/report_explore_event_types.qmd")
-quarto::quarto_render("qmd_files/report_data_dictionary.qmd")
+quarto::quarto_render("qmd_reports/report_explore_event_types.qmd")
+quarto::quarto_render("qmd_reports/report_data_dictionary.qmd")

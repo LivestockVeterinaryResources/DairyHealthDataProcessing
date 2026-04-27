@@ -1,0 +1,72 @@
+---
+title: "Test Calendar Time Periods"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+
+source('functions/fxn_add_event_counts.R')
+source('functions/fxn_create_dop.R')
+
+```
+
+
+```{r}
+
+fxn_create_age_cuts()
+fxn_create_dim_cuts()
+
+deno_month<-read_parquet('data/intermediate_files/denominator_by_calendar_time_period.parquet')%>%
+  filter(calendar_time_period_type %in% 'month')%>%
+  mutate(date_event_month = date_time_period_start)%>%
+  filter(deno_type %in% 'lact_3+')%>%
+  distinct()
+
+
+get_dop_groups<-deno_month%>%
+  select(`Lactation Group`, dop_start, dop_end)%>%
+  distinct()
+
+```
+
+
+```{r}
+
+mast_events<-read_parquet('data/intermediate_files/events_formatted.parquet')%>%
+  filter(event %in% 'MAST')%>%
+  mutate(date_event_month = floor_date(date_event, unit = 'month'))%>%
+  fxn_add_event_counts()%>%
+  mutate(`Lactation Group` = lact_group)%>%
+  fxn_add_dop()
+
+
+
+mast_by_lact_group<-mast_events%>%
+  group_by(location_event, `Lactation Group`, event, date_event_month, event_count_lact)%>%
+  summarize(ct_event_lacts = n_distinct(id_animal_lact), 
+            ct_event_animals = n_distinct(id_animal))%>%
+  ungroup()
+
+mast_by_dop_group<-mast_events%>%
+  group_by(location_event, `Lactation Group`, day_of_phase_group,  event, date_event_month, event_count_lact)%>%
+  summarize(ct_event_lacts = n_distinct(id_animal_lact), 
+            ct_event_animals = n_distinct(id_animal))%>%
+  ungroup()
+
+
+mast_dz<-mast_by_lact_group%>%
+  left_join(deno_month)%>%
+  mutate(rate = ct_event_lacts/ct_animal_time_periods)
+
+```
+
+```{r}
+ggplot(mast_dz%>%filter(ct_event_lacts==1))+
+  geom_point(aes(x = date_event_month, y = rate))+
+  facet_grid(day_of_phase_group~`Lactation Group`)
+```
+
+
+
