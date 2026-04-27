@@ -6,6 +6,7 @@ format:
    embed-resources: true
    toc: true
    toc-location: left
+   code-fold: true
 execute:
     echo: false
     message: false
@@ -59,9 +60,9 @@ farm_name <- unique(events_formatted$location_event)
 # denominator stuff
 year_filter <- make_date(params$year, 1, 1)
 
-deno_cal <- read_parquet(
-  'data/intermediate_files/denominator_by_calendar_time_period.parquet') |> 
-  filter(deno_type %in% c("lact_basic", "lact_5+") & 
+deno_cal <- read_parquet(here::here(
+  'data/intermediate_files/denominator_by_calendar_time_period.parquet')) |> 
+  filter(deno_type %in% c("lact_basic", "lact_3+") & 
            calendar_time_period_type == "year") |> 
   select(-c(contains("dop"), day_of_phase_group)) |> 
   filter(date_time_period_start >= year_filter & date_time_period_start < year_filter + years(1))
@@ -260,16 +261,20 @@ non_infectious_lesions <- c(
 
   # labels for plot
   lesion_labels <- c(
-    "dd"            = "Digital Dermatitis",
-    "footrot"       = "Footrot",
-    "wld"           = "White Line Disease",
-    "sole_ulcer"    = "Sole Ulcer",
-    "hemorrhage"    = "Hemorrhage",
-    "sole_fracture" = "Sole Fracture",
-    "toe_ulcer"     = "Toe Ulcer",
-    "thin"          = "Thin Soles",
-    "cork"          = "Corkscrew Claw",
-    "injury"        = "Injury"
+    "Digital Dermatitis"  = "dd",
+    "Footrot"             = "footrot",
+    "White Line Disease" = "wld",
+    "Sole Ulcer" = "sole_ulcer",
+    "Hemorrhage" = "hemorrhage",
+    "Sole Fracture" = "sole_fracture",
+    "Toe Ulcer" = "toe_ulcer",
+    "Thin Soles" = "thin",
+    "Corkscrew Claw " = "cork",
+    "Injury" = "injury",
+    "Any Lesion" = "lesion",
+    "Infectious" = "inf",
+    "Non-Infectious" = "noninf",
+    "Other Lesions" = "other"
   )
   
 all_lesions_label <- c(infectious_lesions, non_infectious_lesions)
@@ -283,6 +288,7 @@ all_lesions_label <- c(infectious_lesions, non_infectious_lesions)
 
 inventory <- deno_cal |> 
   mutate(year = year(date_time_period_start)) |> 
+  filter(year == params$year) |>
   # pick just milking cows
   filter(`Lactation Group` == "LACT > 0") |>
   select(location_lact_list, year, ct_animal_time_periods, 
@@ -309,13 +315,59 @@ base_lesion_data <- lame_data |>
   left_join(inventory, by = join_by(location_event == location_lact_list,
                                            year)) |> 
   mutate(incidence_rate = (lesion_count / ct_animal_time_periods) * 100
-  ) 
+  )
 
 # Create 2 specific data subsets
 inf_data <- base_lesion_data |>
   filter(lesion_group == "Infectious Lesions")
 
 noninf_data <- base_lesion_data |>
+  filter(lesion_group == "Non-Infectious Lesions")
+
+
+```
+
+```{r}
+#| label: count lesions lact
+
+inventory_3 <- deno_cal |> 
+  mutate(year = year(date_time_period_start)) |> 
+    filter(year == params$year) |>
+  # pick just milking cows
+  filter(deno_type == "lact_3+" & `Lactation Group` != "Heifer") |>
+  select(location_lact_list, year, ct_animal_time_periods, 
+         'Lactation Group') |> 
+  mutate(ct_animal_time_periods = round(ct_animal_time_periods, 0))
+  
+
+base_lesion_data_3 <- lame_data |>
+  mutate(year = year(date_event)) |>
+    filter(year == params$year) |>
+  filter(lact_number >0) |> 
+    pivot_longer(
+    cols = all_of(all_lesions),
+    names_to = "lesion_type",
+    values_to = "has_lesion"
+  ) |>
+  filter(has_lesion == 1) |>
+  mutate(
+    lesion_group = if_else(lesion_type %in% infectious_lesions,
+                           "Infectious Lesions", "Non-Infectious Lesions")
+  ) |>
+  count(location_event, year, lact_group,
+        lesion_group, lesion_type, status_lesion,
+        name = "lesion_count") |>
+  left_join(inventory_3, by = join_by(location_event == location_lact_list,
+                                      lact_group == `Lactation Group`,
+                                      year)) |> 
+  mutate(incidence_rate = (lesion_count / ct_animal_time_periods) * 100
+  )
+
+# Create 2 specific data subsets
+inf_data_3 <- base_lesion_data_3 |>
+  filter(lesion_group == "Infectious Lesions")
+
+noninf_data_3 <- base_lesion_data_3 |>
   filter(lesion_group == "Non-Infectious Lesions")
 
 
@@ -367,6 +419,10 @@ les_graph <- base_lesion_data |>
          ) |>
   mutate(lesion_type = fct_reorder(lesion_type, incidence_rate)
          )|>
+  mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels)) |> 
+    mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels),
+         status_lesion = fct_relevel(status_lesion, c("New", "Repeat", "Chronic"))
+         ) |>
   plot_lollipop(y_var = lesion_type)+
   geom_text(aes(x = incidence_rate, y = lesion_type,
                 label = round(incidence_rate, 1)),
@@ -394,6 +450,9 @@ les_graph <- base_lesion_data |>
          ) |>
   mutate(lesion_type = fct_reorder(lesion_type, incidence_rate)
          )|>
+  mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels),
+         status_lesion = fct_relevel(status_lesion, c("New", "Repeat", "Chronic"))
+         ) |>
   plot_lollipop(y_var = lesion_type)+
   geom_text(aes(x = incidence_rate, y = lesion_type,
                 label = round(incidence_rate, 1)),
@@ -409,8 +468,145 @@ les_graph <- base_lesion_data |>
 les_graph
 
 ```
+## Lactation
+
+```{r}
+#| label: graph individual lesions lact
+
+les_graph <- base_lesion_data_3 |> 
+  filter(lesion_type %in% (all_lesions_label)
+         ) |>
+  mutate(lesion_type = fct_reorder(lesion_type, incidence_rate)
+         )|>
+    mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels),
+         status_lesion = fct_relevel(status_lesion, c("New", "Repeat", "Chronic"))
+         ) |> 
+  mutate(lesion_type = fct_recode(lesion_type, !!!lesion_labels)) |> 
+  plot_lollipop(y_var = lesion_type)+
+  geom_text(aes(x = incidence_rate, y = lesion_type,
+                label = round(incidence_rate, 1)),
+            nudge_x = +.01, color = "white", size = 3)+
+  facet_grid(
+    cols = vars(lact_group),
+    rows = vars(status_lesion),
+  )+
+  theme_minimal()+
+  guides(color = "none")+
+  labs(x = "Cases per 100 Cows", y = NULL)
+
+les_graph
+
+```
+
+
 
 :::
+
+# Time to Cull after Lesion Diagnosis
+
+For last 12 months
+
+::: panel-tabset
+
+## Non-Infectious Lesion 
+:::: panel-tabset
+
+### Graph
+```{r}
+#| label: fig_cull-noninf
+
+# survival analysis
+# km anaylsys
+
+# prep data
+cull_data <- lame_data |> 
+    filter(lact_number > 0) |>
+    filter(date_event >= date_max_pull - months(12)) |> 
+    filter(days_to_censor_cull >0) |> 
+    group_by(id_animal) |>
+    slice_max(order_by = date_event, n = 1, with_ties = FALSE) |>
+    ungroup() |>
+    mutate(
+      lesion = case_when(
+        lesion == 1 & status_lesion == "New" ~ "New Lesion",
+        lesion == 1 & status_lesion == "Chronic" ~ "Chronic Lesion",
+        lesion == 1 & status_lesion == "Repeat" ~ "Repeat Lesion",
+        lesion == 0 ~ "No Lesion"),
+      lesion =  fct_drop(fct_relevel(lesion, c("No Lesion", 
+                                               "New Lesion", 
+                                               "Repeat Lesion",
+                                               "Chronic Lesion")
+      )),
+      noninf = case_when(
+      noninf == 1 & status_lesion == "New" ~ "New Lesion",
+      noninf == 1 & status_lesion == "Chronic" ~ "Chronic Lesion",
+      noninf == 1 & status_lesion == "Repeat" ~ "Repeat Lesion",
+      noninf == 0 ~ "No Lesion"
+    ),
+    noninf = fct_drop(fct_relevel(noninf, c("No Lesion", 
+                                            "New Lesion", 
+                                            "Repeat Lesion",
+                                            "Chronic Lesion")
+    ))
+    )
+
+km_fit <- survfit2(Surv(time = days_to_censor_cull,
+                event = culled_last_trim) ~ noninf, 
+data = cull_data)
+
+surv_plot <- km_fit |> 
+  ggsurvfit(
+    type = "risk"
+  )+
+  add_confidence_interval()+
+  add_quantile()+
+  scale_ggsurvfit()+
+  scale_fill_viridis_d(name = "Non-Infectious Lesion Status")+
+  scale_color_viridis_d(name = "Non-Infectious Lesion Status")+
+  labs(x = "Days to Culling after Trim",
+       y = "Percent of Cows Culled")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+
+surv_plot
+
+```
+
+### Risk Table
+
+```{r}
+#| label: fig_cull-noninf-table
+
+# times are adjustable
+
+surv_table <- km_fit |>
+  tbl_survfit(
+    times = c(7, 30, 60, 180),
+    label = " ",
+    type = "risk",
+    label_header = "{time} Days"
+  ) %>%
+  as_flex_table() %>% # makes formatting and pdf better
+  add_header_row(
+    top = TRUE,
+    values = c(
+      "Non-Infectious Lesion Status",
+      "% Culled (Confidence Interval) at",
+      "",
+      "", ""
+    )
+  ) %>%
+  bold(i = 1, bold = TRUE, part = "header") %>% # bolds headers
+  bold(i = 2, bold = TRUE, part = "header") %>%
+  merge_at(i = 1:2, j = 1, part = "header") %>% # merges 1st row
+  merge_at(i = 1, j = 2:5, part = "header") # merges top columns
+
+surv_table
+```
+::::
+:::
+
+
 
 <!-- # add DIM stuff -->
 <!-- # note doesn't work as 1 herd doens't have non infectious lesions so need a check -->
