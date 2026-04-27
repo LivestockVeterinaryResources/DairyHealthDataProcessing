@@ -52,12 +52,12 @@ source('functions/fxn_pacman.R')
 fxn_pacman_all()
 
 ## Gerard's lameness report ---------------------------
-quarto::quarto_render("step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
-quarto::quarto_render("report_explore_lame.qmd")
+quarto::quarto_render("qmd_files\step3_create_denominators_lact_dim_season.qmd") # denominators for lameness report
+quarto::quarto_render("qmd_files\report_explore_lame.qmd")
 
 ## "HOW TO" reports ---------------------------
 quarto::quarto_render("report_how_to_use_denominators.qmd")
 
 ## quick check data reports--------------------------------
-quarto::quarto_render("report_explore_event_types.qmd")
-quarto::quarto_render("report_data_dictionary.qmd")
+quarto::quarto_render("qmd_files\report_explore_event_types.qmd")
+quarto::quarto_render("qmd_files\report_data_dictionary.qmd")
