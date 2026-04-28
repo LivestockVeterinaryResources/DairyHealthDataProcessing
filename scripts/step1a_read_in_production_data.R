@@ -46,7 +46,7 @@ for (i in seq_along(list_files)) {
 production_columns <- colnames(production)
 
 # fix column names----------------------
-# source(here::here("functions/fxn_fix_item_names_prod.R"))
+source(here::here("functions/fxn_fix_item_names_prod.R"))
 
 # add a stop function here if all expected columns do not exist
 
