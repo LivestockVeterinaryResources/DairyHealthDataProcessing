@@ -50,7 +50,7 @@ fxn_load_os_fxns()
 animals <-read_parquet(here::here('data/intermediate_files/animals.parquet')) 
 
 events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet')) |> 
-     filter(event %in% c("LAME", "FOOTRIM")) 
+     filter(event %in% c("LAME", "FOOTRIM", "TRIM")) 
 
 
 date_max_pull <- max(events_formatted$date_event)
@@ -184,7 +184,7 @@ lame_data <- events_formatted |>
   select(id_animal, date_birth, date_fresh,lact_number, lact_group, 
          date_archived, date_event, event, 
          remark_letters1, protocols_letters1, location_event) |> 
-  filter(event %in% c("LAME", "TRIM")) |>
+  filter(event %in% c("LAME", "TRIM", "FOOTRIM")) |>
   fxn_code_lesions(protocol_var = protocols_letters1,
                   remark_var = remark_letters1) |> 
   # fix ab and NA issues
