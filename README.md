@@ -62,7 +62,7 @@ NEXT - if you want to look at production data, pull the data and save in
 the **data//milk_files** folder
 
 ```         
--   EVENTS #1 #11 #29 #6 #13\\4S2000H
+-   EVENTS #1 #11 #29 #6 #13\\4S2000H FOR LACT=0
 ```
 
 NEXT - Open the file names "STEP0_MASTER_PROCESSING.R" in Rstudio. Check
@@ -108,17 +108,19 @@ The ones listed below are all in **qmd_files**
 
 ## Dependencies
 
-This project uses the [`{here}`](https://here.r-lib.org/) package for robust,
-project-root-relative file paths. All scripts and reports call `here::here()`
-explicitly (no `library(here)` required). Make sure the package is installed:
+This project uses the [`{here}`](https://here.r-lib.org/) package for
+robust, project-root-relative file paths. All scripts and reports call
+`here::here()` explicitly (no `library(here)` required). Make sure the
+package is installed:
 
-```r
+``` r
 install.packages("here")
 ```
 
-All scripts should be run from (or rendered within) the project root — i.e.,
-the directory containing `LivestockHealthDataProcessing.Rproj`. The `{here}`
-package automatically detects this root via the `.Rproj` file.
+All scripts should be run from (or rendered within) the project root —
+i.e., the directory containing `LivestockHealthDataProcessing.Rproj`.
+The `{here}` package automatically detects this root via the `.Rproj`
+file.
 
 ------------------------------------------------------------------------
 
