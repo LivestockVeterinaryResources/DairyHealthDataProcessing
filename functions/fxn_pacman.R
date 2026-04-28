@@ -12,6 +12,7 @@ fxn_pacman_all <- function() {
     googledrive,
     gt,
     gtsummary,
+    here,
     lubridate,
     quarto,
     rmarkdown,
@@ -19,7 +20,7 @@ fxn_pacman_all <- function() {
     stringr,
     survival,
     survminer,
-    here,
+    skimr,
     tidyverse,
     waldo,
     zoo
@@ -36,11 +37,12 @@ fxn_pacman_processing <- function() {
     dtplyr,
     glue,
     googledrive,
+    here,
     quarto,
     rmarkdown,
     scales,
     stringr,
-    here,
+    skimr,
     tidyverse
   )
 }

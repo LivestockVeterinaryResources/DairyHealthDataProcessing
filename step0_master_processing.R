@@ -35,6 +35,7 @@ denominator_time_periods <- c(
 #*** Do NOT modify this section***(unless you really know what you are doing)
 ## read in functions -------------------
 source(here::here("functions/fxn_pacman.R"))
+fxn_pacman_all()
 source(here::here("functions/fxn_delete_files.R"))
 
 # CLEAN SLATE --------------
@@ -48,8 +49,7 @@ source(here::here("functions/fxn_process_files.R"))
 
 # REPORTS ----------------
 # choose which reports to turn on by commenting/uncommenting them
-source(here::here("functions/fxn_pacman.R"))
-fxn_pacman_all()
+
 
 ## Gerard's lameness report ---------------------------
 quarto::quarto_render("qmd_reports/report_explore_lame_new.qmd")
