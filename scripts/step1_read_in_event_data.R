@@ -66,14 +66,15 @@ if ("EID" %in% names(events)) {
 if ("HERDID" %in% names(events)) {
   print('HERDID already exists')
 } else {
-  if (get_EXAMPLE_herds > 0) {
+  if (sum(str_detect(events$source_file_path, 'myce.....csv')) > 0) {
     events <<- events %>%
-      mutate(HERDID = str_sub(source_file_path, 18, 23))
+      mutate(HERDID = paste0('Example Herd ', str_sub(source_file_path, 18, 20)))
+      
     print('created herd id for example data')
   } else {
     events <<- events %>%
       mutate(HERDID = "No HERDID")
-    print('ERROR: no HERDID data')
+    print('WARNING: no HERDID data')
   }
 }
 

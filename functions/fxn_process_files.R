@@ -2,6 +2,7 @@ library(tidyverse)
 
 source(here::here("functions/fxn_pacman.R"))
 source(here::here("functions/fxn_delete_files_clean_slate.R"))
+source(here::here('functions/setup_denominators.R'))
 
 get_EXAMPLE_data_from_google_drive <- case_when(
   (get_EXAMPLE_herds > 0) ~ TRUE,
@@ -67,6 +68,6 @@ quarto::quarto_render(
 )
 print("calendar time period denominators created")
 
-rm(list = ls()) # clean environment
 
-print("processing complete, environment cleaned")
+
+print("processing complete")

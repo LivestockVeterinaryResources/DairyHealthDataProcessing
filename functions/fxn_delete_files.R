@@ -15,7 +15,7 @@ fxn_delete_event_files <- function() {
 
   # Confirm deletion
   if (length(list.files(dir_path)) == 0) {
-    message("All files have been successfully deleted.")
+    message("All event files have been successfully deleted.")
   } else {
     message("Some files could not be deleted.")
   }
@@ -35,7 +35,7 @@ fxn_delete_milk_files <- function() {
 
   # Confirm deletion
   if (length(list.files(dir_path)) == 0) {
-    message("All files have been successfully deleted.")
+    message("All milk files have been successfully deleted.")
   } else {
     message("Some files could not be deleted.")
   }
@@ -55,7 +55,7 @@ fxn_delete_processed_files <- function() {
 
   # Confirm deletion
   if (length(list.files(dir_path)) == 0) {
-    message("All files have been successfully deleted.")
+    message("All intermediate files have been successfully deleted.")
   } else {
     message("Some files could not be deleted.")
   }
@@ -74,12 +74,12 @@ fxn_delete_processed_files <- function() {
   if (length(list.files(dir_path)) == 0) {
     message("All files have been successfully deleted.")
   } else {
-    message("Some files could not be deleted.")
+    message("Some template files could not be deleted.")
   }
 
   ## reports---------------------------
   # Define the directory
-  dir_path <- here::here("reports")
+  dir_path <- here::here("reports/qmd_reports")
 
   # Get a list of all files in the directory
   files <- list.files(dir_path, full.names = TRUE)
@@ -89,9 +89,9 @@ fxn_delete_processed_files <- function() {
 
   # Confirm deletion
   if (length(list.files(dir_path)) == 0) {
-    message("All files have been successfully deleted.")
+    message("All reportfiles have been successfully deleted.")
   } else {
-    message("Some files could not be deleted.")
+    message("Some report files could not be deleted.")
   }
 }
 
