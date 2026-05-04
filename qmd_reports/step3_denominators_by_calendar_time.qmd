@@ -116,15 +116,18 @@ fxn_create_calendar_summary<-function(time_period_type = 'month'){
 #-------------------------
 
 calendar_years<-fxn_create_calendar_summary(time_period_type = 'year')
-calendar_halfyears<-fxn_create_calendar_summary(time_period_type = 'halfyear')
+#calendar_halfyears<-fxn_create_calendar_summary(time_period_type = 'halfyear')
 calendar_seasons<-fxn_create_calendar_summary(time_period_type = 'season')
-calendar_bimonth<-fxn_create_calendar_summary(time_period_type = 'bimonth')
+#calendar_bimonth<-fxn_create_calendar_summary(time_period_type = 'bimonth')
 calendar_months<-fxn_create_calendar_summary(time_period_type = 'month')
-calendar_weeks<-fxn_create_calendar_summary(time_period_type = 'week')
+#calendar_weeks<-fxn_create_calendar_summary(time_period_type = 'week')
 
 
 #------------------------------
-calendar <-bind_rows(calendar_years, calendar_halfyears, calendar_seasons, calendar_bimonth, calendar_months, calendar_weeks)%>%
+calendar <-bind_rows(calendar_years, #calendar_halfyears, 
+                     calendar_seasons, #calendar_bimonth, 
+                     calendar_months#, calendar_weeks
+                     )%>%
   mutate(date_calendar = date_time_period_start)
 write_parquet(calendar, here::here('data/intermediate_files/calendar_from_calender_time_periods.parquet'))
 

@@ -1,0 +1,153 @@
+---
+title: Import, Inspect, Visualize
+date: "`r Sys.Date()`"
+execute:
+  execute-dir: project
+format:
+  html:
+    default: true
+    embed-resources: true
+---
+
+```{r}
+# Load your packages here
+library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
+library(arrow) #this package handles parquet files
+library(skimr) #this is particularly helpful when looking at new data or finding NA values
+library(waldo) #we use this to create answer keys for these exercises
+solution_counts<-read_rds(here::here('milestones_dairy/data_milestones/solutions_week_01_counts.rds')) #this creates a solution so you know if you are correct, don't worry if this code doesn't make sense to you right now.
+
+```
+
+## Setup
+
+In this milestone, you'll become familiar with the `animals` data set.  
+
+You must first create this dataset by running "STEP0_MASTER_PROCESSING.R".  
+                            
+This will create a file in your intermediate files folder named 'animals.parquet'.  
+
+Click on the "Files" tab in the lower right quadrant of R studio.  
+Inside the folder data/intermediate_files there should be a file named animals.parquet
+
+If you see it, continue to Part 1 of this document. 
+If you do not see it, try running "STEP0_MASTER_PROCESSING.R" again, and/or ask for some help.
+
+## Part 1 - Import
+
+### Read in data
+
+Your goal in this part is to read the animals.parquet file into your environment as an object named ***"animals"***.
+
+-   The animals data set lives in the file `animals.parquet` (think of parquet as just another file extension like .csv, or .doc), which is stored in the `data/intermediate_files` folder in your working directory.
+
+Hint: Start by finding out what your working directory is.  
+
+```{r}
+getwd()
+```
+
+Above you should see the full path to your project folder. 
+
+(Please realize this is because we have intentionally set this document to have an execute directory the same as project directory, and we use the here package when we process other files.  You should know that by default, your working directory for a quarto document will be the location the quarto document is saved, unless you have specified it to be something else.  If none of this paragraph made sense, ignore it for now, and come back to it sometime when you are frustrated by file paths.)
+
+Next we want to find confirm where the animals.parquet file is located. It is in "data/intermediate_files". You can use the `list.files` function to prove this.
+
+(Hint: remember that paths generally need to be in quotes)
+
+(Hint: "../" means "move up a level")
+
+```{r}
+list.files('data/intermediate_files')
+```
+
+Now it is your turn. Write some code in this chunk that will read in the file named "animals.parquet", and name it "animals" in your environment.
+
+```{r}
+#| label: recreation-import
+#hint the function to read in a parquet file is the same as the code to read a csv file except replace 'csv' with 'parquet'
+
+animals<-read_parquet('data/intermediate_files/animals.parquet')
+
+
+```
+
+
+
+## Part 2 - Inspect the data
+
+Look in your top right quadrant of your screen.  You should see an object named "animals". (if not, go back to part 1)
+
+Use R to inspect the contents of `animals`:
+
+-   Display the contents of `animals` (also click on it in your environment)
+-   Use `nrow()` to find the number of observations in `animals`. Name this "number_of_rows". (hint: you should see "number_of_rows" in your environment)
+-   Use `count()` from the dplyr package to count the number of observations associated with each location, breed and sex (hint: variable names should be "breed", "sex", "location_list". Name this data frame 'counts'.
+
+*Hint: you may want to look up the help pages for each of these functions.*
+
+Write your code in the following chunk:
+
+```{r}
+#| label: recreation
+
+number_of_rows<-nrow(animals)
+average_age_left<-mean(animals$age_left)
+counts<-animals%>%count(breed, sex, location_list)
+
+
+```
+
+#### Check your answers
+
+To check your answers run the code chunks below. If your answer exactly matches the solution it will say "No differences". If you like your answer, but it is different we can discuss in class. There are many ways to do things that work.
+
+Check number_of_rows:
+
+```{r, echo=FALSE}
+
+waldo::compare(number_of_rows, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_01_number_of_rows.rds')))
+
+```
+
+
+Check counts:
+
+```{r, echo=FALSE}
+
+waldo::compare(counts, solution_counts)
+
+```
+
+### Part 2
+
+Now summarize the data:
+
+-   Use `summary()` to generate a summary of the data set
+-   Use `skim()` to see a different type of summary of the data set (warning: this function may take some time) - Bonus: save the output of your skim function to your environment. Name it "skim_animals".
+
+Write your code in the following chunk:
+
+```{r}
+#| label: recreation of summary
+
+
+
+```
+
+Check your answer to `skim()`
+
+```{r}
+waldo::compare(skim_animals, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_01_skim_animals.rds')))
+```
+
+## Extension
+
+Explore `animals` in a new way. Consider using a new function, or something that you can learn from a help page. Alternatively, try to learn more about the other variables in `animals`. Keep in mind that we will study how to make plots for the next milestone, so don't get too distracted by that. Focus on exploring the data set variables quickly and efficiently without graphics (don't worry, graphics are comming!).
+
+Write your extension code in the following chunk:
+
+```{r}
+#| label: extension
+
+```
