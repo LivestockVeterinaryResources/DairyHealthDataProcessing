@@ -179,30 +179,18 @@ Here are some hints:
 
 1.  Start with a blank canvas
 2.  The data for the boxplot is the animals dataframe filtered so that only animals where age_left>365 days are included.
-3.  The data for the blue points (mean age left within breed) is named mean_by_breed and was already created for you. You will see the dataframe in your environment, and you should inspect it so that you understand how to create the graphic using a geom_point
+3.  The data for the blue points (mean age left within breed) is named mean_by_breed and was already created for you. You will see the dataframe in your environment, and you should inspect it so that you understand how to create the graphic using 2 data sets (animals and mean_by_breed) with 2 geoms (geom_boxplot and geom_point)
 
 Hint: Although many of your examples put mapping = aes() up in the ggplot, It is recommended that you put both `data =`  and `aes()` in each geom for this exercise. It is very efficient to put mappings in the ggplot call if all geoms have the same data, but the point here is to understand that each layer can stand alone
 
 ```{r}
 #| label: recreation-visualize
 
-# ggplot()+
-#   geom_???(data = _______, 
-#                aes(x = ________, y = ________))+
-#   geom_point(data = _______, 
-#                aes(x = ________, y = ________),                                      , 
-#              color = 'blue', size = 5)+
-#   labs(title =paste0(unique(animals$location_first)))
 
 
-ggplot(animals%>%filter(age_left>365))+
-  geom_boxplot(aes(x = breed, y = age_left))+
-  geom_point(data = mean_by_breed, 
-             aes(x = breed, y = ave_age_left), 
-             color = 'blue', size = 5)+
-  labs(title =paste0(unique(animals$location_first)))
 
-ggsave(here::here('milestones_dairy/images/milestone02.png'))
+
+
 
 ```
 
