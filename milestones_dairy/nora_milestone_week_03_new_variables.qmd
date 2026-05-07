@@ -28,18 +28,37 @@ source(here::here('milestones_dairy/data_milestones/fxn_floor_dates.R'))
 In this milestone, you'll write some of the code that was written for you in milestone 3.
 
 1.  The events_formatted.parquet file is read in, named "events",  and filtered for health events. 
-2.  Filter this further so you only have only one or 2 unique health events that are interesting to you.  The example in the solution is based on 'NAVEL' and 'SEPTIC' events, but choose anything you want. If it is not NAVEL and SEPTIC don't worry about the solutions not matching in this milestone.
+2. Filter this further so you only have only one or 2 unique health events that are interesting to you.  The example in the solution is based on 'NAVEL' and 'SEPTIC' events, but choose anything you want. If it is not NAVEL and SEPTIC don't worry about the solutions not matching in this milestone.
 3.  create a new variable named **floordate_month**. The logic to create this variable is: **floor_date(date_event, 'months')**
 4.  arrange the data by 3 variables: the animal (id_animal), the event (event), and then the event date (date_event). 
 5.  Pipe your events_formatted to the function fxn_add_event_counts(). This will add columns indicating the number of times the animal has had that event within the data set (event_count_animal) or within their lactation (event_count_lact). If you would like to see the code the creates these click on the function in your environment.
 6.  create a new variable the is animal age in days at time of event. Name this variable "age_event"
-7.  select all the variables below in the order you see them.
+7.  select all the variables below in the order you see them, 
 
 ```{r}
 #| label: recreation-import
 #| 
 events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
-  filter(event_type %in% 'health')
+  filter(event_type %in% 'health')%>%
+  filter(event %in% c('NAVEL', 'SEPTIC'
+                      ))%>%
+  mutate(floordate_month = floor_date(date_event, 'months'), 
+         age_event = date_event-date_birth)%>%
+  fxn_add_event_counts()%>%
+  select(location_event, 
+         id_animal, 
+         id_animal_lact,
+         id, date_birth,
+         lact_number, lact_group,
+         dim_event, starts_with('age'), 
+         floordate_month, 
+         event, remark, protocols, locate_lesion,
+         contains('event'), 
+         contains('remark'), 
+         contains('protocols') 
+         )
+
+write_rds(head(events, 10), here::here('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
 
 
 
@@ -66,6 +85,39 @@ Below are a couple example graphics, but yours can be prettier.
 ```{r}
 #| label: recreate-this
 #| message: false
+
+
+get_values<-events%>%
+  group_by(event, remark, protocols)%>%
+  summarize(ct = sum(n()))%>%
+  ungroup()
+
+check<-events%>%
+  mutate(disease = event, 
+         treatment = case_when(
+           str_detect(remark, '\\+')~remark, 
+           TRUE~remark_letters1
+         ))%>%
+  mutate(age_category = case_when(
+    lact_number>0~'Adult Cow', 
+    age_event<60~'<60 days', 
+    age_event<120~'60-120 days', 
+    age_event>=120~'>120 days',
+    TRUE~'Unknown'
+  ))%>%
+  group_by(age_category, floordate_month, disease, treatment)%>%
+  summarize(ct = sum(n()))%>%
+  ungroup()
+
+ggplot(check)+
+  geom_bar(aes(x = floordate_month, fill = treatment))+
+  facet_wrap(disease~.)
+ggsave('milestones_dairy/images/milestone4_disease_over_time.jpg')
+
+ggplot(check)+
+  geom_bar(aes(x = age_category, fill = treatment))+
+  facet_wrap(disease~.)
+ggsave('milestones_dairy/images/milestone4_disease_by_phase.jpg')
 
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_over_time.jpg')
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_by_phase.jpg')

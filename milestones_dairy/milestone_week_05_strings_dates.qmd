@@ -1,0 +1,88 @@
+---
+title: "Milestone 5 - Denominators (Tidy and Join)"
+format: html
+date: "`r Sys.Date()`"
+embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+library(quarto)
+library(arrow)
+library(waldo)
+
+solution<-read_parquet('data/intermediate_files/events_formatted.parquet')
+
+# read in files-----------------
+
+list_files <- list.files(here::here("data/event_files")) # folder name where event files are located
+
+events_original <- NULL
+
+# i=1
+for (i in seq_along(list_files)) {
+  df <- read_csv(
+    here::here(
+      "data/event_files",
+      list_files[i]
+    ),
+    # reads in all data as character string
+    col_types = cols(.default = "c")
+  )
+  
+   events_original <- bind_rows(events_original, df)
+}
+
+```
+
+## Dates
+
+The original dairy comp data is read into your evironment and named "events_original".
+For consistency all columns are read in as characters.
+
+Use your new skills formating dates to create a new column named date_event that is a real date from the original column named Date.
+
+Then create new variables that provide floor dates by month, season, and year. Name these floordate_month, floordate_year, floordate_season.
+
+```{r initial denominator generation, message==FALSE}
+
+
+```
+
+Do your new dates match the dates in the solution?
+
+
+# Strings
+
+Find all the columns in the solution that contain the word "remark".  
+
+These are all based on the original Remark column in dairy comp. 
+
+Can you recreate them?  
+
+Hint: don't spend too much time trying to get exactly the same values. 
+Just spend time thinking about how you could use them to clean up remarks in a way that would help you answer a question.
+
+
+```{r, echo = TRUE}
+
+
+```
+
+# Extension - Your Turn
+
+Start with events_original.  
+
+Use your wrangling skils to fix date formats, and simplify free text to answer a question on this dairy.
+
+You can choose any question you want. 
+
+Here are some examples:
+
+-  Which drug is most commonly used for mastitis treatment and has this changed over time?
+-  What percent of breedings use sexed semen?  (this requires a large wrangle with an external key)
+-  What specific lameness diagnosis are there and how frequently do they occur? 
+
+```{r, echo = TRUE}
+
+```
