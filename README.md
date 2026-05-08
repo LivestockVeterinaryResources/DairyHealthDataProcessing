@@ -54,7 +54,7 @@ event_files)
 
 ```         
 -   Pull heifer data: EVENTS\\2S2000CHNY #1 #2 #4 #5
-    #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
+    #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43 FOR LACT=0
     
 ```
 
@@ -62,7 +62,7 @@ NEXT - if you want to look at production data, pull the data and save in
 the **data//milk_files** folder
 
 ```         
--   EVENTS #1 #11 #29 #6 #13\\4S2000H FOR LACT=0
+-   EVENTS #1 #11 #29 #6 #13\\4S2000H
 ```
 
 NEXT - Open the file names "STEP0_MASTER_PROCESSING.R" in Rstudio. Check
@@ -102,7 +102,7 @@ The ones listed below are all in **qmd_files**
     denominator code works
 
 -   report_explore_lame is an example consulting report that is provided
-    as a example of how to use the intermediate files.
+    as an example of how to use the intermediate files.
 
 ------------------------------------------------------------------------
 
