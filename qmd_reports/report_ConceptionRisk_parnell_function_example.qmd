@@ -1,0 +1,40 @@
+---
+title: "Conception Risk - Parnell CR function"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(devtools)
+library(arrow)
+
+source_url('https://raw.githubusercontent.com/ParnellPharma/ParnellFunctionsPublic/refs/heads/main/parnell_calculate_CR_master.R')
+
+events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
+```
+
+```{r}
+bred_events<-events%>%
+  filter(event %in% 'BRED')%>%
+  mutate(floor_date_month = floor_date(date_event, unit = 'month'))
+
+# cr_report<-bred_events%>%
+#    # fxn_standardize_for_CR()%>%
+#    # group_by(location_event, lact_group, floor_date_month, Rstandard)%>%
+#    # fxn_calculate_CR_main()
+#   fxn_create_CR_reports(grp_vars = c('location_event', 'lact_group', 'floor_date_month', 'Rstandard'))
+ 
+ cr_report<-bred_events%>%
+            fxn_create_CR_reports(grp_vars = c('location_event', 'lact_group', 'floor_date_month', 'Rstandard'))
+
+
+```
+
+```{r}
+
+class_members<-c('Mark', 'Pat', 'Sarah', 'Luciano', 'Sam', 'Bryan')
+
+sample(class_members, 6)
+
+```

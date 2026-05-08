@@ -14,9 +14,9 @@ library(tidyverse)
 library(arrow)
 library(dtplyr)
 
-source('functions/fxn_lag_master.R')
-source('functions/fxn_locate_lesion.R')
-source('functions/fxn_assign_disease.R')
+source(here::here('functions/fxn_lag_master.R'))
+source(here::here('functions/fxn_locate_lesion.R'))
+source(here::here('functions/fxn_assign_disease.R'))
 
 list_selected_events<-c('MAST') #***Modify this ***
 
@@ -29,7 +29,7 @@ set_outcome_gap_lactation<- 30
 
 #read in file
 ```{r}
-events_formatted<-read_parquet('data/intermediate_files/events_formatted.parquet')|>
+events_formatted<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))|>
   #filter(!(is.na(bdat)))|> 
   mutate(data_pull_date_min = min(date_event, na.rm = TRUE))|>
   mutate(data_pull_date_max = max(date_event, na.rm = TRUE))|>
@@ -82,7 +82,7 @@ master_animals<-animals|>
   left_join(solds)|>
   left_join(deads)
 
-write_parquet(master_animals, 'data/intermediate_files/animals.parquet')
+write_parquet(master_animals, here::here('data/intermediate_files/animals.parquet'))
 
 ```
 
@@ -132,7 +132,7 @@ master_animal_lactations<-animal_lactations|>
   left_join(drys)|>
   left_join(archives)
 
-write_parquet(master_animal_lactations, 'data/intermediate_files/animal_lactations.parquet')
+write_parquet(master_animal_lactations, here::here('data/intermediate_files/animal_lactations.parquet'))
 
 
 ```
@@ -162,7 +162,7 @@ events_parsed<-events_selected%>%
 
 #animal level events 
 ```{r lag_code}
-source('FUNCTIONS/fxn_lag_master.R')
+source(here::here('functions/fxn_lag_master.R'))
 
 
 arrange_vars <- alist(id_animal, disease, date_event) #must have a date variable, no quotes
@@ -205,7 +205,7 @@ disease_animal_level_long<-selected_animal_level_events_assign_gap%>%
             list_locate_lesion_simple = paste0(sort(unique(locate_lesion)), collapse = ','))%>%
   ungroup()
 
-write_parquet(disease_animal_level_long, 'data/intermediate_files/disease_animal_level_long.parquet')
+write_parquet(disease_animal_level_long, here::here('data/intermediate_files/disease_animal_level_long.parquet'))
 
 #create wide format disease----------------
 disease_animal_level_wide<-disease_animal_level_long%>%
@@ -225,7 +225,7 @@ disease_animal_level_wide<-disease_animal_level_long%>%
 
 #lactation level events 
 ```{r lag_code}
-source('FUNCTIONS/fxn_lag_master.R')
+source(here::here('functions/fxn_lag_master.R'))
 
 
 arrange_vars <- alist(id_animal, id_animal_lact, disease, date_event) #must have a date variable, no quotes
@@ -268,7 +268,7 @@ disease_lactation_level_long<-selected_lactation_level_events_assign_gap%>%
             list_locate_lesion_simple = paste0(sort(unique(locate_lesion)), collapse = ','))%>%
   ungroup()
 
-write_parquet(disease_lactation_level_long, 'data/intermediate_files/disease_lactation_level_long.parquet')
+write_parquet(disease_lactation_level_long, here::here('data/intermediate_files/disease_lactation_level_long.parquet'))
 
 #create wide format disease----------------
 disease_lactation_level_wide<-disease_lactation_level_long%>%
@@ -292,14 +292,14 @@ disease_lactation_level_wide<-disease_lactation_level_long%>%
 master_disease_animal_level_wide<-animals%>%
   left_join(disease_animal_level_wide)
 
-write_parquet(master_disease_animal_level_wide, 'data/intermediate_files/disease_animal_level_wide.parquet')
+write_parquet(master_disease_animal_level_wide, here::here('data/intermediate_files/disease_animal_level_wide.parquet'))
 
 #lactation level------------------------------------------
 master_disease_lactation_level_wide<-animal_lactations%>%
   left_join(animals)%>%
   left_join(disease_lactation_level_wide)
 
-write_parquet(master_disease_lactation_level_wide, 'data/intermediate_files/disease_lactation_level_wide.parquet')
+write_parquet(master_disease_lactation_level_wide, here::here('data/intermediate_files/disease_lactation_level_wide.parquet'))
   
 ```
 

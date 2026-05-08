@@ -17,7 +17,7 @@ library(tidyverse)
 library(arrow)
 library(dtplyr)
 
-source('functions/fxn_dt_base.R')
+source(here::here('functions/fxn_dt_base.R'))
 
 ```
 

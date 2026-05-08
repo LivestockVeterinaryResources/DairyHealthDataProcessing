@@ -2,3 +2,4 @@
 project:
   type: default 
   output-dir: reports
+  execute-dir: project

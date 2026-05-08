@@ -1,18 +1,17 @@
 library(tidyverse)
 
-fxn_assign_location_event_default <- function(df) {
+
+# use herd id -------------------
+fxn_add_location_event <- function(df) {
   df %>%
     mutate(
-      location_event = case_when(
-        # use this as a template to customize the herdID
-        # (HERDID %in% XXXX)~'Example Herd',
-        TRUE ~ HERDID
-      )
+      location_event = HERDID
     )
 }
 
 
-fxn_assign_location_event_template <- function(df) {
+# use pen number -----------------------------
+fxn_assign_location_event_pen_template <- function(df) {
   df %>%
     mutate(pen_num = parse_number(PEN)) %>%
     mutate(
@@ -26,6 +25,8 @@ fxn_assign_location_event_template <- function(df) {
     )
 }
 
+
+# location from parenell source file ------------------------------
 fxn_assign_location_event_parnell_ANON <- function(df) {
   df %>%
     mutate(
@@ -33,6 +34,32 @@ fxn_assign_location_event_parnell_ANON <- function(df) {
     )
 }
 
+# location lesion------------------
+fxn_detect_location_lesion <- function(df) {
+  df %>%
+    mutate(
+      detectRR = case_when(
+        str_detect(Remark, "RR|.RR|RR.|.RR.|RH|.RH|RH.|.RH.|ALL|.ALL|ALL.|.ALL.") ~ "RR",
+        TRUE ~ ""
+      ),
+      detectLR = case_when(
+        str_detect(Remark, "LR|.LR|LR.|.LR.|LH|.LH|LH.|.LH.|ALL|.ALL|ALL.|.ALL.") ~ "LR",
+        TRUE ~ ""
+      ),
+      detectRF = case_when(
+        str_detect(Remark, "RF|.RF|RF.|.RF.|BF|.BF|BF.|.BF.|ALL|.ALL|ALL.|.ALL.") ~ "RF",
+        TRUE ~ ""
+      ),
+      detectLF = case_when(
+        str_detect(Remark, "LF|.LF|LF.|.LF.|BF|.BF|BF.|.BF.|ALL|.ALL|ALL.|.ALL.") ~ "LF",
+        TRUE ~ ""
+      )
+    ) %>%
+    mutate(locate_lesion = paste0(detectRR, detectLR, detectRF, detectLF))
+}
+
+
+# location lesion------------------
 fxn_detect_location_lesion_default <- function(df) {
   df %>%
     mutate(
