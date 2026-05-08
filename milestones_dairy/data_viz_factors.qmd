@@ -72,7 +72,7 @@ browseURL(file_path)
 
 # Report for farm name
 
--   This report shows data from the past year from min date to max data
+-   This report shows data from the past year from min date to max date
 
 ## Objective
 
