@@ -1,0 +1,383 @@
+---
+title: "Week 8 Milestone Analysis"
+author: "<img src='images/logo.png' width='50' /> <br> Dairy Cow Foot Doc"
+date: "`r Sys.Date()`"
+format:
+  html:
+    page-layout: full
+    theme: flatly
+    df_print: paged
+    toc: true
+    toc-location: left
+    number-sections: false
+    code-fold: true
+execute:
+  message: false
+  warning: false
+  echo: false
+embed-resources: true
+params:
+  event:
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  broom,
+  tidyverse,
+  dtplyr,
+  gt,
+  arrow,
+  rmarkdown,
+  lubridate,
+  quarto, 
+  arrow,
+  survival,
+  survminer,
+  ggsurvfit,
+  flextable,
+  gtsummary,
+  marginaleffects,
+  scales,
+  zoo
+  )
+
+events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
+
+animals <- read_parquet(here::here('data/intermediate_files/animals.parquet')) 
+
+  
+# load GC's functions
+source(here::here('functions/fxn_load_os_fxns.R'))
+fxn_load_os_fxns()
+
+
+# create variables for inline code
+farm_name <- unique(events_formatted$location_event)
+
+date_max_pull <- max(events_formatted$date_event, na.rm = TRUE)
+date_min_pull <- date_max_pull - years(1)
+
+# pull solution data
+source(here::here('functions/fxn_milestone8_solution.R'))
+
+```
+
+```{=html}
+<!-- The objective of this milestone is to build on the report and functions you used last milestone to analyze culling data in 2 different ways. You will create the culling variables and then visualize the data. You will then use both logistic regression and survival analysis to explore the data. 
+A few notes:  1) The logic is to create culling variables can be complex depending on the questions I have tried to be explicit in how I created the data set you should be using. 2)Any data (including farm name) that is reported in the text should use an inline text code chunk -->
+```
+
+Run this chuck below. It will open the example report in your browser.
+You should delete this chunk in your final report
+
+```{r}
+#| label: open-html-r
+#| eval: false
+
+# 1. Define the file path
+file_path <- here::here("milestones_dairy/images/milestone_8.htm")
+
+# 2. Open the browser
+browseURL(file_path)
+
+```
+
+# Report for r farm_name
+
+-   This report shows data from the past year from \*\* date to end date
+    \*\*.
+
+-   For the culling analysis cows were censored on **end date** if they
+    were not culled before this date.
+
+## Objective
+
+Your objective is to recreate the solution_data by doing the following
+with the events_formatted and animals table.
+
+1.  Filter the events_formatted table to only include LAME and TRIM
+    events
+2.  Then create new variables for lesions using the
+    **fxn_code_lesions()** function that you used from Github last
+    milestone
+    -   This function is automatically loaded for you already.
+    -   use (protocol_var = protocols_letters1, remark_var =
+        remark_letters1) inside the function
+3.  Address the abscess warning in the function by coding anything with
+    ab in remark_letters1 or protocol_letter1 as noninf and remove them
+    from other.
+4.  Run the following 3 functions to process the lesion data further and
+    create variables you will need to use later on.
+    -   **fxn_collapse_lesions**(lesions = all_lesions)
+    -   **fxn_trim_vars**(location_event, id_animal, date_var =
+        date_event, trimonly_var = trimonly)
+    -   **fxn_dz_status**(disease_cols = diseases, event_filter =
+        trimonly == 0, gap = 1)
+        -   ***NOTE**: All the other functions are specific for lameness
+            this one is **NOT** and can be used for other diseases!*
+5.  Then join this data table with the animals table to get the
+    date_left, date_sold and date_died variables
+6.  Then create new culling variables as described below
+    -   **date_censor :** this is the last date the cow would have been
+        eligible to be culled. In this dataset this would be the last
+        date any event was entered in the data set
+    -   **days_to_cull:** days from any event(Trim or Lame ) to culling
+    -   **days_to_censor_cull:** This combines the above 2 items to calculate days from the event of interest (trim/lame) to culling or censor_date
+        if not culled
+    -   **culled_ever:** For all rows, 1 if the cow was culled, 0 if not culled
+    -   **culled_last_trim:** For each row/cow, 1 if the cow was culled after that trim without being in the chute again. 0 if not culled after that trim or if she was trimmed again
+    -   **culled_30**: 1 if the cow was culled \<=30 days after her trim/lame event 0 if not
+7.  Visualize this culling data using both a violin plot and heat map
+8.  Create some summary statistics of this data using both logistic
+    regression and compare that the provided survival analysis functions
+
+## Your Code Creation
+
+-   The code block has some hints to help you create the solution_data
+    data frame.
+
+```{r}
+#| label: your code
+#| echo: TRUE
+
+# put your code here to create the required data frame.
+# name it solution_data
+
+# you will need to use these functions and vectors with these arguments at some point in your code.
+
+all_lesions <- c("dd", "footrot", 'wld', "sole_ulcer","injury", 
+                             "cork", "other", "hemorrhage",
+                             "sole_fracture", "toe_ulcer", "thin",
+                             "inf", "noninf", "toe", "axial", "lesion")
+
+diseases <- c("inf", "noninf", "lesion")
+
+# solution_data <- 
+
+# fxn_collapse_lesions(lesions = all_lesions) |> 
+#   fxn_trim_vars(location_event, id_animal,
+#                 date_var = date_event,
+#                 trimonly_var = trimonly) |> 
+#   fxn_dz_status(disease_cols = diseases,
+#                 event_filter = trimonly == 0)
+
+
+```
+
+```{r}
+#| label: create-solution-data
+
+
+waldo::compare(solution_data, solution)
+
+
+
+```
+
+## Visualize Data
+
+### Violin plot
+
+Then on the solution_data table.
+
+-   Create a violin graph that shows the distribution of time to culling
+    for cows with any lesion.
+    -   restrict data to
+        -   just the past 12 months
+        -   data from the cow's last trimming
+        -   lactating cows only
+        -   positive days_to_censor_cull numbers only
+-   To compare your restricted data to the solution data use
+    -   *waldo::compare(log_data, restricted_data)*
+
+```{r}
+#| label: visualize-culling
+#| echo: true
+
+# put your visualization category code here
+
+
+
+
+```
+
+### Heat Map
+
+-   For non infectious lesions create a heat map similar to this using
+    the culled_30 variable.
+-   Restrict the data using the same criteria as above.
+
+```{r}
+#| label: fig-example_heat
+#| echo: true
+
+
+
+
+
+
+
+```
+
+# Modelling
+
+At times it is useful to create a model to determine if the differences
+between culling risks between groups are important. Since we are
+modelling culling one approach is to use logistic regression to do this.
+Interpreting the outputs from these models can be harder to explain as
+typically they output odds ratios which aren't commonly used by people
+other then researchers/data geeks. For this reason we should turn the
+model outputs back into risks.
+
+In the section below create a logistic model that models the impact of
+non_infectious lesion status on culling at 30 days. - Name the model
+output log_model. \_ Ignore lactation for this model. There are ways to
+account for lactation but we will keep it simple for now. - We have
+provide the code to make looking at the model output and to turn it into
+risks.
+
+```{r}
+#| label: fig-example_logistic
+#| echo: true
+
+log_model <- # your model code goes here
+
+log_model_results <- tidy(log_model, exponentiate = TRUE,
+                      conf.int = TRUE) |> 
+  rename(oddsratio = estimate) |> 
+  mutate(
+    # Format p-value to 4 decimal places
+    p.value = number(p.value, accuracy = 0.00000001),
+    # Optional: Format OR and CI for readability
+    estimate = number(oddsratio, accuracy = 0.01),
+    conf.low = number(conf.low, accuracy = 0.01),
+    conf.high = number(conf.high, accuracy = 0.01)
+  )
+
+log_model_results |> 
+  gt()
+
+```
+
+### Logistic Model Risks
+
+```{r}
+#| label: fig-example_logistic_risks
+#| echo: true
+
+log_model_risks <- avg_predictions(log_model, 
+                               variables = c("noninf"))
+
+log_model_risks <- log_model_risks |>  
+  select(noninf,
+    Risk = estimate,
+         conf.low,
+         conf.high) |> 
+  mutate(
+    Risk = number(Risk*100, accuracy = 0.1),
+    conf.low = number(conf.low*100, accuracy = 0.1),
+    conf.high = number(conf.high*100, accuracy = 0.1)
+  ) |> 
+  gt()
+
+log_model_risks
+
+
+```
+
+You will notice the risks from the logistic model should be the same as
+the overall row in the heat map, but now we have confidence intervals
+around them to give us a sense of the uncertainty of the risk.
+
+## Survival Analysis
+
+One problem with using logistic regression and risks to deal with
+culling is that we are likely underestimating the risk of culling since
+some cows may be censored before they are culled. In our example
+censoring would occur if it has not been 30 days since a cow was
+trimmed. A better approach to deal with this is to use survival
+analysis.
+
+Below we have provided code to create a Kaplan Meier survival curve and
+table to look at the impact of non infectious lesions on culling risk
+over time. You will notice that the risk estimates are higher now that
+we are accounting for censoring. A good quick read about survival
+analysis can be found
+[here](https://www.emilyzabor.com/survival-analysis-in-r.html#kaplan-meier-plots)
+
+```{r}
+#| label: fig-example_km
+#| echo: true
+
+# survival analysis
+# km anaylsys
+
+km_fit <- survfit2(Surv(time = days_to_censor_cull,
+                event = culled_last_trim) ~ noninf, 
+data = log_data)
+
+surv_plot <- km_fit |> 
+  ggsurvfit(
+    type = "risk"
+  )+
+  add_confidence_interval()+
+  add_quantile()+
+  scale_ggsurvfit()+
+  scale_fill_viridis_d(name = "Non-Infectious Lesion Status")+
+  scale_color_viridis_d(name = "Non-Infectious Lesion Status")+
+  labs(x = "Days to Culling after Trim",
+       y = "Percent of Cows Culled")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+
+surv_plot
+```
+
+```{r}
+#| label: fig-example_km_table
+#| echo: true
+
+# times are adjustable
+
+surv_table <- km_fit |>
+  tbl_survfit(
+    times = c(7, 30, 60, 180),
+    label = " ",
+    type = "risk",
+    label_header = "{time} Days"
+  ) %>%
+  as_flex_table() %>% # makes formatting and pdf better
+  add_header_row(
+    top = TRUE,
+    values = c(
+      "Non-Infectious Lesion Status",
+      "% Culled (Confidence Interval) at",
+      "",
+      "", ""
+    )
+  ) %>%
+  bold(i = 1, bold = TRUE, part = "header") %>% # bolds headers
+  bold(i = 2, bold = TRUE, part = "header") %>%
+  merge_at(i = 1:2, j = 1, part = "header") %>% # merges 1st row
+  merge_at(i = 1, j = 2:5, part = "header") # merges top columns
+
+surv_table
+
+
+```
+
+# Extension
+
+For this week extension continue to create standard things you would
+want to report or incorporate modeling techniques to explore the data
+
+Ideas
+
+-   Try the code with other diseases like mastitis or culture
+    information
+-   Try to use the survival code to get estimates for time to repeat or
+    recheck?

@@ -9,25 +9,25 @@ library(tidyverse)
 library(arrow)
 library(dtplyr)
 
-source('functions/fxn_dt_base.R')
+source(here::here('functions/fxn_dt_base.R'))
 
 ```
 
 ```{r}
 #denominator base files -------------------
-animals<-read_parquet('data/intermediate_files/animals.parquet') #each row is an animal
+animals<-read_parquet(here::here('data/intermediate_files/animals.parquet')) #each row is an animal
 
-animal_lactations<-read_parquet('data/intermediate_files/animal_lactations.parquet') #each row is an animal lactation
+animal_lactations<-read_parquet(here::here('data/intermediate_files/animal_lactations.parquet')) #each row is an animal lactation
 
 #numerator base files long ----------------------each row is a unique disease event (gapx_key)
-disease_animal_long<-read_parquet('data/intermediate_files/disease_animal_level_long.parquet')
+disease_animal_long<-read_parquet(here::here('data/intermediate_files/disease_animal_level_long.parquet'))
 
-disease_lact_long<-read_parquet('data/intermediate_files/disease_lactation_level_long.parquet')
+disease_lact_long<-read_parquet(here::here('data/intermediate_files/disease_lactation_level_long.parquet'))
 
 #numerator base files long ---------each row is a an animal or animal lact with diseases in wide format
-disease_animal_wide<-read_parquet('data/intermediate_files/disease_animal_level_wide.parquet')
+disease_animal_wide<-read_parquet(here::here('data/intermediate_files/disease_animal_level_wide.parquet'))
 
-disease_lact_wide<-read_parquet('data/intermediate_files/disease_lactation_level_wide.parquet')
+disease_lact_wide<-read_parquet(here::here('data/intermediate_files/disease_lactation_level_wide.parquet'))
 
 #---------------------------
 data_pull_min<-min(animals$data_pull_date_min)
@@ -174,7 +174,7 @@ for (i in seq_along(list_dates)){
   print(list_dates[i])
 }
 
-write_parquet(master_deno_cow, 'data/intermediate_files/denominator_by_day_cow.parquet')
+write_parquet(master_deno_cow, here::here('data/intermediate_files/denominator_by_day_cow.parquet'))
 
 
 ```
@@ -219,7 +219,7 @@ for (i in seq_along(list_dates)){
   print(list_dates[i])
 }
 
-write_parquet(master_deno_lact, 'data/intermediate_files/denominator_by_day_lact.parquet')
+write_parquet(master_deno_lact, here::here('data/intermediate_files/denominator_by_day_lact.parquet'))
 
 
 ```
@@ -260,7 +260,7 @@ for (i in seq_along(list_dates)){
   print(list_dates[i])
 }
 
-write_parquet(master_deno_lact60, 'data/intermediate_files/denominator_by_day_lact_dim_lt_60.parquet')
+write_parquet(master_deno_lact60, here::here('data/intermediate_files/denominator_by_day_lact_dim_lt_60.parquet'))
 
 
 ```

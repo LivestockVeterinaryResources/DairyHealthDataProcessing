@@ -1,0 +1,224 @@
+---
+title: "Week 9 Milestone Tables"
+author: "<img src='images/logo.png' width='50' /> <br> Dairy Cow Foot Doc"
+date: "`r Sys.Date()`"
+format:
+  html:
+    page-layout: full
+    theme: flatly
+    df_print: paged
+    toc: true
+    toc-location: left
+    number-sections: false
+    code-fold: true
+execute:
+  message: false
+  warning: false
+  echo: false
+embed-resources: true
+params:
+  event:
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  broom,
+  tidyverse,
+  dtplyr,
+  gt,
+  arrow,
+  rmarkdown,
+  lubridate,
+  quarto, 
+  arrow,
+  survival,
+  survminer,
+  ggsurvfit,
+  flextable,
+  gtsummary,
+  marginaleffects,
+  scales,
+  zoo
+  )
+
+events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))  
+
+
+animals <- read_parquet(here::here('data/intermediate_files/animals.parquet'))
+
+deno_cal <- read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet')) |> 
+  filter(deno_type == "lact_basic" & 
+           calendar_time_period_type == "year") |> 
+  select(-c(contains("dop"), day_of_phase_group))
+
+  
+# load GC's functions
+source(here::here('functions/fxn_load_os_fxns.R'))
+fxn_load_os_fxns()
+
+# Load Parnell CR fucntions from Github
+cr_url <- "https://raw.githubusercontent.com/ParnellPharma/ParnellFunctionsPublic/main/parnell_calculate_CR_master.R"
+source(cr_url)
+
+# create variables for inline code
+farm_name <- unique(events_formatted$location_event)
+
+date_max_pull <- max(events_formatted$date_event, na.rm = TRUE)
+date_min_pull <- date_max_pull - years(1)
+
+# pull solution data
+
+
+```
+
+
+# Report for `r farm_name[[1]]` and `r farm_name[[2]]`
+
+## Objective
+
+Run this chuck below. It will open the example report in your browser.
+You should delete this chunk in your final report
+
+```{r}
+#| label: open-html-r
+#| eval: false
+
+# 1. Define the file path
+file_path <- here::here("milestones_dairy/images/milestone_09.htm")
+
+# 2. Open the browser
+browseURL(file_path)
+
+```
+
+
+The objective of this milestone is start working with multiple herds, create tables, use the denominator data and use external functions. The data and functions you need are loaded in the top chunk. This is in prep for milestone 10 where we will use parameters to run the same report for multiple herds.
+
+The steps for this milestone are as follows (code sections for these steps are below)
+
+1.  Re-Run **step0_master_processing.R**
+2.  Describe the herd size for the past 5 years for the 2 herds
+3.  Run the parnell CR function, by calling **fxn_create_CR_reports**
+    1.  More details about the function can be found [here](https://github.com/ParnellPharma/ParnellFunctionsPublic/blob/main/parnell_calculate_CR_master.R)
+4.  Run the **fxn_dz_status** as it relates to mastitis to determine if type early mastitis case influences conception risk.
+5.  Create tables from the inventory and both conception risk data frames.
+
+## Describe Herds
+
+-   Using the deno_cal dataframe recreate this table using the gt table skills you learned this week. You will probably need to look at the package website or use AI to get some of the details.
+
+-   Some gt function hints are:
+
+    -   groupname_col and rowname_col inside gt()
+
+    -   fmt_data
+
+    -   fmt_number
+
+    -   tab_style
+
+    -   cols_label
+
+    -   tab_spanner
+
+    -   tab_options
+
+```{r}
+#| label: describe-herds
+
+
+
+
+```
+
+## Conception Risk Tables
+
+Use the Parnell CR function to compare the conception risks between the 2 herds and recreate this table
+
+1.  The **fxn_create_CR_reports** function will work if you just pipe the events_formatted dataframe to it.
+2.  You will need define the grp_vars inside the function
+
+-   the last one should be Rstandard
+-   the table uses lact_group_basic as one of the variables to group the data
+
+3.  for the table use some of the same gt function you used in describing the herd sizes.
+
+-   additional functions to explore are:
+-   summary_rows
+-   cols_nanoplot \_ cols_merge_range
+
+```{r}
+#| label: create-cr_table
+
+
+
+```
+
+## Mastitis and Conception Risk
+
+Now recreate the table low were a variable was created to determine if a cow had mastitis in her first 60 DIM.
+
+1.  Once you create the new mastitis variable then run the **fxn_dz_status**
+
+    -   The gap should be 14 days
+
+    -   If the cow had mastitis in the first 60 DIM then she will be classified as
+
+        -   "New" if it was her first case
+
+        -   "Repeat" if it was a subsequent case within the gap
+
+        -   "Chronic" if she had at least 1 case after the gap
+
+2.  After running this function
+
+    -   assign cows that had mastitis \>60 DIM as "After"
+
+3.  Merge the data back with events formatted.
+
+    -   I have provided some code below to help you get started.
+
+    -   After the join, cows with no mastitis events should be coded as No Mast
+
+4.  After you merged the mastitis status variable back into events_formatted run the **fxn_create_CR_reports** function again to get the conception risk by mastitis status
+
+5.  Then create a table to show the results
+
+```{r}
+#| label: mast
+
+
+# code to help you
+# run this after you've run fxn_disease_status and before you join back to events_formatted
+
+# your code that runs fxn_dz_status should create this data frame
+select(id_animal_lact = id_animal, location_event, lact_number,
+         mast_60, life_times_mast_60,
+         status_mast_60) |>
+  group_by(location_event, id_animal_lact, lact_number, mast_60) |>
+  # get last mast mast_60 just using life time ignores mast_60
+  slice_max(order_by = life_times_mast_60, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  # now will only end up with 1 row/cow
+  group_by(location_event, id_animal_lact, lact_number) |>
+  slice_max(order_by = mast_60, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+# then join back to events_formatted
+ 
+
+
+
+```
+
+# Extension
+
+For this week extension continue to create standard things you would want to report or incorporate modeling techniques to explore the data
+
+Ideas
+
+-   Try the code with other diseases like mastitis or culture information

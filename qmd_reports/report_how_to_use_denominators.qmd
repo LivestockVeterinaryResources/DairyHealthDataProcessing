@@ -1,0 +1,322 @@
+---
+title: 'Denominator Examples'
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 4
+    toc-title: "Table of Contents"
+    toc-float:
+      enabled: true
+      offset-y: 50
+      show: "scroll"
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(data.table)
+
+source(here::here('functions/fxn_assign_day_of_phase_group.R'))
+source(here::here('functions/fxn_add_event_counts.R'))
+source(here::here('functions/fxn_create_dop.R'))
+
+```
+
+
+
+
+```{r}
+
+denominator_base<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
+events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
+```
+
+##  Example with lactation groups
+
+This example uses calendar denominators, but the same concepts apply to time period denominators
+
+### Step 1 - Select your denominator
+
+The first step is to filter your denominator according to the `calendar_time_period_type` that you want. If you are using time period denominators this step is performed by the denominator file name you read in (file names contain the time period).
+
+The options for calendar periods are: **`r sort(unique(denominator_base$calendar_time_period_type))`**
+
+The second step is to choose your lactation and day of phase grouping. To simplify this first example will select a grouping without day of phase. (see the DOP section for day of phase examples)
+
+The options for groups are: **`r sort(unique(denominator_base$deno_type))`**
+
+Your final code should look something like this:
+
+```{r, echo = TRUE}
+
+denominator<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))%>%
+  filter(calendar_time_period_type %in% 'month')%>% #choose denominator period type
+  filter(deno_type %in% 'lact_3+')%>% #choose the type of lactation group
+  distinct()%>%
+  select(-contains('dop'), -day_of_phase_group) # day of phase columns are not needed when dop is not part of grouping
+
+```
+
+```{r}
+head(denominator)
+```
+### Step 2 - Summarize your numerator correctly
+
+Follow the comments documenting the steps for nummerator summary
+
+```{r, echo = TRUE}
+
+mast_event_summary<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+  
+  #select event of interest
+  filter(event %in% 'MAST')%>% 
+  
+  #add the event counts the way you like
+  fxn_add_event_counts()%>% 
+  mutate(event_count_lact = case_when(
+    event_count_lact <4~paste0('Mast ', event_count_lact), 
+    TRUE~'Mast 4+'
+  ))%>%
+  
+  #match the dates to the denominator
+  mutate(date_time_period_start = floor_date(date_event, unit = 'month'))%>% 
+  
+  #use same  lactation grouping as denominator (0, 1, 2, 3+), 
+  #and set location to match denominator (locations will depend of farm data structure)
+  mutate(`Lactation Group` = lact_group, 
+         location_lact_list = location_event) %>% 
+  
+  #group by all variables in the denominator, plus any extras that you want (like event count), and summarize
+  group_by(location_lact_list, `Lactation Group`, 
+            date_time_period_start, event_count_lact)%>% 
+  summarize(ct_mast_events = n_distinct(id_animal))%>%
+  ungroup()
+  
+
+```
+
+### Step 3 - Join denominator to numerator
+
+```{r, echo = TRUE}
+final_data<-denominator%>%
+  left_join(mast_event_summary)%>%
+  mutate(mast_rate = ct_mast_events/ct_animal_time_periods)
+
+head(final_data)
+```
+
+
+### Step 4 - Look at results
+
+```{r, echo = TRUE}
+
+ggplot(final_data)+
+  geom_point(aes(x = date_time_period_start, y= mast_rate, color = `Lactation Group`))+
+    geom_smooth(aes(x = date_time_period_start, y= mast_rate, 
+                    color = `Lactation Group`, group =  `Lactation Group`, 
+                    fill = `Lactation Group`),alpha = .2 , span = .6)+
+
+  facet_grid(event_count_lact~location_lact_list, scales = 'free')
+
+
+
+```
+
+
+## Simple Day of Phase
+
+The most straight forward way to look at disease by day of phase is to begin with looking at your disease distribution by day of phase.  We will use pneumonia for this example. Choose your target day of phase range according to the distribution.
+
+
+
+```{r}
+
+events_formatted<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
+
+#check on odd things - only 2 events with neg dim
+neg_dim<-events_formatted%>%filter(event %in% 'PNEU')%>%
+  filter(dim_event<0)
+
+#get events of interest
+pneu_events<-events_formatted%>%filter(event %in% 'PNEU')
+
+#timing of disease
+ggplot(pneu_events)+
+  geom_histogram(aes(x = dim_event, color = lact_group_basic))+
+  geom_vline(xintercept = 150)+
+  geom_text(aes(x = 150, y = Inf, label = '150 dop'), hjust = 1, vjust = 1)+
+  facet_wrap(location_event~lact_group_basic, scale = 'free_y')+
+  coord_cartesian(xlim = c(0, NA))
+
+```
+
+
+For this example lets look at disease prior to 150 dim (or days of age in heifers), and incidence after 150 dim.
+This may or may not make sense for your own data, but you can use this as template code and adjust if a different cut point makes more sense.
+
+To get incidence we first need our denominator. So, we need to start with a data frame where each row is a animal lactation.  We then need to understand which rows represent lactations where we have all the information, and which we don't.  i.e. those that started after the data was pulled and those that did not.  
+
+
+```{r}
+animals<-read_parquet(here::here('data/intermediate_files/animals.parquet'))
+animal_lactations<-read_parquet(here::here('data/intermediate_files/animal_lactations.parquet'))
+
+day_of_phase_min<-0
+day_of_phase_max<-60
+
+deno_day_of_phase<-animal_lactations%>%
+  left_join(animals)%>%
+  mutate(cohort_fresh = floor_date(date_fresh, unit = 'year'))%>%
+  mutate(dop_min = day_of_phase_min, 
+         dop_max = day_of_phase_max)
+```
+
+
+## Example of adding DOP groups to lactation groups
+
+The same steps apply as when using lactation groups, but in addition the day of phase group at the time of the event must be assigned.  You will notice that we selected a yearly denominator rather than monthly.  It is important to remember that when dop is used it creates many more categories so in general time periods should be longer if you are using DOP groups. 
+
+### First, select your denominator. 
+
+```{r, echo = TRUE}
+denominator_dop_pre<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
+
+tbl_deno_types<-denominator_dop_pre%>%
+  group_by(deno_type)%>%
+  summarize(list_lactation_groups = paste0(sort(unique(`Lactation Group`)), collapse = ', '), 
+            list_dop_groups = paste0(sort(unique(`day_of_phase_group`)), collapse = ', ')
+            )%>%
+  distinct()
+
+denominator_dop<-denominator_dop_pre%>%
+  filter(calendar_time_period_type %in% 'year')%>% #choose denominator period type
+  filter(deno_type %in% 'dop_lact_3+')%>% #choose the type of lactation group
+  distinct() 
+
+
+```
+
+
+
+#### Visualize your denominator
+
+```{r}
+
+list_herds<-sort(unique(denominator_dop$location_lact_list))
+
+for (i in seq_along(list_herds)){
+p<-ggplot(denominator_dop%>%filter(location_lact_list %in% list_herds[[i]]))+
+  geom_point(aes(x = date_time_period_start, y = ct_animal_time_periods, color = dop_complete))+
+  facet_grid(`Lactation Group`~day_of_phase_group)+
+  labs(title = paste0(list_herds[[i]]))
+print(p)
+}
+
+
+```
+
+
+### Next Then summarize events according to denominator.
+
+In order to summarize correctly, you need to match the dop groups in the denominator, so the first step is to create a lookup table from your denominator.
+
+
+#### Create a lookup table
+
+```{r, echo = TRUE}
+
+  lookup_dop<-denominator_dop%>%
+  select(`Lactation Group`, day_of_phase_group, contains('dop'))%>%
+  select(-dop_complete)%>%
+  distinct()
+
+  head(lookup_dop)
+  
+```
+
+#### Finally Generate your numerator
+
+Generate your numerator according to your denominator just as we did above for lactation groups. 
+
+Example code is shown in the chunk below.
+
+ -  select the denominator
+ 
+ -  assign time periods, lactation groups according to the denominator
+ 
+ -  use a function to assign day of phase based on your lookup table
+
+
+
+```{r, echo = TRUE}
+
+mast_event_summary_dop<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+  
+  #select event of interest
+  filter(event %in% 'MAST')%>%  #select your disease or event
+  
+  #add the event counts the way you like
+  fxn_add_event_counts()%>% 
+  mutate(event_count_lact = case_when(
+    event_count_lact <4~paste0('Mast ', event_count_lact), 
+    TRUE~'Mast 4+'
+  ))%>%
+  
+  #match the dates to the denominator (NOTE: this dop denominaor is by year rather than month)
+  mutate(date_time_period_start = floor_date(date_event, unit = 'year'))%>% 
+  
+  #use same  lactation grouping as denominator (0, 1, 2, 3+), 
+  #and set location to match denominator (locations will depend of farm data structure)
+  mutate(`Lactation Group` = lact_group, 
+         location_lact_list = location_event) %>% 
+  
+  
+  
+  #create_dop group
+  fxn_assign_day_of_phase(lookup_tbl = lookup_dop)%>%
+
+  #group by all variables in the denominator, plus any extras that you want (like event count), and summarize
+  group_by(location_lact_list, `Lactation Group`, 
+            date_time_period_start, event_count_lact, day_of_phase_group)%>% 
+  summarize(ct_mast_events = n_distinct(id_animal))%>%
+  ungroup()
+  
+
+```
+
+###  Join denominator to numerator
+
+```{r, echo = TRUE}
+final_data_dop<-denominator_dop%>%
+  rowid_to_column()%>%
+  left_join(mast_event_summary_dop)%>%
+  mutate(mast_rate = ct_mast_events/ct_animal_time_periods)
+
+head(final_data_dop)
+```
+
+#### Look at results
+
+```{r, echo = TRUE}
+
+ggplot(final_data_dop%>%
+         filter(event_count_lact %in% 'Mast 1'))+
+  geom_point(aes(x = date_time_period_start, y= mast_rate, color = day_of_phase_group, fill = day_of_phase_group))+
+    geom_smooth(aes(x = date_time_period_start, y= mast_rate, 
+                    color = day_of_phase_group, group =  day_of_phase_group, 
+                    fill = day_of_phase_group),alpha = .2 , span = .6)+
+
+  facet_grid(location_lact_list~`Lactation Group`, scales = 'free')+
+  labs(title = 'Mast 1')+
+  theme_bw()
+
+
+
+```
+

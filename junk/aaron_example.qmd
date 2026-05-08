@@ -43,7 +43,7 @@ health_animal_level<-events2|>
          )
 
 
-animals <- read_parquet("data/intermediate_files/animals.parquet")
+animals <- read_parquet(here::here("data/intermediate_files/animals.parquet"))
 
 health_2 <- health_animal_level |> 
   left_join(animals |> select(id_animal, contains("died")
@@ -67,6 +67,6 @@ plot
   #             values_from = date_event)|>
   # distinct()
 
-write_parquet(health_animal_level, 'data/intermediate_files/health_events_wide.parquet')
+write_parquet(health_animal_level, here::here('data/intermediate_files/health_events_wide.parquet'))
 
 ```

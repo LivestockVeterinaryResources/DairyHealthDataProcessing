@@ -1,0 +1,129 @@
+---
+title: "Week 10 Milestone Params"
+subtitle: "`r params$year` Report for `r params$herd`" 
+author: "<img src='images/logo.png' width='50' /> <br> Dairy Cow Foot Doc"
+date: "`r Sys.Date()`"
+format:
+  html:
+    page-layout: full
+    theme: flatly
+    df_print: paged
+    toc: true
+    toc-location: left
+    number-sections: false
+    code-fold: true
+execute:
+  message: false
+  warning: false
+  echo: false
+embed-resources: true
+
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  broom,
+  tidyverse,
+  dtplyr,
+  gt,
+  arrow,
+  rmarkdown,
+  lubridate,
+  quarto, 
+  arrow,
+  survival,
+  survminer,
+  ggsurvfit,
+  flextable,
+  gtsummary,
+  marginaleffects,
+  scales,
+  zoo
+  )
+
+# pull data 
+
+  
+# load functions
+
+# set up key vectors 
+
+```
+
+
+```{r}
+#| label: open-html-r
+#| eval: false
+
+# 1. Define the file path
+file_paths <- c(here::here("milestones_dairy/images/farm_report_2024_herd_2108e.htm"),
+                here::here("milestones_dairy/images/farm_report_2024_herd_2755f.htm"),
+                here::here("milestones_dairy/images/farm_report_2025_herd_2108e.htm"),
+                here::here("milestones_dairy/images/farm_report_2025_herd_2755f.htm")
+                )
+
+# 2. Open the browser
+walk(file_paths, browseURL)
+
+```
+
+
+
+# Report for 
+
+## Objective
+
+The objective of this milestone is to run a report over multiple herds
+and years. Feel free to use existing code from previous milestones to
+minimize the time spend creating new code. Try to include some in line R
+code in the text that changes based on the herd you are working with.
+
+The steps for this milestone are as follows (code sections for these
+steps are below)
+
+1.  Re-Run **step0_master_processing.R** if you did not do it last week
+    to give you at least 2 herds to run a report on.
+
+2.  I did not load any github functions automatically so if you want to
+    call the functions we used previously you will need to load these.
+
+3.  Set *params* in the yaml to include herd and year.
+
+4.  Insert some tables and graphs from previous milestones into this
+    document using tabs/columns or whatever layout you prefer. The data
+    in these tables/graphs should be for each herd and for each year.
+
+5.  Once you have a completed report for one herd and year you can use
+    quarto to render reports for multiple herds/years by using the file
+    ***milestone_10_render.R*** in the main directory (same one as step 0)  
+
+    -   If you are using your own data adjust the herd names and years
+        in the code of that document.
+        -  You can also just run the report for 1 year by setting params to 1 year.
+
+# Conception Risk Comparison
+
+This herd of .... cows had a conception risk of ....
+ in heifers of in ..... Compared to
+lactating cows this heifer CR was .... than the highest
+conception risk ....  in ....
+
+# Tables
+
+
+# Graphs
+
+
+# Extension
+
+For this week extension continue to create standard things you would
+want to report or incorporate modeling techniques to explore the data
+
+Ideas
+
+-   Change the params to change the report by something other than herd or year.
+-   Finalize your report that you would use on a routine basis in your practice.

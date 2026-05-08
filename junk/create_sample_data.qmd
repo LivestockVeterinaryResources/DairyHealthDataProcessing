@@ -7,7 +7,7 @@ format: html
 
 library(tidyverse)
 
-get_file_names<-list.files('data/my_data')
+get_file_names<-list.files(here::here('data/my_data'))
 
 ```
 

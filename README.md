@@ -21,73 +21,109 @@ functions
 
 ------------------------------------------------------------------------
 
-FIRST - Pull the data and save in the **event_files folder**
+This process is made to spend as little time as possible pulling data.\
+Therefore we will pull very granular data for all animals, and then
+filter out what we don't need later
 
 -   We need the following items from Dairy Comp along with the columns
-    always generated with an events2 command in DC305 "ID" "PEN" "REG"
-    "EID" "CBRD"\
+    always generated with an events2 command in DC305 "HERDID" "ID"
+    "PEN" "REG" "EID" "CBRD"\
     "BDAT" "EDAT" "LACT" "RC" "HDAT"\
     "FDAT" "CDAT" "DDAT" "PODAT" "ABDAT"\
     "VDAT" "ARDAT" "Event" "DIM" "Date"\
     "Remark" "R" "T" "B" "Protocols" "Technician"
 
--   Pull events from dairy comp using one option from the code below.
+FIRST - Pull events from dairy comp using one option from the code
+below. Save the resulting csv file in the folder named
+**data//event_files**
 
-    -   Option 1 Pull 5 years in one file: EVENTS\\2S2000CHN #1 #2 #4 #5
-        #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
+```         
+-   Option 1 Pull 5 years in one file: EVENTS\\2S2000CHN #1 #2 #4 #5
+    #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
 
-    -   Option 2 pull smaller time frames using "days back" starting
-        with "S""days back" and ending with "L""days back":
-        EVENTS\\2S99L0CHN #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31
-        #32 #38 #40 #43
+-   Option 2 pull smaller time frames using "days back" starting
+    with "S""days back" and ending with "L""days back":
+    EVENTS\\2S99L0CHN #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31
+    #32 #38 #40 #43
+    
+```
 
-    -   Option 3 automate the pull from a Google drive location.
+NEXT - if you want to pull heifer data, pull the data and save in the
+**event_files** folder (you can have both heifers and cows in your
+event_files)
 
-        -   For this place the files in a Google drive location and
-            ensure you change the drive url in the files below if using
-            your own drive.
-
-        -   Example Google Drive scripts
-
-            -   "step00_get_data_from_google_drive.R",
-
-            -   or for example data use the R script named
-                "step00_get_example_data_from_google_drive.R" to
-                download example farms
+```         
+-   Pull heifer data: EVENTS\\2S2000CHNY #1 #2 #4 #5
+    #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43 FOR LACT=0
+    
+```
 
 NEXT - if you want to look at production data, pull the data and save in
-the **milk_files folder**
+the **data//milk_files** folder
 
+```         
 -   EVENTS #1 #11 #29 #6 #13\\4S2000H
+```
 
-NEXT - Open the file names "step0_MasterProcessing.R" in Rstudio. Check
+NEXT - Open the file names "STEP0_MASTER_PROCESSING.R" in Rstudio. Check
 to make sure
 
--   that all farm specific functions are set up correctly.
-
--   If you are pulling data from Google Drive make sure the above files
-    are changed to your url.
+-   that all farm specific options are set up correctly.
 
 -   Set milk import function to TRUE if pulled milk data
 
-LAST - Run step0_MasterProcessing.R
+-   Set heifer import function to TRUE if pulled heifer data
 
-FINALLY - View or create report files in the **reports** folder.
-Standard reports created include
+LAST - Run STEP0_MASTER_PROCESSING.R
 
--   data_dictionary.html to show info about files and variables created
+FINALLY - Use the files in **data//intermediate files** folder to create
+reports.
 
--   explore_event_types.html to do Quality control on how events are
-    processed. If events aren't in categories you expect they can be
-    manually coded to be in correct categories
+-   animals.parquet - each row is a unique animal
 
--   2 denominator html files to show denominators for the herd
+-   animal_lactations.parquet - each row is a unique animal lactation
 
--   explore_lame.html as an example report.
+-   events.parquet - each row is an event (animal, date, event,
+    descriptive variables)
+
+-   herd_denominators.parquet - each row is a count of animals per time
+    period
+
+You can view example reports in the **reports folder**. They will be in
+subfolders.\
+The ones listed below are all in **qmd_files**
+
+-   report_data_dictionary.html explains variables in intermediate files
+
+-   report_how_to_use_denominators.html goes through how to use the
+    denominator files
+
+-   the step3_xx files are show if you want more explanation of how the
+    denominator code works
+
+-   report_explore_lame is an example consulting report that is provided
+    as an example of how to use the intermediate files.
+
+------------------------------------------------------------------------
+
+## Dependencies
+
+This project uses the [`{here}`](https://here.r-lib.org/) package for
+robust, project-root-relative file paths. All scripts and reports call
+`here::here()` explicitly (no `library(here)` required). Make sure the
+package is installed:
+
+``` r
+install.packages("here")
+```
+
+All scripts should be run from (or rendered within) the project root —
+i.e., the directory containing `LivestockHealthDataProcessing.Rproj`.
+The `{here}` package automatically detects this root via the `.Rproj`
+file.
 
 ------------------------------------------------------------------------
 
 Code structure details and reference documents: tidyverse style guide
 <https://style.tidyverse.org/files.html>.\
 <https://design.tidyverse.org/>
-
