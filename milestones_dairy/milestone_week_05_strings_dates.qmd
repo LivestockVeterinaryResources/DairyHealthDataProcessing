@@ -1,5 +1,5 @@
 ---
-title: "Milestone 5 - Denominators (Tidy and Join)"
+title: "Milestone 5 - Dates and Strings"
 format: html
 date: "`r Sys.Date()`"
 embed-resources: true
@@ -37,7 +37,7 @@ for (i in seq_along(list_files)) {
 
 ## Dates
 
-The original dairy comp data is read into your evironment and named "events_original".
+The original dairy comp data is read into your environment and named "events_original".
 For consistency all columns are read in as characters.
 
 Use your new skills formating dates to create a new column named date_event that is a real date from the original column named Date.
