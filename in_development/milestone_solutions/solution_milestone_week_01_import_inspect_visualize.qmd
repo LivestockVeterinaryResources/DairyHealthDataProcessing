@@ -26,48 +26,71 @@ library(waldo) #we use this to create answer keys for these exercises
 
 ## Setup
 
-In this milestone, you'll become familiar with the `animals` data set.  Each row in these data is an individual animal uniquely identified by a combination of dairy comp data ID (ear tag) and BDAT (birth date).
+In this milestone, you'll become familiar with the `animals` data set.
+Each row in these data is an individual animal uniquely identified by a
+combination of dairy comp data ID (ear tag) and BDAT (birth date).
 
-This data was created in the chunk above by running "step0_master_processing.R".  
+This data was created in the chunk above by running
+"step0_master_processing.R".
 
 You will learn more details about how to run your own data later.
-                            
-For now, there is a file in your intermediate files folder named 'animals.parquet'.  
 
-Click on the "Files" tab in the lower right quadrant of R studio.  
-Inside the folder data/intermediate_files there should be a file named animals.parquet
+For now, there is a file in your intermediate files folder named
+'animals.parquet'.
 
-If you see it, continue to Part 1 of this document. 
-If you do not see it, try running "step0_master_processing.R" again, and/or ask for some help.
+Click on the "Files" tab in the lower right quadrant of R studio.\
+Inside the folder data/intermediate_files there should be a file named
+animals.parquet
+
+If you see it, continue to Part 1 of this document. If you do not see
+it, try running "step0_master_processing.R" again, and/or ask for some
+help.
 
 ## Part 1 - Import
 
 ### Read in data
 
-Your goal in this part is to read the animals.parquet file into your environment as an object named ***"animals"***.
+Your goal in this part is to read the animals.parquet file into your
+environment as an object named ***"animals"***.
 
--   The animals data set lives in the file `animals.parquet` (think of parquet as just another file extension like .csv, or .doc), which is stored in the `data/intermediate_files` folder in your working directory.
+-   The animals data set lives in the file `animals.parquet` (think of
+    parquet as just another file extension like .csv, or .doc), which is
+    stored in the `data/intermediate_files` folder in your working
+    directory.
 
-Start by finding out what your working directory is.  Run getwd() in the chunk below.  
+Start by finding out what your working directory is. Run getwd() in the
+chunk below.
 
 ```{r}
 getwd()
 ```
 
-Above you should see the full path to your project folder. 
+Above you should see the full path to your project folder.
 
-(Please realize this is because we have intentionally set this document to have an execute directory the same as project directory, and we use the here package when we process other files.  By default, your working directory for a quarto document will be the location the quarto document is saved, unless you have specified it to be something else.  If none of this paragraph made sense, ignore it for now, and come back to it sometime when you are frustrated by file paths.)
+(Please realize this is because we have intentionally set this document
+to have an execute directory the same as project directory, and we use
+the here package when we process other files. By default, your working
+directory for a quarto document will be the location the quarto document
+is saved, unless you have specified it to be something else. If none of
+this paragraph made sense, ignore it for now, and come back to it
+sometime when you are frustrated by file paths.)
 
-Next we want to confirm where the animals.parquet file is located. It is in "data/intermediate_files". You can use the `list.files` function to prove this.   Modify the chunk below by adding the path to the intermediate_files folder in the blank. Don't forget, this folder is inside a folder named data. Also note that this is a relative path.  It begins relative to the location we recieved from getwd().  R will begin all relative paths at the location of getwd().
+Next we want to confirm where the animals.parquet file is located. It is
+in "data/intermediate_files". You can use the `list.files` function to
+prove this. Modify the chunk below by adding the path to the
+intermediate_files folder in the blank. Don't forget, this folder is
+inside a folder named data. Also note that this is a relative path. It
+begins relative to the location we recieved from getwd(). R will begin
+all relative paths at the location of getwd().
 
 (Hint: remember that paths need to be in quotes)
-
 
 ```{r}
 list.files('data/intermediate_files')
 ```
 
-Now it is your turn. Write some code in this chunk that will read in the file named "animals.parquet", and name it "animals" in your environment.
+Now it is your turn. Write some code in this chunk that will read in the
+file named "animals.parquet", and name it "animals" in your environment.
 
 ```{r}
 #| label: recreation-import
@@ -78,20 +101,29 @@ animals<-read_parquet('data/intermediate_files/animals.parquet')
 
 ```
 
-
-
 ## Part 2 - Inspect the data
 
-Look in your top right quadrant of your screen.  You should see an object named "animals". (if not, go back to part 1)
+Look in your top right quadrant of your screen. You should see an object
+named "animals". (if not, go back to part 1)
 
 Use R to inspect the contents of `animals`:
 
--   Display the contents of `animals` in your console. (also click on it in your environment)
--   Use `nrow()` to find the number of observations in `animals`. Name this "number_of_rows". (hint: you should see "number_of_rows" in your environment)
--   Use `count()` from the dplyr package to count the number of observations associated with each location, breed and sex (hint: variable names should be "breed", "sex", "location_list". Name this data frame 'counts'.
--   Use the information in counts to identify the most common breed in the data. Then create a new dataframe named animals_common_breed.  This new data frame should be animals filtered for the most common breed in counts.
+-   Display the contents of `animals` in your console. (also click on it
+    in your environment)
+-   Use `nrow()` to find the number of observations in `animals`. Name
+    this "number_of_rows". (hint: you should see "number_of_rows" in
+    your environment)
+-   Use `count()` from the dplyr package to count the number of
+    observations associated with each location, breed and sex (hint:
+    variable names should be "breed", "sex", "location_list". Name this
+    data frame 'counts'.
+-   Use the information in counts to identify the most common breed in
+    the data. Then create a new dataframe named animals_common_breed.
+    This new data frame should be animals filtered for the most common
+    breed in counts.
 
-*Hint: you may want to look up the help pages for each of these functions.*
+*Hint: you may want to look up the help pages for each of these
+functions.*
 
 Write your code in the following chunk:
 
@@ -113,7 +145,10 @@ write_rds(animals_common_breed, 'milestones_dairy/data_milestones/solutions_week
 
 #### Check your answers
 
-To check your answers run the code chunks below. If your answer exactly matches the solution it will say "No differences". If you like your answer, but it is different we can discuss in class. There are many ways to do things that work.
+To check your answers run the code chunks below. If your answer exactly
+matches the solution it will say "No differences". If you like your
+answer, but it is different we can discuss in class. There are many ways
+to do things that work.
 
 Check number_of_rows:
 
@@ -144,7 +179,9 @@ waldo::compare(animals_common_breed, read_rds('milestones_dairy/data_milestones/
 Now summarize the data:
 
 -   Use `summary()` to generate a summary of the data set
--   Use `skim()` to see a different type of summary of the data set (warning: this function may take some time) - Bonus: save the output of your skim function to your environment. Name it "skim_animals".
+-   Use `skim()` to see a different type of summary of the data set
+    (warning: this function may take some time) - Bonus: save the output
+    of your skim function to your environment. Name it "skim_animals".
 
 Write your code in the following chunk:
 
@@ -165,8 +202,12 @@ waldo::compare(skim_animals, read_rds('milestones_dairy/data_milestones/solution
 
 ### Part 3 - Visualize
 
-Run the code chunk below to see a plot. Your task is to recreate this plot.
-![Image Caption](milestones_dairy/images/milestone02.png){width=4in height=3in}
+Run the code chunk below to see a plot. Your task is to recreate this
+plot. ![Image
+Caption](milestones_dairy/images/milestone02.png){width="4in"
+height="3in"}
+
+![](images/milestone02.png)
 
 ```{r}
 #| label: recreate-this
@@ -181,15 +222,23 @@ mean_by_breed<-animals%>%
 knitr::include_graphics("milestones_dairy/images/milestone02.png")
 ```
 
-Use `ggplot()` in the chunk below to re-create the plot above. 
+Use `ggplot()` in the chunk below to re-create the plot above.
 
 Here are some hints:
 
 1.  Start with a blank canvas
-2.  The data for the boxplot is the animals dataframe filtered so that only animals where age_left>365 days are included.
-3.  The data for the blue points (mean age left within breed) is named mean_by_breed and was already created for you. You will see the dataframe in your environment, and you should inspect it so that you understand how to create the graphic using a geom_point
+2.  The data for the boxplot is the animals dataframe filtered so that
+    only animals where age_left\>365 days are included.
+3.  The data for the blue points (mean age left within breed) is named
+    mean_by_breed and was already created for you. You will see the
+    dataframe in your environment, and you should inspect it so that you
+    understand how to create the graphic using a geom_point
 
-Hint: Although many of your examples put mapping = aes() up in the ggplot, It is recommended that you put both `data =`  and `aes()` in each geom for this exercise. It is very efficient to put mappings in the ggplot call if all geoms have the same data, but the point here is to understand that each layer can stand alone
+Hint: Although many of your examples put mapping = aes() up in the
+ggplot, It is recommended that you put both `data =` and `aes()` in each
+geom for this exercise. It is very efficient to put mappings in the
+ggplot call if all geoms have the same data, but the point here is to
+understand that each layer can stand alone
 
 ```{r}
 #| label: recreation-visualize
@@ -214,20 +263,23 @@ ggsave(here::here('milestones_dairy/images/milestone02.png'))
 
 ```
 
-
-
 ## Part 4 - Extension
 
-Explore `animals` in a new way. Consider using a new function to inspect the data. 
-Alternatively, try to learn more about the other variables in `animals` by looking at their distributions, summary stats, or counts of unique values.
+Explore `animals` in a new way. Consider using a new function to inspect
+the data. Alternatively, try to learn more about the other variables in
+`animals` by looking at their distributions, summary stats, or counts of
+unique values.
 
 Some ideas:
 
-1.  How does the distribution of age_left differ between breeds? Consider exploring these distributions with other geoms.
-2.  What relationships do you see between age_left and other variables of interest in the data set?
+1.  How does the distribution of age_left differ between breeds?
+    Consider exploring these distributions with other geoms.
+2.  What relationships do you see between age_left and other variables
+    of interest in the data set?
 3.  \[any other research question of interest\]
 
-Alternately, working with a data set of your own, complete the following:
+Alternately, working with a data set of your own, complete the
+following:
 
 1.  Read in your data
 2.  Filter your data using a logical test/condition
