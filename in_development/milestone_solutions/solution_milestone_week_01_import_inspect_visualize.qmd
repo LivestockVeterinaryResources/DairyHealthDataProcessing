@@ -202,12 +202,10 @@ waldo::compare(skim_animals, read_rds('milestones_dairy/data_milestones/solution
 
 ### Part 3 - Visualize
 
-Run the code chunk below to see a plot. Your task is to recreate this
-plot. ![Image
-Caption](milestones_dairy/images/milestone02.png){width="4in"
-height="3in"}
+Run the code chunk below to see a plot. 
 
-![](images/milestone02.png)
+Your task is to recreate this
+plot. 
 
 ```{r}
 #| label: recreate-this
@@ -219,7 +217,13 @@ mean_by_breed<-animals%>%
   summarize(ave_age_left = mean(age_left, na.rm = TRUE))%>%
   ungroup()
 
+if (!require(magick, quietly = TRUE)) {
+  install.packages("magick")
+  library(magick)
+}
+image_read("milestones_dairy/images/milestone02.png")
 knitr::include_graphics("milestones_dairy/images/milestone02.png")
+
 ```
 
 Use `ggplot()` in the chunk below to re-create the plot above.
@@ -259,7 +263,7 @@ ggplot(animals%>%filter(age_left>365))+
              color = 'blue', size = 5)+
   labs(title =paste0(unique(animals$location_first)))
 
-ggsave(here::here('milestones_dairy/images/milestone02.png'))
+ggsave('milestones_dairy/images/milestone02.png')
 
 ```
 

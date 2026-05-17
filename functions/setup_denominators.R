@@ -15,4 +15,4 @@ denominator_time_periods <- c(
   365
 ) # do NOT delete the yearly option or you will break the data_dictionary
 
-run_reports <-TRUE #make this false if you just want to reprocess base data
+

@@ -15,6 +15,7 @@ format:
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load your packages here
+
 library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
 library(arrow) #this package handles parquet files
 library(skimr) #this is particularly helpful when looking at new data or finding NA values
@@ -143,9 +144,6 @@ Write your code in the following chunk:
 ```{r}
 #| label: recreation of summary
 
-skim_animals<-skim(animals)
-
-write_rds(skim_animals, 'milestones_dairy/data_milestones/solutions_week_01_skim_animals.rds')
 
 ```
 
@@ -164,13 +162,21 @@ Run the code chunk below to see a plot. Your task is to recreate this plot.
 #| label: recreate-this
 #| message: false
 
+
 mean_by_breed<-animals%>%
   filter(age_left>365)%>%
   group_by(breed)%>%
   summarize(ave_age_left = mean(age_left, na.rm = TRUE))%>%
   ungroup()
 
+if (!require(magick, quietly = TRUE)) {
+  install.packages("magick")
+  library(magick)
+}
+image_read("milestones_dairy/images/milestone02.png")
 knitr::include_graphics("milestones_dairy/images/milestone02.png")
+
+
 ```
 
 Use `ggplot()` in the chunk below to re-create the plot above. 
