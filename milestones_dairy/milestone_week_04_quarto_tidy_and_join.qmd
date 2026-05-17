@@ -11,6 +11,8 @@ library(quarto)
 library(arrow)
 library(waldo)
 
+source('functions/fxn_add_event_counts.R')
+
 solution<-read_rds(here::here('milestones_dairy/data_milestones/solutions_week_05_pivotlonger.rds'))
 
 ```
