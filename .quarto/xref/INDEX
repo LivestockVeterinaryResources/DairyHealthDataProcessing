@@ -1,0 +1,20 @@
+{
+  "qmd_reports/step3_denominators_by_time_period.qmd": {
+    "step3_denominators_by_time_period.html": "66c3336f"
+  },
+  "qmd_reports/step3_denominators_by_calendar_time.qmd": {
+    "step3_denominators_by_calendar_time.html": "e5ac555c"
+  },
+  "qmd_reports/report_explore_lame_new.qmd": {
+    "report_explore_lame_new.html": "53661f82"
+  },
+  "qmd_reports/report_how_to_use_denominators.qmd": {
+    "report_how_to_use_denominators.html": "73dbeb11"
+  },
+  "qmd_reports/report_explore_event_types.qmd": {
+    "report_explore_event_types.html": "b7e72045"
+  },
+  "qmd_reports/report_data_dictionary.qmd": {
+    "report_data_dictionary.html": "81ed8df2"
+  }
+}
