@@ -50,7 +50,7 @@ Start by finding out what your working directory is.  Run getwd() in the chunk b
 
 ```{r}
 
-
+getwd()
 
 ```
 
@@ -64,7 +64,7 @@ Next we want to confirm where the animals.parquet file is located. It is in "dat
 
 
 ```{r}
-
+list.files("data/intermediate_files")
 
 
 ```
@@ -75,7 +75,7 @@ Now it is your turn. Write some code in this chunk that will read in the file na
 #| label: recreation-import
 #hint the function to read in a parquet file is the same as the code to read a csv file except replace 'csv' with 'parquet'
 
-
+animals <- read_parquet("data/intermediate_files/animals.parquet")
 
 ```
 
@@ -98,6 +98,12 @@ Write your code in the following chunk:
 
 ```{r}
 #| label: recreation
+number_of_rows <- animals |> nrow()
+
+counts <- animals |> count(breed, sex, location_list)
+
+animals_common_breed <- animals |>
+                        filter(breed == max(breed))
 
 
 
@@ -143,6 +149,9 @@ Write your code in the following chunk:
 ```{r}
 #| label: recreation of summary
 
+summary(animals)
+skim(animals)
+
 skim_animals<-skim(animals)
 
 write_rds(skim_animals, 'milestones_dairy/data_milestones/solutions_week_01_skim_animals.rds')
@@ -185,6 +194,10 @@ Hint: Although many of your examples put mapping = aes() up in the ggplot, It is
 
 ```{r}
 #| label: recreation-visualize
+ggplot(data=animals |> filter(age_left>365), mapping= aes(breed, age_left)) +
+  geom_boxplot(mapping= aes(breed, age_left)) +
+  geom_point(data=mean_by_breed, mapping= aes(breed, ave_age_left), color="blue", size=3) +
+  labs(title = paste(unique(animals$location_first)))
 
 
 
@@ -217,5 +230,15 @@ Write your extension code in the following chunk:
 
 ```{r}
 #| label: extension
+age_left_breed <- ggplot(data=animals |> filter(!is.na(age_left)), mapping= aes(breed, age_left)) +
+  geom_boxplot(mapping= aes(breed, age_left)) +
+  labs(title = paste(unique(animals$location_first), "- Age Left by Breed"))
+
+age_died_breed <- ggplot(data=animals |> filter(!is.na(date_died)), mapping= aes(breed, age_left)) +
+  geom_boxplot(mapping= aes(breed, age_left)) +
+  labs(title = paste(unique(animals$location_first), "- Age Died by Breed"))
+
+age_left_breed
+age_died_breed
 
 ```
