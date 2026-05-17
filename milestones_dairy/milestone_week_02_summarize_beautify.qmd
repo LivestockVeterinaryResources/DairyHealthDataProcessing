@@ -125,7 +125,15 @@ Let's display our results visually. Run the chunk below to see a plot.
 ```{r}
 #| label: recreate-plot
 #| message: false
+
+
+if (!require(magick, quietly = TRUE)) {
+  install.packages("magick")
+  library(magick)
+}
+image_read("milestones_dairy/images/milestone03.png")
 knitr::include_graphics("milestones_dairy/images/milestone03.png")
+
 ```
 
 Use the code chunk below to create the plot above. Hint: if your geom_smooth line looks different adjust the span

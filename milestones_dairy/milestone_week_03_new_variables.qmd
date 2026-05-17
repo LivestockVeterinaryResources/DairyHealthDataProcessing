@@ -67,6 +67,13 @@ Below are a couple example graphics, but yours can be prettier.
 #| label: recreate-this
 #| message: false
 
+if (!require(magick, quietly = TRUE)) {
+  install.packages("magick")
+  library(magick)
+}
+
+image_read("milestones_dairy/images/milestone4_disease_over_time.jpg")
+image_read('milestones_dairy/images/milestone4_disease_by_phase.jpg')
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_over_time.jpg')
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_by_phase.jpg')
 
