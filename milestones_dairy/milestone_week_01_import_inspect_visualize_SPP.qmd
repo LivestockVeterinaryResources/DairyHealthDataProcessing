@@ -50,11 +50,7 @@ Your goal in this part is to read the animals.parquet file into your environment
 Start by finding out what your working directory is.  Run getwd() in the chunk below.  
 
 ```{r}
-
-getwd() #checking the directory
-animals <- read_parquet("data/intermediate_files/animals.parquet") #looking the animals
-head(animals) 
-tail(animals)
+getwd()
 
 
 ```
@@ -70,6 +66,7 @@ Next we want to confirm where the animals.parquet file is located. It is in "dat
 
 ```{r}
 
+list.files("./data/intermediate_files")
 
 
 ```
@@ -80,7 +77,7 @@ Now it is your turn. Write some code in this chunk that will read in the file na
 #| label: recreation-import
 #hint the function to read in a parquet file is the same as the code to read a csv file except replace 'csv' with 'parquet'
 
-
+animals <- read_parquet("data/intermediate_files/animals.parquet")
 
 ```
 
@@ -104,7 +101,14 @@ Write your code in the following chunk:
 ```{r}
 #| label: recreation
 
+nrow(animals)
+number_of_rows <- nrow(animals)
+number_of_rows
 
+?count()
+
+counts <- animals %>% count(breed, sex, location_list)
+counts
 
 ```
 
