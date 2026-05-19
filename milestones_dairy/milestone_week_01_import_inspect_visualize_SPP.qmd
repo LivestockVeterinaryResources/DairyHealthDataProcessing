@@ -67,6 +67,7 @@ Next we want to confirm where the animals.parquet file is located. It is in "dat
 ```{r}
 
 list.files("./data/intermediate_files")
+fdajhjksahf
 
 
 ```
