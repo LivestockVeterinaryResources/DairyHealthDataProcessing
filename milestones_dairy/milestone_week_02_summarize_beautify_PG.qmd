@@ -37,7 +37,8 @@ Before you begin, you will need to import your data set. Use the code chunk belo
 
 #add code to read in the events file here
 
-did this work
+events_formatted <- read_parquet("data/intermediate_files/events_formatted.parquet")  |>
+  add_new_variables()
 ```
 
 ### Part 2 - Summarize data
@@ -107,6 +108,18 @@ Work in the code chunk below. Save the result as `dim_at_bred`. We will use the 
 #| label: recreation-summary
 #
 
+dim_at_bred <- events_formatted |>
+  filter(event      == "BRED1",
+         date_event >= max(date_event) - 1095) |>
+  group_by(event, location_event, lact_group, floordate_month) |>
+  summarize(mean   = mean(dim_event),
+            sd     = sd(dim_event),
+            median = median(dim_event),
+            min    = min(dim_event),
+            max    = max(dim_event),
+            q97    = quantile(dim_event, probs = 0.97),
+            n      = n()) |>
+  ungroup()
 
 ```
 
@@ -132,7 +145,11 @@ Use the code chunk below to create the plot above. Hint: if your geom_smooth lin
 
 ```{r}
 #| label: recreation-plot
-
+dim_at_bred |>
+  ggplot(aes(floordate_month, q97, color=lact_group, fill = lact_group)) +
+  geom_point(shape = ".") +
+  geom_smooth(span=0.2,  alpha = 0.4, linewidth = 0.5) +
+  facet_wrap(~lact_group + location_event, scales = "free_y") 
 
 ```
 
@@ -142,5 +159,5 @@ Using the code chunk below, investigate a research question about this data, usi
 Bonus: Try something with missing values.
 
 ```{r}
-
+skim(events_formatted)
 ```
