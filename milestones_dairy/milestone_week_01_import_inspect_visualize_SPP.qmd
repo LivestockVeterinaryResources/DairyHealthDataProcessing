@@ -49,12 +49,8 @@ Your goal in this part is to read the animals.parquet file into your environment
 
 Start by finding out what your working directory is.  Run getwd() in the chunk below.  
 
-```{r}
-<<<<<<< HEAD
-getwd()
-=======
 
->>>>>>> 4a961bfcf312ffbf3a2835dc3846f2b0ee21f099
+getwd()
 
 
 ```
@@ -72,7 +68,6 @@ Next we want to confirm where the animals.parquet file is located. It is in "dat
 
 
 list.files("./data/intermediate_files")
-fdajhjksahf
 
 
 
@@ -85,11 +80,8 @@ Now it is your turn. Write some code in this chunk that will read in the file na
 #| label: recreation-import
 #hint the function to read in a parquet file is the same as the code to read a csv file except replace 'csv' with 'parquet'
 
-<<<<<<< HEAD
-animals <- read_parquet("data/intermediate_files/animals.parquet")
-=======
 
->>>>>>> 4a961bfcf312ffbf3a2835dc3846f2b0ee21f099
+animals <- read_parquet("data/intermediate_files/animals.parquet")
 
 ```
 
@@ -113,7 +105,6 @@ Write your code in the following chunk:
 ```{r}
 #| label: recreation
 
-<<<<<<< HEAD
 nrow(animals)
 number_of_rows <- nrow(animals)
 number_of_rows
@@ -122,9 +113,9 @@ number_of_rows
 
 counts <- animals %>% count(breed, sex, location_list)
 counts
-=======
 
->>>>>>> 4a961bfcf312ffbf3a2835dc3846f2b0ee21f099
+animals_common_breed <- filter(counts, breed == "X")
+animals_common_breed
 
 ```
 
@@ -168,13 +159,19 @@ Write your code in the following chunk:
 ```{r}
 #| label: recreation of summary
 
+summary(animals)
+
+skim_animals <- skim(animals)
+skim_animals
 
 ```
 
 Check your answer to `skim()`
 
 ```{r}
+
 waldo::compare(skim_animals, read_rds('milestones_dairy/data_milestones/solutions_week_01_skim_animals.rds'))
+
 ```
 
 ### Part 3 - Visualize
@@ -216,11 +213,19 @@ Hint: Although many of your examples put mapping = aes() up in the ggplot, It is
 ```{r}
 #| label: recreation-visualize
 
+mean_by_breed
 
-
-
-
-
+ggplot() +
+  geom_boxplot(
+    data = filter(animals, age_left > 365),
+    aes(x = breed, y = age_left)
+  ) +
+  geom_point(
+    data = mean_by_breed,
+    aes(x = breed, y = ave_age_left),
+    color="blue",
+    size = 5
+  )
 
 ```
 
@@ -247,5 +252,14 @@ Write your extension code in the following chunk:
 
 ```{r}
 #| label: extension
+
+animals
+
+ggplot()+
+  geom_bar(
+  data = animals, 
+  mapping=aes(x=breed))
+  
+
 
 ```
