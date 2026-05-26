@@ -39,8 +39,13 @@ In this milestone, you'll write some of the code that was written for you in mil
 #| label: recreation-import
 #| 
 events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
-  filter(event_type %in% 'health')
-
+  filter(event_type %in% 'health',
+         event      == "SEPTIC" |
+         event      == "NAVEL") |>
+  mutate(floordate_month = floor_date(date_event, 'months')) |>
+  arrange(id_animal, event, date_event) |>
+  fxn_add_event_counts() |>
+  select(event, floordate_month, id_animal, date_event, event_count_lact, event_count_animal, age_event)
 
 
 ```
