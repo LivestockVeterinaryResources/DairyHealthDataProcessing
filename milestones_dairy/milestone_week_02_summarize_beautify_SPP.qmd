@@ -43,6 +43,18 @@ list.files("./data/intermediate_files")
 events_formatted <- read_parquet("data/intermediate_files/events_formatted.parquet")
 events_formatted
 
+dim_event <- events_formatted %>%
+  add_new_variables()
+
+breed1_summary <- dim_event |> 
+  filter(event == "BRED1") |>
+  group_by(floordate_month, lact_group, location_event) |>
+  summarize(
+    mean_dim = mean(dim_event, na.rm = TRUE)
+  )
+
+breed1_summary
+dim_event
 
 ```
 
