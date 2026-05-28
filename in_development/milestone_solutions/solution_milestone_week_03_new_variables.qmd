@@ -1,13 +1,15 @@
 ---
-title: Read and Visualize
+title: "Read and Visualize"
 date: "`r Sys.Date()`"
-embed-resources: true
+format:
+  html:
+    embed-resources: true
+    code-fold: true
 ---
 
 ```{r}
 #| label: setup
 #| include: false
-knitr::opts_chunk$set(echo = TRUE)
 
 # This chunk is already finished for you, you don't need to modify anything here
 library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
@@ -20,72 +22,101 @@ library(waldo) #we use this to create answer keys for these exercises
 source(here::here('functions/fxn_add_event_counts.R'))
 source(here::here('milestones_dairy/data_milestones/fxn_floor_dates.R'))
 
+example_df<-read_rds(here::here('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
+
+
 
 ```
 
 ## Create and select columns
 
-In this milestone, you'll write some of the code that was written for you in milestone 3.
+In this milestone, you'll write some of the code that was written for you in milestone 2. In the chunk below the events_formatted.parquet file is read in, named "events", and filtered for health events. You can just add your code to this chunk in order to acomplish the tasks listed below.
 
-1.  The events_formatted.parquet file is read in, named "events",  and filtered for health events. Filter this further so you only have only one or 2 unique health events that are interesting to you.  The example in the solution is based on 'NAVEL' and 'SEPTIC' events, but choose anything you want. If it is not NAVEL and SEPTIC don't worry about the solutions not matching in this milestone.
-2.  create a new variable named **floordate_month**. The logic to create this variable is: **floor_date(date_event, 'months')**
-3.  arrange the data by 3 variables: the animal (id_animal), the event (event), and then the event date (date_event). 
-4.  Pipe your events_formatted to the function fxn_add_event_counts(). This will add columns indicating the number of times the animal has had that event within the data set (event_count_animal) or within their lactation (event_count_lact). If you would like to see the code the creates these click on the function in your environment.
-5.  create a new variable the is animal age in days at time of event. Name this variable "age_event"
-6.  select all the variables below in the order you see them, 
+You will recognize select helper functions like starts_with() and contains(). These are used to simplify your data so there are not so many columns to look at.
+
+This data comes from a dairy comp report events/2 with several additional options and switches.
 
 ```{r}
-#| label: recreation-import
-#| 
+events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+  select(location_event, 
+         id_animal, 
+         id_animal_lact,
+         id, date_birth,
+         lact_number, lact_group,
+         event_type, date_event, 
+         dim_event, dop_event, starts_with('age'), 
+          event, remark, protocols, locate_lesion,
+         contains('event'), 
+         contains('remark'), 
+         contains('protocols') 
+         )%>%
+  filter(event_type %in% 'health')
+  
+  
+```
+
+```{r}
+
+#this is a solution chunk - it should be deleted in the final milestone
+
 events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
   filter(event_type %in% 'health')%>%
   filter(event %in% c('NAVEL', 'SEPTIC'
                       ))%>%
-  mutate(floordate_month = floor_date(date_event, 'months'), 
-         age_event = date_event-date_birth)%>%
+  mutate(floordate_month = floor_date(date_event, 'months'))%>%
   fxn_add_event_counts()%>%
   select(location_event, 
          id_animal, 
          id_animal_lact,
          id, date_birth,
          lact_number, lact_group,
-         dim_event, starts_with('age'), 
-         floordate_month, 
+         event_type, date_event, floordate_month, 
+         dim_event, dop_event, starts_with('age'), 
+         
          event, remark, protocols, locate_lesion,
          contains('event'), 
          contains('remark'), 
-         contains('protocols') 
+         contains('protocols'),
+         
          )
 
 write_rds(head(events, 10), here::here('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
 
 
-
 ```
 
+1.   Filter `events` further so you only have only one or 2 unique health events that are interesting to you. The example in the solution is based on 'NAVEL' and 'SEPTIC' events, but choose anything you want. If it is not NAVEL and SEPTIC don't worry about the solutions not matching in this milestone.
+
+2.  create a new variable named **floordate_month**. The logic to create this variable is: **floor_date(date_event, 'months')**
+
+3.  Pipe your events_formatted to the function fxn_add_event_counts(). This will add columns indicating the number of times the animal has had that event within the data set (event_count_animal) or within their lactation (event_count_lact). If you would like to see the code the creates these click on the function in your environment. Look at the data frame an check to see that the values in the new variables of event_count_animal and event_count_lact make sense. (hint: an easy way to do this is to look at a dataframe of only 1 animal and arrange it properly).  Are these counts logical?
+
+4.  Create a new variable named `category_dop_event` that categorizes the day of phase at the time of the event (dop_event). Your new variable should allow you to look at specific dop intervals for the disease you are interested in. The cut points should be sensical based on your questions about the event or diseases you picked. If you prefer to use dim_event or age_event that is fine.
+
+4. Create a new dataframe that uses the distinct() function to count the number of unique animals (id_animal) within each event and floordate_month, and category_dop_event.  Name this dataframe `event_counts_by_month`.
+
+6. Create a new data frame that counts the number of unique animals Select the following columns: event, all columns that contain the word remark, all columns that contain the word protocols. 
 
 ## Check selected columns
 
 ```{r}
 
-waldo::compare(colnames(events), colnames(read_rds(here::here('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))))
+waldo::compare(colnames(events), colnames(example_df))
 
 ```
 
-
 ### Step 2 - Disease and Treatments
 
-Create 2 new variables for your events: Disease and Treatment.  Use case_when() and whichever columns you would like to create the best description.
-Then use graphs, tables, or a combination to describe the timing your selected Disease(s), both over time and according to animal age or dim as appropriate. 
-Show if there has been a change in the treatments used over time.
+Look at the example graphics below the next chunk. Pay special attention to the x axis as well as the facet and fill variables.
 
-Below are a couple example graphics, but yours can be prettier.
+Create 2 new variables for your events named: `Disease` and `Treatment`. Use case_when() and whichever columns you would like to create the most useful variables.  Notice that there are several options for columns that contain the information from Remark. Explore them and see if any are useful for your events.
+
+Run the chunk below to see the example graphics, . . . yours can be prettier!
 
 ```{r}
-#| label: recreate-this
-#| message: false
 
 
+#Delete for student version-----------------------------------
 get_values<-events%>%
   group_by(event, remark, protocols)%>%
   summarize(ct = sum(n()))%>%
@@ -118,6 +149,10 @@ ggplot(check)+
   facet_wrap(disease~.)
 ggsave('milestones_dairy/images/milestone4_disease_by_phase.jpg')
 
+#--------------------------------------------------------------------
+
+
+
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_over_time.jpg')
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_by_phase.jpg')
 
@@ -125,8 +160,25 @@ knitr::include_graphics('milestones_dairy/images/milestone4_disease_by_phase.jpg
 
 ```
 
+
+
+
+Then use graphs, tables, or a combination to describe your selected events.  Has there has been a change in the treatments used over time?  Does dop (day of phase i.e. dim or age) matter for your selected events?
+
+CAUTION: do not over think this.  I know you are all wanting to do this with a denominator to find incidence rather than raw counts.  I promise that is coming. First just get used to summarizing numerators across different groupings. 
+
+Note: your graphics should be much prettier than the examples!! ;)
+
+
+
+```{r}
+#graph your event counts over time here.
+
+```
+
+
 ### Extension Options
 
-1) Improve your description for your choosen events
-2) Choose a new disease
-3) choose to add multiple farms (either your own data or other example herds)
+1)  Improve your description for your choosen events
+2)  Choose a new disease
+3)  Choose to add multiple farms (either your own data or other example herds)
