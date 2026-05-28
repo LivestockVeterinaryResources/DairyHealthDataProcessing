@@ -43,8 +43,9 @@ events<-read_parquet(here::here('data/intermediate_files/events_formatted.parque
          id_animal_lact,
          id, date_birth,
          lact_number, lact_group,
+         event_type, date_event, 
          dim_event, dop_event, starts_with('age'), 
-         event_type, event, remark, protocols, locate_lesion,
+          event, remark, protocols, locate_lesion,
          contains('event'), 
          contains('remark'), 
          contains('protocols') 
@@ -69,12 +70,14 @@ events<-read_parquet(here::here('data/intermediate_files/events_formatted.parque
          id_animal_lact,
          id, date_birth,
          lact_number, lact_group,
+         event_type, date_event, floordate_month, 
          dim_event, dop_event, starts_with('age'), 
-         floordate_month, 
+         
          event, remark, protocols, locate_lesion,
          contains('event'), 
          contains('remark'), 
-         contains('protocols') 
+         contains('protocols'),
+         
          )
 
 write_rds(head(events, 10), here::here('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
@@ -111,8 +114,7 @@ Create 2 new variables for your events named: `Disease` and `Treatment`. Use cas
 Run the chunk below to see the example graphics, . . . yours can be prettier!
 
 ```{r}
-#| label: recreate-this
-#| message: false
+
 
 #Delete for student version-----------------------------------
 get_values<-events%>%
@@ -149,12 +151,7 @@ ggsave('milestones_dairy/images/milestone4_disease_by_phase.jpg')
 
 #--------------------------------------------------------------------
 
-if (!require(magick, quietly = TRUE)) {
-  install.packages("magick")
-  library(magick)
-}
-image_read('milestones_dairy/images/milestone4_disease_over_time.jpg')
-image_read('milestones_dairy/images/milestone4_disease_by_phase.jpg')
+
 
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_over_time.jpg')
 knitr::include_graphics('milestones_dairy/images/milestone4_disease_by_phase.jpg')

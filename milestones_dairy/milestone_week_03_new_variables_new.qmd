@@ -7,9 +7,8 @@ format:
     code-fold: true
 ---
 
-```{r}
-#| label: setup
-#| include: false
+```{r, echo = FALSE, warning=FALSE, message = FALSE}
+
 
 # This chunk is already finished for you, you don't need to modify anything here
 library(tidyverse) #this includes many packages and is the main package used in nearly all data wrangling
@@ -30,7 +29,9 @@ example_df<-read_rds(here::here('milestones_dairy/data_milestones/solutions_week
 
 ## Create and select columns
 
-In this milestone, you'll write some of the code that was written for you in milestone 2. In the chunk below the events_formatted.parquet file is read in, named "events", and filtered for health events. You can just add your code to this chunk in order to acomplish the tasks listed below.
+In this milestone, you'll write some of the code that was written for you in milestone 2. This will familiarize you with the format of the events data.
+
+In the chunk below the events_formatted.parquet file is read in, named "events", and filtered for health events. You can just add your code to this chunk in order to acomplish the tasks listed below the chunk.
 
 You will recognize select helper functions like starts_with() and contains(). These are used to simplify your data so there are not so many columns to look at.
 
@@ -43,7 +44,8 @@ events<-read_parquet(here::here('data/intermediate_files/events_formatted.parque
          id_animal_lact,
          id, date_birth,
          lact_number, lact_group,
-         event_type, dim_event, dop_event, starts_with('age'), 
+         event_type, date_event,
+         dim_event, dop_event, starts_with('age'), 
           event, remark, protocols, locate_lesion,
          contains('event'), 
          contains('remark'), 
@@ -69,11 +71,11 @@ events<-read_parquet(here::here('data/intermediate_files/events_formatted.parque
 
 ## Check selected columns
 
-Use this chunk to see if your new dataframe has the expected columns.  Warning, column order will matter for the comparison, so if you didn't do the steps above in order expect differences. Column order doesn't really matter other than for the comparison.
+Run the chunk below to see an example of the dataframe you are trying to create.  Yours may look different because you may have picked different events. You can also click on example_df in your environment.
 
 ```{r}
 
-waldo::compare(colnames(example_df), colnames(events))
+example_df
 
 ```
 
@@ -86,18 +88,9 @@ Create 2 new variables for your events named: `Disease` and `Treatment`. Use cas
 Run the chunk below to see the example graphics. . . . your graphics can be prettier!
 
 ```{r}
-#| label: recreate-this
-#| message: false
 
 
-
-if (!require(magick, quietly = TRUE)) {
-  install.packages("magick")
-  library(magick)
-}
-image_read('milestones_dairy/images/milestone4_disease_by_phase.jpg')
-
-knitr::include_graphics('milestones_dairy/images/milestone4_disease_by_phase.jpg')
+knitr::include_graphics(('milestones_dairy/images/milestone4_disease_by_phase.jpg'))
 
 
 
