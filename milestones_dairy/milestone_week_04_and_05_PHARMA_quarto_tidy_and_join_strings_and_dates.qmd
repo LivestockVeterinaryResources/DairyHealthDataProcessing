@@ -1,0 +1,140 @@
+---
+title: "Week 4 tidy and join"
+format:
+  html:
+    embed-resources: true
+    code-fold: true
+---
+
+# ignore this chunk, it is just alot of setup
+
+```{r, include = FALSE}
+
+library(tidyverse)
+source('functions/fxn_mileston4_tools.R')
+```
+
+# Week 4
+
+## FDA facilities
+
+The object `fda_facilities_solution_data` is a dataframe of the number of fda approved facilities in the world. The original data can be found at the link below.
+
+<https://www.fda.gov/economics-staff/fda-glance>
+
+Your ultimate goal is to create this graphic:
+
+```{r}
+
+fxn_plot_facilities(fda_facilities_solution_data)
+
+```
+
+-   Make the data in the chunk below tidy.
+
+-   Calculate the percent of the total for each year that is domestic or foreign.
+
+Your final data in this chunk should be named `fda_facilities`, and should look like the dataframe in your environment named `fda_facilities_solution_data`.
+
+```{r}
+fda_facilities<-tibble(
+  Year = c(2018, 2020, 2021, 2023, 2024),
+  Domestic = c(1403, 1608, 1858, 980, 974), 
+  Foreign = c( 385, 1156, 1103, 701, 753),
+  Total = c(1788, 2764, 2961, 1681, 1727)
+)
+
+
+```
+
+In the chunk below:
+
+-   create a bar graph with year on the x axis, a count of fda facilities on the y axis, color the bar by location.
+
+-   use geom text to add text to your graphic showing the total number of facilities, the percent foreign and percent domestic. Use the graphic in chunk 2 as an example of what you are trying to create.
+
+```{r}
+
+
+```
+
+
+
+## FDA Greenbook
+
+All ***listed*** animal drug products (which is not the same as ***approved*** products) can be found in the FDA "Green Book".
+
+Go to <https://www.fda.gov/industry/structured-product-labeling-resources/electronic-animal-drug-product-listing-directory>
+
+Then click on the link text at the top of the page that says `Electronic Animal Drug Product Listing Directory`. This will download an excel file (but a very very old version of excel) to your computer.
+
+Put this file in a place you can then read it into R in the chunk below. Make sure when you read it in that you force it to read in all columns as characters. It will make errors if it guesses on this dataset.
+
+Hint: you can either learn to read in very old excel files by finding a function that (readxl), or you can open the file and re-save it as a csv file and then read it in (potentially faster)
+
+Pipe your data into the function `fxn_clean_green_manufacturer()` to clean up the manufacturer names.  Group by manufacturer and count how many products are manufactured. Arrange the data by descending number of products. 
+
+Make a new dataframe named `Top_10` that is only the first 10 rows.
+
+```{r}
+
+
+```
+
+
+Now join this data to the `pharma_revenue` data frame that is already in your environment.  
+
+
+
+```{r}
+
+
+
+```
+
+
+Did it join as expected?
+
+Is there any correlation between number of products listed and revenue?
+
+## Extension
+
+Explore something else in this greenbook data. Can you summarize 2 different things and then join them back on a shared variable?
+
+
+# Week 5
+
+## Clean up Marketing Category
+
+Use your new skills for working with strings to clean up the `Marketing Category` column in the greenbook.
+
+```{r}
+
+```
+
+
+## Format Dates
+
+Use your date formating skills to format `Inactivation Date` and `Reactivation Date`.  
+
+```{r}
+
+```
+
+
+Is there a particular month of the year when more approvals are inactivated?
+
+```{r}
+
+```
+
+
+## Extension
+
+Explore the greenbook using these new varaibles and anything else you are interested in (such as Ingredient List?).  You may find you also wish to clean up the ingredient list if you choose to use it.
+
+```{r}
+
+```
+
+
