@@ -1,0 +1,236 @@
+---
+title: "Week 4 tidy and join"
+format:
+  html:
+    embed-resources: true
+    code-fold: true
+---
+
+# ignore this chunk, it is just alot of setup
+
+```{r, include = FALSE}
+
+library(tidyverse)
+
+colors_mkt_cat<-c( "UNAPPROVED" = 'grey',
+                   "UNAPPROVED HOMEOPATHIC" = '#a6cee3',
+                   "UNAPPROVED DRUG OTHER" = '#1f78b4',
+                   "BULK INGREDIENT - ANIMAL" = 'grey', #'#b2df8a',
+                   "BULK INGREDIENT" = 'grey', #'#33a02c',
+                   "LMUNADFMS"  = '#fb9a99',
+                   "NADA" = 'grey30', #'#e31a1c',
+                  
+                   "Unapproved medical gas" = '#fdbf6f',
+                   "unapproved other" = '#ff7f00',
+                   "Conditional NADA" = "#009E73", #'#fb9a99',
+                   "ANADA"= "#0072B2",
+                   "drug for further processing" = 'grey', #'#b15928',
+                   "export only" = 'grey' #'#ffff99'
+                   )
+
+colors_prod_type<-c( "OTC TYPE A MEDICATED ARTICLE ANIMAL DRUG" = 'grey80', #'#377eb8',
+                    "VFD TYPE A MEDICATED ARTICLE ANIMAL DRUG"= 'grey30', #'#377eb8',
+                   "BULK INGREDIENT - ANIMAL" = 'grey',
+                   "BULK INGREDIENT - ANIMAL DRUG" = 'grey',
+                   "BULK INGREDIENT" = 'grey',
+                   "PRESCRIPTION ANIMAL DRUG" = 'grey30',#'#377eb8',
+                   "OTC ANIMAL DRUG" = 'grey60', #'#377eb8',
+                   "RECOMBINANT DEOXYRIBONUCLEIC ACID CONSTRUCT" = 'grey')
+
+fda_facilities_solution_data<-read_rds('milestones_dairy/data_milestones/solution_fda_facilities.rds')
+
+fxn_DT_base<-function(df){
+   DT::datatable(
+            df,
+            
+                            
+                            extensions = 'Buttons',
+                            class = 'cell-border hoover compact nowrap',
+                            caption = '',
+                            options = list(
+                              fixedColumns = TRUE,
+                              autoWidth = TRUE,
+                              ordering = TRUE,
+                              paging = TRUE, 
+                              searching = TRUE,
+                              dom = 'BSlfrtip', 
+                              buttons = c('copy', 'csv', 'excel')
+                              
+                            ),
+                            filter = list(
+                              position = 'top', 
+                              clear = FALSE
+                            ),
+                            rownames = FALSE
+              )
+}
+
+fxn_plot_facilities<-function(df){
+  ggplot(df)+
+    geom_bar(data = df%>%
+               select(Year, Total)%>%
+               distinct(), 
+             aes(x = Year, y =`Total`), stat = 'identity')+
+
+  geom_bar(aes(x = Year, y =`Facility Count`, fill = Location), , 
+           stat = 'identity', position = 'dodge', width = .6)+
+  geom_text(data = df%>%
+               select(Year, Total)%>%
+               distinct(), 
+             aes(x = Year, y =`Total`, label = paste0(Total)), 
+            color = 'white', vjust = 1)+
+    geom_text(data = df%>%
+              filter(Location %in% 'Domestic'), 
+             aes(x = Year, y =`Total`, label = paste0('\n(', 
+                                                      round(pct*100, digits = 0), '%)')), 
+            color = 'white', vjust = 1, postion = 'dodge', vjust = 1)+
+#  geom_text(data = fda_facilities%>%
+#               filter(Location %in% 'Domestic'), 
+#              aes(x = Year, y =`Facility Count`, label = paste0(`Facility Count`)), 
+#             color = 'white', vjust = 1, postion = 'dodge', hjust = 1, size = rel(2))+
+#   geom_text(data = fda_facilities%>%
+#               filter(!(Location %in% 'Domestic')),
+#              aes(x = Year, y =`Facility Count`, label = paste0(`Facility Count`)), 
+#             color = 'white', vjust = 1, postion = 'dodge', hjust = 0, size = rel(2))+
+  
+  theme_bw()+
+  theme(text = element_text(color = 'black'))+
+  labs(title = 'FDA Facilities - Animal Drugs', 
+       subtitle = 'Numbers on grey total bars are facility counts (% domestic)',
+       caption = 'Data from: https://www.fda.gov/economics-staff/fda-glance')+
+  scale_fill_manual(values = c('#1b9e77','#d95f02', 'grey'))
+}
+
+
+pharma_revenue<-read_csv('milestones_dairy/data_milestones/week4_pharma_company_data.csv')%>%
+  select(-ct_products)
+
+fxn_clean_green_manufacturer<-function(df){
+  df%>%
+    mutate(Manufacturer = case_when(
+    str_detect(`Labeler Name`, 'Zoetis')~'Zoetis', 
+        str_detect(`Labeler Name`, 'Boehringer')~'Boehringer', 
+    str_detect(`Labeler Name`, 'Merck')~'Merck', 
+    str_detect(`Labeler Name`, 'Parnell')~'Parnell', 
+    str_detect(`Labeler Name`, 'Elanco')~'Elanco', 
+    str_detect(`Labeler Name`, 'Ceva')~'Ceva', 
+    str_detect(`Labeler Name`, 'Virbac')~'Virbac', 
+    str_detect(`Labeler Name`, 'Dechra')~'Dechra', 
+    str_detect(`Labeler Name`, 'Vetoq')~'Vetoq', 
+    TRUE~`Labeler Name`
+  ))
+}
+```
+
+# Week 4
+
+## FDA facilities
+
+The object `fda_facilities_solution_data` is a dataframe of the number of fda approved facilities in the world. The original data can be found at the link below.
+
+<https://www.fda.gov/economics-staff/fda-glance>
+
+Your ultimate goal is to create this graphic:
+
+```{r}
+
+fxn_plot_facilities(fda_facilities_solution_data)
+
+```
+
+-   Make the data in the chunk below tidy.
+
+-   Calculate the percent of the total for each year that is domestic or foreign.
+
+Your final data in this chunk should be named `fda_facilities`, and should look like the dataframe in your environment named `fda_facilities_solution_data`.
+
+```{r}
+fda_facilities<-tibble(
+  Year = c(2018, 2020, 2021, 2023, 2024),
+  Domestic = c(1403, 1608, 1858, 980, 974), 
+  Foreign = c( 385, 1156, 1103, 701, 753),
+  Total = c(1788, 2764, 2961, 1681, 1727)
+)%>%
+  pivot_longer(cols = c(Domestic, Foreign), 
+               names_to = 'Location', 
+               values_to = 'Facility Count')%>%
+  mutate(pct = `Facility Count`/Total)%>%
+  mutate(Year = factor(Year))
+
+write_rds(fda_facilities, 'milestones_dairy/data_milestones/solution_fda_facilities.rds')
+
+
+```
+
+In the chunk below:
+
+-   create a bar graph with year on the x axis, a count of fda facilities on the y axis, color the bar by location.
+
+-   use geom text to add text to your graphic showing the total number of facilities, the percent foreign and percent domestic. Use the graphic in chunk 2 as an example of what you are trying to create.
+
+```{r}
+
+
+```
+
+
+
+## FDA Greenbook
+
+All ***listed*** animal drug products (which is not the same as ***approved*** products) can be found in the FDA "Green Book".
+
+Go to <https://www.fda.gov/industry/structured-product-labeling-resources/electronic-animal-drug-product-listing-directory>
+
+Then click on the link text at the top of the page that says `Electronic Animal Drug Product Listing Directory`. This will download an excel file (but a very very old version of excel) to your computer.
+
+Put this file in a place you can then read it into R in the chunk below. Make sure when you read it in that you force it to read in all columns as characters. It will make errors if it guesses on this dataset.
+
+Hint: you can either learn to read in very old excel files by finding a function that (readxl), or you can open the file and re-save it as a csv file and then read it in (potentially faster)
+
+Pipe your data into the function `fxn_clean_green_manufacturer()` to clean up the manufacturer names.  Group by manufacturer and count how many products are manufactured. Arrange the data by descending number of products. 
+
+Make a new dataframe named `Top_10` that is only the first 10 rows.
+
+```{r}
+green <- read_csv("C:/GIT/Pharmacology/GreenBook_2026_June.csv",  
+                col_types = cols(.default = col_character()))%>%
+  fxn_clean_green_manufacturer()%>%
+  group_by(Manufacturer)%>%
+  summarize(ct_products = n_distinct(`Application Number or Monograph ID`))%>%
+  ungroup()%>%
+  arrange(desc(ct_products))%>%
+  head(10)
+
+write_csv(green, 'ct_products.csv')
+
+```
+
+
+Now join this data to the `pharma_revenue` data frame that is already in your environment.  
+
+Did it join as expected?
+
+Is there any correlation between number of products listed and revenue?
+
+```{r}
+
+revenue_and_prod<-green%>%
+  left_join(pharma_revenue)
+
+```
+# Week 5
+
+Use your new skills for working with strings to clean up the `Marketing Category` column in the greenbook.
+
+Use your date formating skills to format `Inactivation Date` and `Reactivation Date`.  
+
+Is there a particular month of the year when more approvals are inactivated?
+
+```{r}
+
+```
+
+
+Now graphically explore the greenbook using these new varaibles and anything else you are interested in (such as Ingredient List?).  You may find you also wish to clean up the ingredient list if you choose to use it.
+
+
