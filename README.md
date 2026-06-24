@@ -119,21 +119,16 @@ The ones listed below are all in **qmd_reports**
 
 ------------------------------------------------------------------------
 
-## Dependencies
+## Project paths
 
-This project uses the [`{here}`](https://here.r-lib.org/) package for
-robust, project-root-relative file paths. All scripts and reports call
-`here::here()` explicitly (no `library(here)` required). Make sure the
-package is installed:
+This project uses plain **project-root-relative paths** (e.g.
+`read_parquet("data/intermediate_files/animals.parquet")`); multi-part
+paths use base R `file.path()`. There is no `{here}` dependency.
 
-``` r
-install.packages("here")
-```
-
-All scripts should be run from (or rendered within) the project root —
-i.e., the directory containing `LivestockHealthDataProcessing.Rproj`.
-The `{here}` package automatically detects this root via the `.Rproj`
-file.
+For paths to resolve, run scripts and render reports from the **project
+root** — i.e., the directory containing the `.Rproj` file. RStudio
+Projects set this automatically, and `_quarto.yml` sets
+`execute-dir: project` so Quarto documents also execute from the root.
 
 ------------------------------------------------------------------------
 

@@ -259,7 +259,7 @@ ggplot(animals%>%filter(age_left>365))+
              color = 'blue', size = 5)+
   labs(title =paste0(unique(animals$location_first)))
 
-ggsave(here::here('milestones_dairy/images/milestone02.png'))
+ggsave(file.path('milestones_dairy/images/milestone02.png'))
 
 ```
 

@@ -19,10 +19,10 @@ library(waldo) #we use this to create answer keys for these exercises
 
 
 #add some extra functions
-source(here::here('functions/fxn_add_event_counts.R'))
-source(here::here('milestones_dairy/data_milestones/fxn_floor_dates.R'))
+source(file.path('functions/fxn_add_event_counts.R'))
+source(file.path('milestones_dairy/data_milestones/fxn_floor_dates.R'))
 
-example_df<-read_rds(here::here('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
+example_df<-read_rds(file.path('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
 
 
 
@@ -37,7 +37,7 @@ You will recognize select helper functions like starts_with() and contains(). Th
 This data comes from a dairy comp report events/2 with several additional options and switches.
 
 ```{r}
-events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+events<-read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))%>%
   select(location_event, 
          id_animal, 
          id_animal_lact,
@@ -59,7 +59,7 @@ events<-read_parquet(here::here('data/intermediate_files/events_formatted.parque
 
 #this is a solution chunk - it should be deleted in the final milestone
 
-events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+events<-read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))%>%
   filter(event_type %in% 'health')%>%
   filter(event %in% c('NAVEL', 'SEPTIC'
                       ))%>%
@@ -80,7 +80,7 @@ events<-read_parquet(here::here('data/intermediate_files/events_formatted.parque
          
          )
 
-write_rds(head(events, 10), here::here('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
+write_rds(head(events, 10), file.path('milestones_dairy/data_milestones/solutions_week4_check_columns.rds'))
 
 
 ```
