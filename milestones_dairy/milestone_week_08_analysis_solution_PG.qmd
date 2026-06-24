@@ -42,7 +42,8 @@ pacman::p_load(
   gtsummary,
   marginaleffects,
   scales,
-  zoo
+  zoo,
+  skimr
   )
 
 events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
@@ -302,7 +303,8 @@ with the events_formatted and animals table.
 
 # put your code here to create the required data frame.
 solution_data <- events_formatted |>
-  filter(event %in% c("LAME", "TRIM"))  |>
+  filter(event %in% c("LAME", "TRIM"),
+         !is.na(id_animal))  |>
 mutate(remark = if_else(
       str_detect(remark, regex("ab", ignore_case = TRUE)),
       "sole_ulcer",
@@ -330,18 +332,44 @@ mutate(remark = if_else(
   fxn_dz_status(disease_cols = diseases, event_filter =
         trimonly == 0, gap = 1) |>
   left_join(animals) |> select(herdid:status_inf, date_left, date_sold, date_died) |>
-  mutate(date_censor = 
-        days_to_cull)
+  mutate(date_censor = do.call(pmax, c(across(starts_with("date")), na.rm = TRUE)),
+        days_to_cull     = date_left - date_event,
+        days_to_censor_cull = if_else(!is.na(date_left), 
+                date_left   - date_event, 
+                date_censor - date_event),
+        culled_ever      = case_when(is.na(days_to_cull) ~ 0, 
+                                TRUE ~ 1),
+        culled_last_trim = case_when(days_to_cull > 0 & is.na(days_to_next_trim) ~ 1, 
+                                     is.na(days_to_cull) | days_to_next_trim > 0 ~ 0, TRUE ~ NA_real_),
+        culled_30        = case_when(days_to_cull <= 30   ~ 1, 
+                                              TRUE ~ 0))
 
+#Violin plot
+solution_data |> 
+  filter(!is.na(event)) |>
+  ggplot(aes(event, days_to_cull)) +
+  geom_violin(scale = "count",
+             draw_quantiles = c(0.25, 0.5, 0.75), fill = "skyblue") +  # adds quartile lines
+   # geom_text(data = solution_data, aes(x = status_inf, y = days_to_cull, label = round(days_to_cull, 1)),
+   #          vjust = -1, fontface = "bold", color = "blue") +
+  labs(title = "Days to Cull by Event",
+       x = "Event",
+       y = "Days to Cull") +
+  theme_minimal() 
 
-**date_censor :** this is the last date the cow would have been
-        eligible to be culled. In this dataset this would be the last date any event was entered in the data set
-    -   **days_to_cull:** days from any event(Trim or Lame ) to culling
-    -   **days_to_censor_cull:** This combines the above 2 items to calculate days from the event of interest (trim/lame) to culling or censor_date
-        if not culled
-    -   **culled_ever:** For all rows, 1 if the cow was culled, 0 if not culled
-    -   **culled_last_trim:** For each row/cow, 1 if the cow was culled after that trim without being in the chute again. 0 if not culled after that trim or if she was trimmed again
-    -   **culled_30**:
+#Heat map
+solution_data |> 
+  filter(!is.na(event)) |>
+  ggplot(aes(event, days_to_cull)) +
+  geom_bin2d(bins = 10) +
+  scale_fill_viridis_c() +
+   # geom_text(data = solution_data, aes(x = status_inf, y = days_to_cull, label = round(days_to_cull, 1)),
+   #          vjust = -1, fontface = "bold", color = "blue") +
+  labs(title = "Days to Cull by Event",
+       x = "Event",
+       y = "Days to Cull") +
+  theme_minimal() 
+
  #####         
           
 # you will need to use these functions and vectors with these arguments at some point in your code.
@@ -352,8 +380,6 @@ all_lesions <- c("dd", "footrot", 'wld', "sole_ulcer","injury",
                              "inf", "noninf", "toe", "axial", "lesion")
 
 diseases <- c("inf", "noninf", "lesion")
-
-# solution_data <- 
 
 
 
