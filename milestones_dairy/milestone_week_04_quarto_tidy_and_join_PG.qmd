@@ -25,7 +25,7 @@ In this lesson we will explore one method of using very granular denominators in
 
 We begin by reading in files for events, and denominators
 
-```{r initial denominator generation, message==FALSE}
+```{r initial denominator generation, message=FALSE, =FALSE}
 
 denominator_base<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
 events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
