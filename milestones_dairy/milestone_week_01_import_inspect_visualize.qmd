@@ -57,7 +57,7 @@ Start by finding out what your working directory is.  Run getwd() in the chunk b
 
 Above you should see the full path to your project folder. 
 
-(Please realize this is because we have intentionally set this document to have an execute directory the same as project directory, and we use the here package when we process other files.  By default, your working directory for a quarto document will be the location the quarto document is saved, unless you have specified it to be something else.  If none of this paragraph made sense, ignore it for now, and come back to it sometime when you are frustrated by file paths.)
+(Please realize this is because we have intentionally set this document to execute from the project directory -- that is what `execute-dir: project` in the project's `_quarto.yml` file does.  By default, the working directory for a quarto document is the folder where the document is saved; we override that so it is the project root instead.  Because of this, every relative file path in this project starts from the project root, so you can write a path like `data/intermediate_files/animals.parquet` and it will just work -- no extra packages needed.  If none of this paragraph made sense, ignore it for now, and come back to it sometime when you are frustrated by file paths.)
 
 Next we want to confirm where the animals.parquet file is located. It is in "data/intermediate_files". You can use the `list.files` function to prove this.   Modify the chunk below by adding the path to the intermediate_files folder in the blank. Don't forget, this folder is inside a folder named data. Also note that this is a relative path.  It begins relative to the location we recieved from getwd().  R will begin all relative paths at the location of getwd().
 

@@ -14,15 +14,15 @@ library(arrow)
 library(dtplyr)
 library(zoo)
 
-source(here::here('functions/fxn_dt_base.R'))
+source(file.path('functions/fxn_dt_base.R'))
 
 ```
 
 ```{r}
 #denominator base files -------------------
-animals<-read_parquet(here::here('data/intermediate_files/animals.parquet')) #each row is an animal
+animals<-read_parquet(file.path('data/intermediate_files/animals.parquet')) #each row is an animal
 
-animal_lactations<-read_parquet(here::here('data/intermediate_files/animal_lactations.parquet')) #each row is an animal lactation
+animal_lactations<-read_parquet(file.path('data/intermediate_files/animal_lactations.parquet')) #each row is an animal lactation
 
 
 #---------------------------
@@ -221,7 +221,7 @@ herd_deno <- bind_rows(deno_all_lacts,
 herd_deno <- fxn_calc_deno(denominators)
 
 # save file
-write_parquet(herd_deno, here::here('data/intermediate_files/herd_denominators.parquet'))
+write_parquet(herd_deno, file.path('data/intermediate_files/herd_denominators.parquet'))
 
 
 
@@ -362,7 +362,7 @@ herd_deno_dim <- bind_rows(deno_dim_all,
 
 
 # save data
-write_parquet(herd_deno_dim, here::here('data/intermediate_files/herd_dim_denominators.parquet'))
+write_parquet(herd_deno_dim, file.path('data/intermediate_files/herd_dim_denominators.parquet'))
 ```
 # Table of DIM denominator data
 This is data from the **herd_dim_denominators.parquet** in intermediate files
@@ -594,7 +594,7 @@ monthly_data <- purrr::map_dfr(months_list,
                values_to = "count") 
 
 # save data
-write_parquet(monthly_data, here::here('data/intermediate_files/herd_season_denominators.parquet'))
+write_parquet(monthly_data, file.path('data/intermediate_files/herd_season_denominators.parquet'))
 
 # # testing code
 # # code below works as gets close to DC #'s

@@ -13,7 +13,7 @@ library(waldo)
 
 source('functions/fxn_add_event_counts.R')
 
-solution<-read_rds(here::here('milestones_dairy/data_milestones/solutions_week_05_pivotlonger.rds'))
+solution<-read_rds(file.path('milestones_dairy/data_milestones/solutions_week_05_pivotlonger.rds'))
 
 ```
 
@@ -27,8 +27,8 @@ We begin by reading in files for events, and denominators
 
 ```{r initial denominator generation, message==FALSE}
 
-denominator_base<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
-events_formatted <- read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
+denominator_base<-read_parquet(file.path('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
+events_formatted <- read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))
 
 ```
 
@@ -47,7 +47,7 @@ Your final code should look something like this:
 
 ```{r, echo = TRUE}
 
-denominator<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))%>%
+denominator<-read_parquet(file.path('data/intermediate_files/denominator_by_calendar_time_period.parquet'))%>%
   filter(calendar_time_period_type %in% 'month')%>% #choose denominator period type
   filter(deno_type %in% 'lact_3+')%>% #choose the type of lactation group
   distinct()%>%
@@ -67,7 +67,7 @@ Make sure you understand them.  This is a functional example of what you will be
 
 ```{r, echo = TRUE}
 
-mast_event_summary<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+mast_event_summary<-read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))%>%
   
   #select event of interest
   filter(event %in% 'MAST')%>% #

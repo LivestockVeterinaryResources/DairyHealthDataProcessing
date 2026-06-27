@@ -1,0 +1,109 @@
+<svg viewBox="0 0 980 545" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, -apple-system, sans-serif" role="img">
+  <title>Data flow from step0 through Milestone 5</title>
+  <desc>step0_master_processing.R is the entry point; it reads config from setup files and orchestrates fxn_process_files.R, which runs step1, step2, and step3 to produce parquet artifacts. The five milestones each read an artifact: M5 reads raw CSVs, M2 and M3 read events_formatted, M1 reads animals, M4 reads the denominator. Optional branches handle example-herd download, milk data, and reports.</desc>
+  <rect x="0" y="0" width="980" height="545" fill="#ffffff"/>
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#64748b"/></marker>
+  </defs>
+
+  <text x="24" y="20" font-size="15" font-weight="700" fill="#1f2937">Dairy Health Data — flow from step0 through Milestone 5</text>
+  <text x="24" y="38" font-size="11" fill="#6b7280">Entry point → one-time processing pipeline → course milestones (each placed under the stage it reads from).</text>
+
+  <text x="24" y="58" font-size="10.5" font-weight="700" fill="#7a5a16">① ENTRY &amp; CONFIG</text>
+  <rect x="30" y="66" width="600" height="74" rx="8" fill="#fdf3e0" stroke="#c98a2b"/>
+  <text x="42" y="86" font-size="12" font-weight="700" fill="#5c3d10">step0_master_processing.R  —  entry point</text>
+  <text x="42" y="104" font-size="9.3" fill="#5c3d10">toggles: get_EXAMPLE_herds · clean_up_old_files · milk_data_exists ·</text>
+  <text x="42" y="117" font-size="9.3" fill="#5c3d10">             auto_de_duplicate · run_reports</text>
+  <text x="42" y="133" font-size="9" fill="#7a5a16">→ sources fxn_process_files.R, which orchestrates everything below</text>
+
+  <rect x="648" y="68" width="306" height="32" rx="6" fill="#fdf3e0" stroke="#c98a2b"/>
+  <text x="660" y="88" font-size="9" fill="#5c3d10">setup_default_processing_options.R — toggle defaults</text>
+  <rect x="648" y="106" width="306" height="32" rx="6" fill="#fdf3e0" stroke="#c98a2b"/>
+  <text x="660" y="126" font-size="9" fill="#5c3d10">setup_denominators.R — DOP cuts 60/400/700, period 365</text>
+  <line x1="648" y1="84" x2="632" y2="84" stroke="#64748b" stroke-width="1.3" marker-end="url(#a)"/>
+  <line x1="648" y1="122" x2="632" y2="116" stroke="#64748b" stroke-width="1.3" marker-end="url(#a)"/>
+
+  <line x1="120" y1="140" x2="120" y2="170" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+
+  <text x="24" y="162" font-size="10.5" font-weight="700" fill="#5b6b85">② ACQUIRE  →  ③ PROCESS  (run once)</text>
+  <rect x="30" y="170" width="176" height="60" rx="8" fill="#e7eef7" stroke="#5b7aa8"/>
+  <text x="118" y="190" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2d44">Raw event files</text>
+  <text x="118" y="207" text-anchor="middle" font-size="9.5" fill="#1f2d44">data/event_files/*.csv</text>
+  <text x="118" y="222" text-anchor="middle" font-size="8.5" fill="#5b6b85">DairyComp / example herds</text>
+
+  <rect x="266" y="170" width="176" height="60" rx="8" fill="#e7eef7" stroke="#5b7aa8"/>
+  <text x="354" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2d44">step1</text>
+  <text x="354" y="204" text-anchor="middle" font-size="9" fill="#1f2d44">read_in_event_data.R</text>
+  <text x="354" y="220" text-anchor="middle" font-size="8.3" fill="#5b6b85">→ events_formatted (+ all_columns)</text>
+
+  <rect x="502" y="170" width="176" height="60" rx="8" fill="#e7eef7" stroke="#5b7aa8"/>
+  <text x="590" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2d44">step2</text>
+  <text x="590" y="204" text-anchor="middle" font-size="9" fill="#1f2d44">create_intermediate_files.R</text>
+  <text x="590" y="220" text-anchor="middle" font-size="8.3" fill="#5b6b85">→ animals, animal_lactations</text>
+
+  <rect x="738" y="170" width="176" height="60" rx="8" fill="#e7eef7" stroke="#5b7aa8"/>
+  <text x="826" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2d44">step3 · Quarto</text>
+  <text x="826" y="204" text-anchor="middle" font-size="9" fill="#1f2d44">denominators_by_calendar_time</text>
+  <text x="826" y="220" text-anchor="middle" font-size="8.3" fill="#5b6b85">→ denominator…parquet</text>
+
+  <line x1="206" y1="200" x2="264" y2="200" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="442" y1="200" x2="500" y2="200" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="678" y1="200" x2="736" y2="200" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+
+  <text x="24" y="254" font-size="10.5" font-weight="700" fill="#3a6b52">④ COURSE MILESTONES — each reads an artifact above (arrows show the source)</text>
+  <line x1="112" y1="270" x2="118" y2="232" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="301" y1="270" x2="350" y2="232" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="490" y1="270" x2="358" y2="232" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="679" y1="270" x2="588" y2="232" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="868" y1="270" x2="826" y2="232" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+
+  <rect x="24" y="272" width="176" height="176" rx="8" fill="#e9f5ee" stroke="#2f8f5b"/>
+  <text x="36" y="292" font-size="11" font-weight="700" fill="#16432c">M5 · Dates &amp; Strings</text>
+  <text x="36" y="312" font-size="9" fill="#16432c">reads: raw *.csv  +</text>
+  <text x="36" y="326" font-size="9" fill="#16432c">  events_formatted (ref)</text>
+  <text x="36" y="346" font-size="9" fill="#3a6b52">skills: mdy(), floor_date,</text>
+  <text x="36" y="360" font-size="9" fill="#3a6b52">  str_* parsing</text>
+  <text x="36" y="382" font-size="9" fill="#16432c">↳ re-derives date_event</text>
+  <text x="36" y="396" font-size="9" fill="#16432c">  &amp; remark_* (redoes step1)</text>
+
+  <rect x="213" y="272" width="176" height="176" rx="8" fill="#e9f5ee" stroke="#2f8f5b"/>
+  <text x="225" y="292" font-size="11" font-weight="700" fill="#16432c">M2 · Summarize</text>
+  <text x="225" y="312" font-size="9" fill="#16432c">reads: events_formatted</text>
+  <text x="225" y="326" font-size="9" fill="#16432c">  (+ add_new_variables)</text>
+  <text x="225" y="346" font-size="9" fill="#3a6b52">skills: group_by,</text>
+  <text x="225" y="360" font-size="9" fill="#3a6b52">  summarize, quantile</text>
+  <text x="225" y="382" font-size="9" fill="#16432c">↳ dim_at_bred</text>
+  <text x="225" y="396" font-size="9" fill="#16432c">  (DIM at BRED1 over time)</text>
+
+  <rect x="402" y="272" width="176" height="176" rx="8" fill="#e9f5ee" stroke="#2f8f5b"/>
+  <text x="414" y="292" font-size="11" font-weight="700" fill="#16432c">M3 · New Variables</text>
+  <text x="414" y="312" font-size="9" fill="#16432c">reads: events_formatted</text>
+  <text x="414" y="326" font-size="9" fill="#16432c">  (health events)</text>
+  <text x="414" y="346" font-size="9" fill="#3a6b52">fxn_add_event_counts;</text>
+  <text x="414" y="360" font-size="9" fill="#3a6b52">mutate, case_when, distinct</text>
+  <text x="414" y="382" font-size="9" fill="#16432c">↳ event_counts_by_month,</text>
+  <text x="414" y="396" font-size="9" fill="#16432c">  Disease / Treatment</text>
+
+  <rect x="591" y="272" width="176" height="176" rx="8" fill="#e9f5ee" stroke="#2f8f5b"/>
+  <text x="603" y="292" font-size="11" font-weight="700" fill="#16432c">M1 · Import·Inspect·Viz</text>
+  <text x="603" y="312" font-size="9" fill="#16432c">reads: animals.parquet</text>
+  <text x="603" y="332" font-size="9" fill="#3a6b52">skills: read_parquet,</text>
+  <text x="603" y="346" font-size="9" fill="#3a6b52">  count, filter, skim, ggplot</text>
+  <text x="603" y="368" font-size="9" fill="#16432c">↳ counts, common breed,</text>
+  <text x="603" y="382" font-size="9" fill="#16432c">  age_left boxplot</text>
+
+  <rect x="780" y="272" width="176" height="176" rx="8" fill="#e9f5ee" stroke="#2f8f5b"/>
+  <text x="792" y="292" font-size="11" font-weight="700" fill="#16432c">M4 · Denominators</text>
+  <text x="792" y="312" font-size="9" fill="#16432c">reads: denominator_by_</text>
+  <text x="792" y="326" font-size="9" fill="#16432c">  calendar_time_period</text>
+  <text x="792" y="340" font-size="9" fill="#16432c">  + events_formatted</text>
+  <text x="792" y="360" font-size="9" fill="#3a6b52">skills: filter, summarize,</text>
+  <text x="792" y="374" font-size="9" fill="#3a6b52">  left_join → rate</text>
+  <text x="792" y="396" font-size="9" fill="#16432c">↳ disease rate over time</text>
+
+  <rect x="24" y="460" width="932" height="70" rx="8" fill="#f4f5f7" stroke="#cbd5e1"/>
+  <text x="36" y="478" font-size="10" font-weight="700" fill="#475569">Optional branches (toggled in step0):</text>
+  <text x="36" y="494" font-size="9" fill="#475569">• get_EXAMPLE_herds &gt; 0 → step00 downloads example herds into data/event_files/*.csv</text>
+  <text x="36" y="508" font-size="9" fill="#475569">• milk_data_exists → scripts/step1a_read_in_production_data.R → production_formatted.parquet  (separate from the milestone flow)</text>
+  <text x="36" y="522" font-size="9" fill="#475569">• run_reports → renders qmd_reports/* after step3   |   clean_up_old_files → wipes prior raw + processed data first</text>
+</svg>
