@@ -53,7 +53,7 @@ welfare. Contribution takes many forms, all valued:
 
 Industry and commercial organizations are explicitly **welcome as participants
 and resource providers** — on the same terms as everyone else, defined in
-[GOVERNANCE.md](GOVERNANCE.md) and [SPONSORSHIP.md](SPONSORSHIP.md).
+[governance.md](governance.md) and [sponsorship.md](sponsorship.md).
 
 ## The participation principle
 
@@ -71,7 +71,7 @@ The founding contributors act as **stewards, not owners**, of this project. The
 project's code, name, and any future assets are intended to be held for the
 benefit of the community, with a path toward a **neutral, independent home**
 (e.g., a fiscal host or nonprofit) as the project matures. See
-[GOVERNANCE.md](GOVERNANCE.md).
+[governance.md](governance.md).
 
 ## Founding contributors
 
@@ -79,10 +79,10 @@ benefit of the community, with a path toward a **neutral, independent home**
 - Nora Schrag
 
 Additional maintainers and a steering committee are established under
-[GOVERNANCE.md](GOVERNANCE.md).
+[governance.md](governance.md).
 
 ## Amending this charter
 
 This charter may be amended by the process described in
-[GOVERNANCE.md](GOVERNANCE.md). Proposed changes are made in the open via pull
+[governance.md](governance.md). Proposed changes are made in the open via pull
 request so the whole community can review and weigh in.

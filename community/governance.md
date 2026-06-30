@@ -5,12 +5,12 @@
 
 This document defines how decisions are made, how people earn responsibility, and
 the structural safeguards that keep the project open and independent. It
-operationalizes the [Project Charter](CHARTER.md).
+operationalizes the [Project Charter](charter.md).
 
 ## Guiding rule
 
 Decisions are made **in the open**, on **merit**, in service of the
-[mission and values](CHARTER.md). No individual's employer and no project
+[mission and values](charter.md). No individual's employer and no project
 supporter receives special authority over the project.
 
 ## Roles
@@ -18,7 +18,7 @@ supporter receives special authority over the project.
 ### Contributors
 Anyone who contributes — code, documentation, domain expertise, data, review,
 teaching, issue triage. No application needed; open a pull request or issue.
-Contributions in all forms are recognized (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+Contributions in all forms are recognized (see [contributing.md](../.github/contributing.md)).
 
 ### Maintainers (Committers)
 Contributors who have earned merge rights through sustained, high-quality
@@ -85,7 +85,7 @@ legitimate commercial relationships. This is welcome and normal. Credibility is
 protected by **disclosure and recusal**, not by exclusion.
 
 - Maintainers and Steering Committee members **publicly disclose** relevant
-  financial and organizational interests in [DISCLOSURES.md](DISCLOSURES.md).
+  financial and organizational interests in [disclosures.md](disclosures.md).
 - A decision-maker **recuses** from decisions in which they (or their
   employer/client) have a direct financial stake.
 - Disclosed conflicts are acceptable; **undisclosed** conflicts are not.
@@ -93,16 +93,16 @@ protected by **disclosure and recusal**, not by exclusion.
 ## Supporters and sponsorship
 
 Organizations may support the project with staff time, funding, or
-infrastructure under the equal-terms policy in [SPONSORSHIP.md](SPONSORSHIP.md).
+infrastructure under the equal-terms policy in [sponsorship.md](sponsorship.md).
 **Support never confers governance authority, merge rights, committee seats, or
 control over methodology.** Supporters are acknowledged with equal weight in
-[SUPPORTERS.md](SUPPORTERS.md).
+[supporters.md](supporters.md).
 
 ## Project assets and the right to fork
 
-- The project is released under an open license (see `LICENSE`). Copyright is
+- The project is released under an open license (see [LICENSE](../LICENSE)). Copyright is
   **distributed among contributors** via the Developer Certificate of Origin
-  (see [CONTRIBUTING.md](CONTRIBUTING.md)); **no contributor agreement assigns
+  (see [contributing.md](../.github/contributing.md)); **no contributor agreement assigns
   copyright to any single company.** This guarantees the project can never be
   unilaterally closed or relicensed, and the community always retains the right
   to fork.
@@ -113,13 +113,13 @@ control over methodology.** Supporters are acknowledged with equal weight in
 
 ## Code of Conduct
 
-All participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+All participation is governed by the [Code of Conduct](../.github/code_of_conduct.md).
 Enforcement is handled by `<TODO: designated maintainers / committee>` at
 `<TODO: conduct contact email>`.
 
 ## Changing this document
 
-Changes to this governance document or the [Charter](CHARTER.md) are proposed via
+Changes to this governance document or the [Charter](charter.md) are proposed via
 public pull request and adopted by Steering Committee consensus (or, before a
 committee exists, by maintainer consensus), with reasonable time for community
 comment.

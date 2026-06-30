@@ -13,7 +13,7 @@ abstract: >-
 type: software
 repository-code: "https://github.com/LivestockVeterinaryResources/DairyHealthDataProcessing"
 # url: "<TODO: project/course homepage if desired>"
-# license: <TODO: SPDX identifier matching the repository LICENSE file, e.g. MIT>
+# license: <TODO: SPDX identifier matching the repository license file, e.g. MIT>
 # version: "<TODO: set on tagged releases>"
 # date-released: "<TODO: YYYY-MM-DD on release>"
 keywords:

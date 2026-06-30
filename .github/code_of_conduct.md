@@ -37,7 +37,7 @@ Examples of unacceptable behavior:
 - Public or private harassment.
 - Publishing others' private information without explicit permission.
 - Using community participation to advance a commercial agenda in violation of
-  the project's [values](CHARTER.md) and [sponsorship policy](SPONSORSHIP.md).
+  the project's [values](../community/charter.md) and [sponsorship policy](../community/sponsorship.md).
 - Other conduct which could reasonably be considered inappropriate in a
   professional setting.
 

@@ -84,7 +84,8 @@ data/milk_files/*.parquet
 *.html
 *.pdf
 *.docx
-*.md
+# NOTE: do not blanket-ignore *.md -- that hides authored docs (README, community/, etc.).
+# Rendered/intermediate markdown is already covered by *.knit.md and *.utf8.md below.
 
 #keep pdf files for tidyverse
 !resources/*.pdf

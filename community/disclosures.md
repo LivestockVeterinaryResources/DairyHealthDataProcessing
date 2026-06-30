@@ -9,7 +9,7 @@ Many of our maintainers and decision-makers are professionally active in cattle
 health and have legitimate commercial relationships. **This is welcome and
 normal.** Credibility is protected by transparency, not by exclusion: we
 **disclose** relevant interests and **recuse** from decisions where we have a
-direct financial stake (see [GOVERNANCE.md](GOVERNANCE.md)).
+direct financial stake (see [governance.md](governance.md)).
 
 This register lists relevant financial and organizational interests of
 maintainers and Steering Committee members. Disclosed conflicts are acceptable;
@@ -45,6 +45,6 @@ undisclosed ones are not.
 ## Note on supporters
 
 Organizational support of the project is documented separately in
-[SUPPORTERS.md](SUPPORTERS.md) and governed by [SPONSORSHIP.md](SPONSORSHIP.md).
+[supporters.md](supporters.md) and governed by [sponsorship.md](sponsorship.md).
 This file concerns the personal/organizational interests of **decision-makers**,
 which is distinct from a list of project supporters.

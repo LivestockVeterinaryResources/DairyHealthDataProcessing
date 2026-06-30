@@ -1,5 +1,16 @@
 # DairyEventBasics - single herd management file
 
+This is an open, collaborative project to improve cattle health and welfare
+through better, data-driven decisions, built as open, reproducible,
+community-owned tooling. It is developed by a community of veterinarians,
+researchers, producers, analysts, educators, and students, and it welcomes
+contributions of expertise, code, data, and supporting resources on equal,
+transparent terms — support adds capacity but never buys control over the
+project's direction or analysis. Our charter, governance, contribution
+guidelines, code of conduct, and sponsorship and disclosure policies live in the
+[`community/`](community/) folder; see the
+[community summary](community/community_summary.md) for an overview.
+
 The goal of this is to streamline initial data processing so that more
 time can be spent acting on conclusions from data rather than processing
 it. The example code below pulls 5 years of data in order to have the

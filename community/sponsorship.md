@@ -8,7 +8,7 @@ contributing **resources**. This policy defines the terms, which are **the same
 for every supporter**, so that support strengthens the project without
 compromising its independence or credibility.
 
-It operationalizes the [Charter](CHARTER.md) and [Governance](GOVERNANCE.md).
+It operationalizes the [Charter](charter.md) and [Governance](governance.md).
 
 ## The one rule
 
@@ -42,14 +42,14 @@ or interpretation.
   "official" partner or block other supporters.
 
 Maintainers retain the right to **decline** any contribution or funding that
-would compromise the [values](CHARTER.md), and to decline sponsor-desired changes
+would compromise the [values](charter.md), and to decline sponsor-desired changes
 that fail review.
 
 ## Equal terms and equal acknowledgment
 
 - Every supporter participates on identical terms — there are no special deals.
 - Supporters are listed with **equal visual and textual weight** in
-  [SUPPORTERS.md](SUPPORTERS.md) (and any README "Supported by" section). No
+  [supporters.md](supporters.md) (and any README "Supported by" section). No
   supporter is featured above the others.
 - We use the neutral verb **"supported by"** — never "sponsored by" a single
   entity, "official," or "brought to you by," which imply endorsement or
@@ -59,12 +59,12 @@ that fail review.
 
 - **Funded work is disclosed.** When an organization funds specific work, the
   scope is described publicly, and contributions record it with a
-  `Supported by:` commit trailer (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+  `Supported by:` commit trailer (see [contributing.md](../.github/contributing.md)).
 - **Personal conflicts are disclosed.** Contributors and decision-makers with a
   financial relationship to a supporter disclose it (see
-  [DISCLOSURES.md](DISCLOSURES.md)) and recuse from decisions where they have a
-  direct stake (see [GOVERNANCE.md](GOVERNANCE.md)).
-- **Independence statement** — see [SUPPORTERS.md](SUPPORTERS.md).
+  [disclosures.md](disclosures.md)) and recuse from decisions where they have a
+  direct stake (see [governance.md](governance.md)).
+- **Independence statement** — see [supporters.md](supporters.md).
 
 ## Why we can accept industry support credibly
 

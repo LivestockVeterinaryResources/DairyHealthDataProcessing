@@ -7,8 +7,8 @@ open, reproducible tooling. This project is built by a community of
 veterinarians, researchers, producers, analysts, educators, and students.
 **You do not need to be a programmer to contribute.**
 
-Please read the [Charter](CHARTER.md) for our mission and values, and the
-[Code of Conduct](CODE_OF_CONDUCT.md), which governs all participation.
+Please read the [Charter](../community/charter.md) for our mission and values, and the
+[Code of Conduct](code_of_conduct.md), which governs all participation.
 
 ## Ways to contribute (all are valued equally)
 
@@ -38,7 +38,7 @@ on so we can help you get started.
    issue.
 4. **Review.** A maintainer reviews for correctness, clarity, fit with the
    values, and (for any change to how data is computed or interpreted)
-   **independent methodology review** per [GOVERNANCE.md](GOVERNANCE.md).
+   **independent methodology review** per [governance.md](../community/governance.md).
 5. **Merge** once approved.
 
 Keep pull requests focused and reasonably small — they are easier to review and
@@ -79,7 +79,7 @@ Signed-off-by: Your Name <your.email@example.com>
 
 If you have a financial relationship relevant to the change (e.g., you are paid
 by a company affected by a methodology change), disclose it in the PR and see the
-conflict-of-interest expectations in [GOVERNANCE.md](GOVERNANCE.md).
+conflict-of-interest expectations in [governance.md](../community/governance.md).
 
 ## Review standards
 
@@ -90,7 +90,7 @@ Contributions are evaluated on:
   interpretation.
 - **Clarity** — readable code and documentation; this is a teaching project, so
   approachability matters.
-- **Fit with the [values](CHARTER.md)** — especially vendor/data-source
+- **Fit with the [values](../community/charter.md)** — especially vendor/data-source
   neutrality.
 
 A contribution is judged on its merits and soundness — **never on who funded it.**
@@ -98,7 +98,7 @@ A contribution is judged on its merits and soundness — **never on who funded i
 ## Recognition
 
 Contributors are credited in `<TODO: AUTHORS / CONTRIBUTORS file or release
-notes>` and, for citable releases, in [CITATION.cff](CITATION.cff). We aim to
+notes>` and, for citable releases, in [citation.cff](../CITATION.cff). We aim to
 recognize non-code contributions (expertise, data, teaching) alongside code.
 
 ## Questions
