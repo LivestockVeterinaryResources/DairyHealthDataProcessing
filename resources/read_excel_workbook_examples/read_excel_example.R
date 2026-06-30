@@ -25,9 +25,14 @@
 
 
 # ---- 1. Load the tools we need ---------------------------------------------
-# readxl  : reads Excel files (loaded by the function file we source below)
-# dplyr   : gives us mutate() to add columns and bind_rows() to stack tables
-# tibble  : the modern, tidy version of a data frame
+# library(tidyverse) loads the everyday tidyverse packages we use here:
+#   dplyr  -> mutate() to add columns, bind_rows() to stack tables
+#   tibble -> the modern, tidy version of a data frame
+# IMPORTANT: library(tidyverse) does NOT load readxl (the Excel reader).
+# That is OK here -- the function file we source below calls library(readxl)
+# for us. You only need readxl INSTALLED, which step 0 (functions/fxn_pacman.R)
+# takes care of. If you ever see "there is no package called 'readxl'", run:
+#   install.packages("readxl")
 library(tidyverse)
 
 # Bring in OUR helper function, read_excel_workbooks(), which reads every
@@ -116,7 +121,7 @@ master_data <- bind_rows(collected_sheets)
 # How many rows and columns did we end up with?
 print(dim(master_data))
 
-# Peek at the first few rows (note clinic_id and herd_id are right up front):
+# Peek at the first few rows (note original_file_name and herd_id are up front):
 print(head(master_data))
 
 # How many rows came from each file and herd? A quick sanity check that the
