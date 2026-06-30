@@ -1,253 +1,46 @@
 event,protocols,event_type,count_rows
-ABORT,BLANK_UNKNOWN,repro,5217
-ABSCESS,C/D/F/Poly,unknown,56
-ABSCESS,Cut Drain,unknown,2
-AFUP,BLANK_UNKNOWN,unknown,826
-BIRTH,BLANK_UNKNOWN,phase_parameter,30012
-BLOAT,Oral Bloat,health,5
-BLOAT,TR Bloat,health,4
-BRED,BLANK_UNKNOWN,repro,103477
-BULLPEN,BLANK_UNKNOWN,repro,79
-BVDT,BLANK_UNKNOWN,unknown,2996
-CHECK,BLANK_UNKNOWN,repro,12035
-CHKKETO,BLANK_UNKNOWN,unknown,9033
-CLOSTRD,BLANK_UNKNOWN,unknown,42
-CLOSTRD,H Clostridia,unknown,17
-CLOSTRD,Poly-Antitoxi,unknown,9
-CSECT,BLANK_UNKNOWN,unknown,102
-CULTURE,BLANK_UNKNOWN,health,2052
-CULTURE,CentralStar,health,2
-CULTURE,Contaminated,health,89
-CULTURE,Gram -,health,4
-CULTURE,No Growth,health,6145
-CULTURE,Staph aureus,health,58
-CULTURE,Staph spp. +++,health,251
-CULTURE,Staph spp. +/++,health,1452
-CULTURE,Strep spp.,health,105
-CWHEAT,BLANK_UNKNOWN,repro,45440
-DA,BLANK_UNKNOWN,health,41
-DA,No Surgery,health,454
-DA,Surg+Excenel,health,12
-DA,Surgery+Poly,health,16
-DA,Surgery-No Rx,health,5
-DIARHEA,BLANK_UNKNOWN,health,136
-DIARHEA,Rumen Juice,health,1
-DIED,BLANK_UNKNOWN,lact_parameter,1858
-DIED,Calving complic,lact_parameter,160
-DIED,Chronic poor do,lact_parameter,39
-DIED,Congenital defe,lact_parameter,51
-DIED,Digestive,lact_parameter,181
-DIED,Drench aspirati,lact_parameter,29
-DIED,Injury,lact_parameter,316
-DIED,Joint infection,lact_parameter,8
-DIED,Low ADG,lact_parameter,5
-DIED,Mastitis,lact_parameter,82
-DIED,Metritis,lact_parameter,2
-DIED,Milk fever,lact_parameter,32
-DIED,Navel infection,lact_parameter,4
-DIED,Pneu/Respirator,lact_parameter,40
-DIED,Prolapse,lact_parameter,2
-DIED,Septic,lact_parameter,17
-DIED,Unknown/Other,lact_parameter,132
-DIP,BLANK_UNKNOWN,unknown,3
-DIP,H Diphteria 1,unknown,7
-DIP,TR Dipteria 1,unknown,19
-DIP,TR Dipteria 2,unknown,1
-DNB,BLANK_UNKNOWN,repro,5542
-DRY,BLANK_UNKNOWN,lact_parameter,1357
-DRY,No Treatment,lact_parameter,11881
-DRY,Orbenin,lact_parameter,9381
-DRY,QuarterMaster,lact_parameter,266
-DRY,Spectra-DC,lact_parameter,22
-DRY,Tomorrow,lact_parameter,1121
-DSHOT1,BLANK_UNKNOWN,unknown,101251
-DYSTO,BLANK_UNKNOWN,unknown,56
-DYSTOCA,BLANK_UNKNOWN,unknown,18
-DYSTOCA,EXENEL.SQ,unknown,3
-DYSTOCA,PolyFlex,unknown,787
-EAR,BLANK_UNKNOWN,unknown,202
-EAR,H Eartag Inf,unknown,60
-EAR,H Otitis 1,unknown,127
-EAR,H Otitis 2,unknown,30
-EAR,H Otitis <30 d,unknown,167
-EAR,PENICILLIN,unknown,47
-EAR,Polyflex,unknown,216
-EAR,TR Eartag Inf,unknown,11
-EAR,TR Otitis 1,unknown,390
-EAR,TR Otitis 2,unknown,36
-EDRYOFF,BLANK_UNKNOWN,unknown,212
-FRESH,BLANK_UNKNOWN,lact_parameter,37042
-FROMDD,BLANK_UNKNOWN,unknown,751
-GOHOME,BLANK_UNKNOWN,management,7738
-HEAT,BLANK_UNKNOWN,repro,40442
-HEIGHT,BLANK_UNKNOWN,measure,282
-HIGHSCC,AHV pill,unknown,177
-HIGHSCC,ToDAY 5 Day,unknown,28
-HIGHSCC,killQ highscc,unknown,5
-ILLMISC,BLANK_UNKNOWN,health,98
-IMPLANT,BLANK_UNKNOWN,unknown,100
-INDUCED,BLANK_UNKNOWN,unknown,4
-INFECTN,BLANK_UNKNOWN,unknown,9
-INJURY,BLANK_UNKNOWN,health,48
-INJURY,Cut Poly Flex,health,8
-INJURY,H Inj Infec,health,32
-INJURY,H Inj Uninf,health,23
-INJURY,TR Inj Infect,health,281
-INJURY,TR Inj Uninfec,health,316
-JOHNES,BLANK_UNKNOWN,health,7100
-JOINT,BLANK_UNKNOWN,health,520
-JOINT,EXD-JointTX,health,2
-JOINT,EXD/PLY-Joint,health,95
-JOINT,H Emb Joint1,health,21
-JOINT,H Emb Joint2,health,7
-JOINT,H Joint Inf,health,44
-JOINT,PLY-JointTx,health,24
-JOINT,Res-Joint,health,362
-JOINT,TR Emb Joint1,health,3
-JOINT,TR Joint Infe,health,4
-JOINT,pre joint,health,631
-JOPCR,BLANK_UNKNOWN,unknown,3316
-KETOSIS,BLANK_UNKNOWN,health,29
-KETOSIS,PropGly Only,health,1086
-KICKY,BLANK_UNKNOWN,unknown,2
-LAME,Abces\Block,health,2094
-LAME,Absc/BlkExced,health,45
-LAME,Absce/BlkPoly,health,47
-LAME,Abscess,health,137
-LAME,BLANK_UNKNOWN,health,2448
-LAME,Foot Rot,health,1
-LAME,Foot Rot/Exce,health,201
-LAME,FootRot/Poly,health,25
-LAME,Footrot/Pen,health,4
-LAME,H Lame Infect,health,9
-LAME,Hairy Wart,health,1566
-LAME,Injury,health,989
-LAME,Injury/Block,health,13
-LAME,Injury/Excede,health,21
-LAME,Injury/Poly,health,123
-LAME,Other,health,2
-LAME,Penicillin,health,144
-LAME,Remove Block,health,8
-LAME,TR Lame Infec,health,9
-LAME,TR Lame Uninf,health,6
-LAME,Thin Sole,health,610
-LAME,Trim Only,health,35862
-LAME,Ulcer,health,357
-LAME,Ulcer/BlkExce,health,13
-LAME,Ulcer/BlkPoly,health,2
-LAME,Ulcer/Block,health,1828
-LAME,WhiteLineAbsc,health,54
-LEUKOIS,BLANK_UNKNOWN,health,33790
-LKSTEST,BLANK_UNKNOWN,measure,18
-LOWRUM,BLANK_UNKNOWN,unknown,192
-LUNGS,BLANK_UNKNOWN,measure,319
-MAST,AHV pill,health,69
-MAST,BLANK_UNKNOWN,health,537
-MAST,CMT Negative,health,17
-MAST,No Treatment,health,1585
-MAST,Spectra 3Day,health,1519
-MAST,Spectra-5Dy,health,104
-MAST,Systemic mastit,health,8
-MAST,TR Mastitis 1,health,8
-MAST,Today 3 Day,health,4525
-MAST,Today 5 Day,health,289
-MAST,amx3,health,202
-MEASURE,BLANK_UNKNOWN,measure,29172
-METR,BLANK_UNKNOWN,health,288
-METR,EXCEDE-BOE,health,1
-METR,Excenel+Propy,health,3991
-METR,PolyFlex+Prop,health,1539
-MF,BLANK_UNKNOWN,health,64
-MF,BoviK Prevent,health,3691
-MF,BoviKalc,health,22
-MF,CalPhos IV,health,176
-MOVE,BLANK_UNKNOWN,management,412179
-NAVEL,BLANK_UNKNOWN,health,82
-NAVEL,H Navel Infec,health,231
-NAVEL,Hernia Surgery,health,4
-NAVEL,LargeZip,health,4
-NAVEL,Navel Pen,health,52
-NAVEL,PolyFlex,health,449
-NAVEL,TR Navel Inf,health,15
-OK,BLANK_UNKNOWN,repro,9009
-OLDOFFD,BLANK_UNKNOWN,unknown,125
-OLD_ILL,BLANK_UNKNOWN,health,49
-OPEN,BLANK_UNKNOWN,repro,23288
-OTHER,BLANK_UNKNOWN,health,19
-OTHER,TR Listeria,health,1
-OVSYNCH,BLANK_UNKNOWN,repro,5218
-PAIN,Asprin,unknown,1
-PAIN,BANAMINE.td,unknown,668
-PAIN,BLANK_UNKNOWN,unknown,205
-PAIN,Banamine,unknown,2
-PAIN,Banamine TD,unknown,3
-PAIN,Disbud Paste,unknown,75
-PAIN,Meloxicam,unknown,7180
-PINKEYE,BLANK_UNKNOWN,health,494
-PINKEYE,Draxxin,health,11
-PINKEYE,H Emb Pinkeye,health,54
-PINKEYE,H Pinkeye,health,204
-PINKEYE,LA200SQ,health,1477
-PINKEYE,Spray,health,161
-PINKEYE,Sub Conj Inj,health,8
-PINKEYE,TR Emb Pinkye,health,268
-PINKEYE,TR Pinkeye,health,3557
-PNEU,BLANK_UNKNOWN,health,1239
-PNEU,Baytril,health,273
-PNEU,Baytril+Ring,health,34
-PNEU,CHRONIC PNEU,health,11
-PNEU,Draxxin,health,786
-PNEU,Excenel,health,9
-PNEU,H Aspiration,health,29
-PNEU,H Pneu 1,health,805
-PNEU,H Pneu 2,health,258
-PNEU,H Pneu 3,health,34
-PNEU,H Pneu 4,health,5
-PNEU,Resflor Gold,health,3216
-PNEU,TR Pneu 1,health,1554
-PNEU,TR Pneu 2,health,562
-PNEU,TR Pneu 3,health,357
-PNEU,TR Pneu 4,health,17
-PNEU,Zuprevo,health,1335
-PREG,BLANK_UNKNOWN,repro,115788
-PREV,BLANK_UNKNOWN,repro,172
-PROLAPS,BLANK_UNKNOWN,health,2
-PROLAPS,PolyFlex,health,13
-RECHK,BLANK_UNKNOWN,repro,1492
-RP,BLANK_UNKNOWN,health,448
-SCOURS,BLANK_UNKNOWN,health,472
-SCOURS,Corid,health,35
-SCOURS,Diaque,health,1242
-SCOURS,H Scours IV,health,31
-SCOURS,H Scours Mild,health,451
-SCOURS,H Scours Mod,health,100
-SCOURS,H ScoursFever,health,75
-SCOURS,Ringers,health,771
-SCOURS,vitolyte,health,358
-SCRHEAT,BLANK_UNKNOWN,repro,125
-SEPTIC,BLANK_UNKNOWN,health,30
-SEPTIC,H Septic,health,101
-SEPTIC,TR Septic,health,5
-SOLD,BLANK_UNKNOWN,lact_parameter,24729
-SUPORT,Alerg RXN,health,11
-SUPORT,Asprin,health,1
-SUPORT,BLANK_UNKNOWN,health,1155
-SUPORT,Celmanax,health,1085
-SUPORT,Meloxicam,health,12237
-SUPORT,Newborn-Dex,health,167
-SUPORT,PEAK Vit,health,2
-SUPORT,Probios,health,4
-SUPORT,Ringers Fluid,health,218
-SUPORT,alerg RXN,health,16
-TOCH,BLANK_UNKNOWN,unknown,6565
-TOCLOSE,BLANK_UNKNOWN,management,35300
-TOCM,BLANK_UNKNOWN,unknown,2
-TOGROWR,BLANK_UNKNOWN,management,1447
-TRIM,BLANK_UNKNOWN,health,23790
-TWINS,BLANK_UNKNOWN,unknown,1
-TWINS,PolyFlex,unknown,742
-URGENT,BLANK_UNKNOWN,unknown,10685
-VACC,BLANK_UNKNOWN,vac,56299
-VACC,Cal7_T5,vac,1
-VACC,SG_SRP,vac,29
-XID,BLANK_UNKNOWN,management,219
+ABORT,BLANK_UNKNOWN,repro,213
+BORN,BLANK_UNKNOWN,phase_parameter,1123
+BRED,BLANK_UNKNOWN,repro,5623
+CIDROUT,BLANK_UNKNOWN,repro,26
+CIDR_IO,BLANK_UNKNOWN,repro,66
+CULTURE,BLANK_UNKNOWN,health,2265
+DA,BLANK_UNKNOWN,health,55
+DEHORN,BLANK_UNKNOWN,management,1302
+DIARHEA,BLANK_UNKNOWN,health,1234
+DIED,BLANK_UNKNOWN,lact_parameter,396
+DNB,BLANK_UNKNOWN,repro,295
+DRY,BLANK_UNKNOWN,lact_parameter,801
+EXM,BLANK_UNKNOWN,unknown,2778
+FRESH,BLANK_UNKNOWN,lact_parameter,1731
+GOHOME,BLANK_UNKNOWN,management,2
+HRDWARE,BLANK_UNKNOWN,health,2
+ILLMISC,BLANK_UNKNOWN,health,840
+INJURY,BLANK_UNKNOWN,health,33
+KETOSIS,BLANK_UNKNOWN,health,42
+LAME,BLANK_UNKNOWN,health,513
+MAST,BLANK_UNKNOWN,health,2124
+MEASURE,BLANK_UNKNOWN,measure,152
+METR,BLANK_UNKNOWN,health,191
+METR,LA200.IV,health,4
+MF,BLANK_UNKNOWN,health,24
+MOVE,BLANK_UNKNOWN,management,4539
+OK,BLANK_UNKNOWN,repro,61
+OPEN,BLANK_UNKNOWN,repro,1957
+OTHER,BLANK_UNKNOWN,health,63
+PNEU,BLANK_UNKNOWN,health,2720
+PNEU,POLYFLEX.IM,health,158
+PREBRED,BLANK_UNKNOWN,unknown,1394
+PREFRSH,BLANK_UNKNOWN,unknown,470
+PREG,BLANK_UNKNOWN,repro,5952
+PREV,BLANK_UNKNOWN,repro,5
+PROST,BLANK_UNKNOWN,repro,540
+RECK,BLANK_UNKNOWN,repro,36
+RP,BLANK_UNKNOWN,health,125
+SCKETO,BLANK_UNKNOWN,unknown,84
+SOLD,BLANK_UNKNOWN,lact_parameter,601
+TEAT3,BLANK_UNKNOWN,management,18
+TOGROWR,BLANK_UNKNOWN,management,98
+TREATED,BLANK_UNKNOWN,health,715
+TRIAL,BLANK_UNKNOWN,unknown,187
+VACC,BLANK_UNKNOWN,vac,118
