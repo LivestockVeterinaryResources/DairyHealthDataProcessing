@@ -10,8 +10,8 @@ at, a shorter time frame may be utilized.
 
 This workflow is set up to intentionally NOT share original data files
 due to both their size and privacy. For this reason any files you put in
-the Data/ subfolders will not be shared to git unless they are in the
-Data/SharedFiles folder.
+the data/ subfolders will not be shared to git unless they are in the
+data/shared_files folder.
 
 More details about the data structure can be found in the resources
 folder: DataProcessingDocumentation.pptx.
@@ -20,15 +20,16 @@ Template files/functions can also be found in the resources folder.
 These are meant to be starter scripts for common (but non standard)
 functions
 
-This is an open, collaborative project for improving cattle health and welfare
-through better, data-driven decisions. The tools we build are open, 
-reproducible, and community-owned, developed by veterinarians, researchers, 
-producers, analysts, educators, and students. We welcome contributions of 
-expertise, code, data, and supporting resources on equal, transparent terms. 
-Financial support adds capacity but never buys control over the project's 
-direction or analysis. Our charter, governance, contribution guidelines, 
-code of conduct, and sponsorship and disclosure policies live in the 
-[`community/`](community/) folder; see the
+This project is open, community-owned R tooling to improve cattle health and 
+welfare through better, data-driven decisions. It turns raw dairy data exports 
+into analysis-ready parquet files, and doubles as the codebase for a Posit/R
+teaching course. The pipeline produces a few example reports, but only to 
+demonstrate the workflow. Turning the processed data into real, actionable 
+insights remains the responsibility of those with enough context about the 
+data to appropriately interpret it.
+
+The project's charter, governance, contribution guidelines, and sponsorship and
+disclosure policies live in the [`community/`](community/) folder; see the
 [community summary](community/community_summary.md) for an overview.
 
 ------------------------------------------------------------------------
@@ -77,7 +78,7 @@ the **data//milk_files** folder
 -   EVENTS #1 #11 #29 #6 #13\\4S2000H
 ```
 
-NEXT - Open the file names "STEP0_MASTER_PROCESSING.R" in Rstudio. Check
+NEXT - Open the file names "step0_master_processing.R" in Rstudio. Check
 to make sure
 
 -   that all farm specific options are set up correctly.
@@ -86,9 +87,9 @@ to make sure
 
 -   Set heifer import function to TRUE if pulled heifer data
 
-LAST - Run STEP0_MASTER_PROCESSING.R
+LAST - Run step0_master_processing.R
 
-FINALLY - Use the files in **data//intermediate files** folder to create
+FINALLY - Use the files in **data//intermediate_files** folder to create
 reports.
 
 -   animals.parquet - each row is a unique animal
@@ -103,7 +104,7 @@ reports.
 
 You can view example reports in the **reports folder**. They will be in
 subfolders.\
-The ones listed below are all in **qmd_files**
+The ones listed below are all in **qmd_reports**
 
 -   report_data_dictionary.html explains variables in intermediate files
 

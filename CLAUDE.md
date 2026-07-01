@@ -5,11 +5,16 @@ repository. Keep this file current as conventions change.
 
 ## What this project is
 
-Open, community-owned R tooling to improve cattle health and welfare through
-better, data-driven decisions. It turns raw DairyComp (DC305) event exports into
-analysis-ready parquet files and reports, and it doubles as the codebase for a
-Posit/R teaching course. See `README.md` for the data-processing walkthrough and
-the `community/` folder for how the project is governed.
+This project is open, community-owned R tooling to improve cattle health and welfare through 
+better, data-driven decisions. It turns raw dairy data exports into 
+analysis-ready parquet files, and doubles as the codebase for a Posit/R teaching 
+course. The pipeline produces a few example reports, but only to demonstrate 
+the workflow. Turning the processed data into real, actionable insights remains 
+the responsibility of those with enough context about the data to appropriately
+interpret it.
+
+See `README.md` for the data-processing walkthrough and
+the `community/` folder for how the project is governed.  
 
 ## Repository conventions
 
