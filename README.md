@@ -135,6 +135,20 @@ file.
 
 ------------------------------------------------------------------------
 
+## Supporters & contributors
+
+This project runs on two kinds of contribution:
+
+- **Code** — everyone who commits is credited automatically on the
+  [GitHub contributors graph](https://github.com/LivestockVeterinaryResources/DairyHealthDataProcessing/graphs/contributors).
+- **Expertise or funding** — individuals and organizations who contribute domain
+  expertise, time, infrastructure, or dollars are recognized in
+  [Supporters](community/supporters.md). Support adds capacity but never buys
+  control over the project's direction or analysis (see the
+  [sponsorship policy](community/sponsorship.md)).
+
+------------------------------------------------------------------------
+
 Code structure details and reference documents: tidyverse style guide
 <https://style.tidyverse.org/files.html>.\
 <https://design.tidyverse.org/>

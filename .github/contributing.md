@@ -97,9 +97,17 @@ A contribution is judged on its merits and soundness — **never on who funded i
 
 ## Recognition
 
-Contributors are credited in `<TODO: AUTHORS / CONTRIBUTORS file or release
-notes>` and, for citable releases, in [citation.cff](../CITATION.cff). We aim to
-recognize non-code contributions (expertise, data, teaching) alongside code.
+Contributions are credited in a few complementary ways:
+
+- **Code** — everyone who commits is credited automatically on the project's
+  [GitHub contributors graph](https://github.com/LivestockVeterinaryResources/DairyHealthDataProcessing/graphs/contributors)
+  (no list to maintain).
+- **Expertise, data, teaching, or funding** — the contributions that commits
+  don't capture are recognized in [Supporters](../community/supporters.md).
+- **Citable authorship** — for releases, a curated author list is maintained in
+  [citation.cff](../CITATION.cff).
+
+We deliberately recognize non-code contributions alongside code.
 
 ## Questions
 

@@ -2,9 +2,15 @@
 
 > **Status: DRAFT for community review.** Confirm the list below before adoption.
 
-This project is improved by the contributed time, expertise, and resources of
-the people and organizations below. They are listed with equal weight; their
-support provides **capacity, not control** (see [sponsorship.md](sponsorship.md)).
+This project is improved by support of two kinds — **expertise** (domain
+knowledge, time, review, teaching, data) and **funding or infrastructure**
+(dollars and resources). Supporters may be individuals or organizations; all are
+listed with equal weight, and their support provides **capacity, not control**
+(see [sponsorship.md](sponsorship.md)).
+
+Code contributors are credited automatically on the project's GitHub
+contributors graph and are not duplicated here — this page is for the expertise
+and funding that commits don't capture.
 
 ## Independence statement
 
@@ -19,7 +25,7 @@ support provides **capacity, not control** (see [sponsorship.md](sponsorship.md)
 > disclosed and receive equal acknowledgment; none receive preferential
 > treatment.
 
-## Supporting organizations
+## Supporting organizations & individuals
 
 _Listed alphabetically. Equal weight, no ranking._
 
@@ -29,9 +35,12 @@ _Listed alphabetically. Equal weight, no ranking._
 - `<TODO: confirm the fourth logo shown on the course "Supported by" page and any
   other current supporters — e.g., a college of veterinary medicine, Catalytics,
   University of Florida, University of Iowa, Adams Land and Cattle.>`
+- `<TODO: add individual experts whose contributed knowledge or time you want to
+  recognize here.>`
 
-## How organizations are added
+## How supporters are added
 
-Supporters are added by pull request once they have contributed time, funding, or
-infrastructure under the [Sponsorship & Support Policy](sponsorship.md). Logos and
-names are presented with equal prominence.
+Supporters are added by pull request once they have contributed expertise, time,
+funding, or infrastructure under the
+[Sponsorship & Support Policy](sponsorship.md). Names (and logos, for
+organizations) are presented with equal prominence.
