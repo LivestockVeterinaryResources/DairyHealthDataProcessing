@@ -1,17 +1,7 @@
-# DairyEventBasics - single herd management file
+# Dairy Health Data Processing 
 
-This is an open, collaborative project to improve cattle health and welfare
-through better, data-driven decisions, built as open, reproducible,
-community-owned tooling. It is developed by a community of veterinarians,
-researchers, producers, analysts, educators, and students, and it welcomes
-contributions of expertise, code, data, and supporting resources on equal,
-transparent terms — support adds capacity but never buys control over the
-project's direction or analysis. Our charter, governance, contribution
-guidelines, code of conduct, and sponsorship and disclosure policies live in the
-[`community/`](community/) folder; see the
-[community summary](community/community_summary.md) for an overview.
 
-The goal of this is to streamline initial data processing so that more
+The goal of this project is to streamline initial data processing so that more
 time can be spent acting on conclusions from data rather than processing
 it. The example code below pulls 5 years of data in order to have the
 opportunity to look at trends over at least 3 years with complete
@@ -29,6 +19,17 @@ folder: DataProcessingDocumentation.pptx.
 Template files/functions can also be found in the resources folder.
 These are meant to be starter scripts for common (but non standard)
 functions
+
+This is an open, collaborative project for improving cattle health and welfare
+through better, data-driven decisions. The tools we build are open, 
+reproducible, and community-owned, developed by veterinarians, researchers, 
+producers, analysts, educators, and students. We welcome contributions of 
+expertise, code, data, and supporting resources on equal, transparent terms. 
+Financial support adds capacity but never buys control over the project's 
+direction or analysis. Our charter, governance, contribution guidelines, 
+code of conduct, and sponsorship and disclosure policies live in the 
+[`community/`](community/) folder; see the
+[community summary](community/community_summary.md) for an overview.
 
 ------------------------------------------------------------------------
 
