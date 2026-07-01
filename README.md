@@ -48,15 +48,15 @@ filter out what we don't need later
 
 FIRST - Pull events from dairy comp using one option from the code
 below. Save the resulting csv file in the folder named
-**data//event_files**
+**data/event_files**
 
 ```         
--   Option 1 Pull 5 years in one file: EVENTS\\2S2000CHN #1 #2 #4 #5
+-   Option 1 Pull 5 years in one file: EVENTS\2S2000CHN #1 #2 #4 #5
     #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43
 
 -   Option 2 pull smaller time frames using "days back" starting
     with "S""days back" and ending with "L""days back":
-    EVENTS\\2S99L0CHN #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31
+    EVENTS\2S99L0CHN #1 #2 #4 #5 #6 #11 #12 #13 #15 #28 #29 #30 #31
     #32 #38 #40 #43
     
 ```
@@ -66,16 +66,16 @@ NEXT - if you want to pull heifer data, pull the data and save in the
 event_files)
 
 ```         
--   Pull heifer data: EVENTS\\2S2000CHNY #1 #2 #4 #5
+-   Pull heifer data: EVENTS\2S2000CHNY #1 #2 #4 #5
     #6 #11 #12 #13 #15 #28 #29 #30 #31 #32 #38 #40 #43 FOR LACT=0
     
 ```
 
 NEXT - if you want to look at production data, pull the data and save in
-the **data//milk_files** folder
+the **data/milk_files** folder
 
 ```         
--   EVENTS #1 #11 #29 #6 #13\\4S2000H
+-   EVENTS #1 #11 #29 #6 #13\4S2000H
 ```
 
 NEXT - Open the file names "step0_master_processing.R" in Rstudio. Check
@@ -89,7 +89,7 @@ to make sure
 
 LAST - Run step0_master_processing.R
 
-FINALLY - Use the files in **data//intermediate_files** folder to create
+FINALLY - Use the files in **data/intermediate_files** folder to create
 reports.
 
 -   animals.parquet - each row is a unique animal
