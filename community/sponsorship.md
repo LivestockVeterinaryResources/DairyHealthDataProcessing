@@ -82,3 +82,14 @@ Organizations interested in supporting the project can reach out at
 `<TODO: supporter contact>` or open an issue. We are glad to discuss in-kind
 time, funding scoped to specific work, or infrastructure — always under the equal
 terms above.
+
+## Current supporters
+
+_Shown with equal weight, no ranking. See [supporters.md](supporters.md) for the
+full list and the independence statement._
+
+<p align="center">
+  <img src="images/lvr.png" alt="Livestock Veterinary Resources (LVR)" height="90">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="images/parnell.png" alt="Parnell — Living Science" height="90">
+</p>

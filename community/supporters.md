@@ -30,11 +30,13 @@ and funding that commits don't capture.
 _Listed alphabetically. Equal weight, no ranking._
 
 - **Iowa State University**
+- **Kansas State University**
 - **Livestock Veterinary Resources, LLC (LVR)**
+- **Parnell**
 - **University of Minnesota Extension**
 - `<TODO: confirm the fourth logo shown on the course "Supported by" page and any
   other current supporters — e.g., a college of veterinary medicine, Catalytics,
-  University of Florida, University of Iowa, Adams Land and Cattle.>`
+  University of Florida, University of Iowa>`
 - `<TODO: add individual experts whose contributed knowledge or time you want to
   recognize here.>`
 
