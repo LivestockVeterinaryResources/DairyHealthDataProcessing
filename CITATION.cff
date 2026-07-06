@@ -1,0 +1,37 @@
+# Citation File Format (https://citation-file-format.github.io/)
+# Status: DRAFT for community review. Confirm authors, affiliations, ORCIDs,
+# license, and version before adoption. GitHub renders a "Cite this repository"
+# button from this file.
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "DairyHealthDataProcessing"
+abstract: >-
+  Open, reproducible, community-owned tooling for working with cattle health
+  data: importing and standardizing records, creating analysis-ready data,
+  computing health and production metrics, and producing reports — built to
+  improve cattle health and welfare through better, data-driven decisions.
+type: software
+repository-code: "https://github.com/LivestockVeterinaryResources/DairyHealthDataProcessing"
+# url: "<TODO: project/course homepage if desired>"
+# license: <TODO: SPDX identifier matching the repository license file, e.g. MIT>
+# version: "<TODO: set on tagged releases>"
+# date-released: "<TODO: YYYY-MM-DD on release>"
+keywords:
+  - cattle health
+  - dairy
+  - veterinary
+  - animal welfare
+  - open data
+  - reproducible research
+  - R
+authors:
+  - given-names: Gerard
+    family-names: Cramer
+    # affiliation: "<TODO: confirm preferred affiliation>"
+    # orcid: "https://orcid.org/<TODO>"
+  - given-names: Nora
+    family-names: Schrag
+    # affiliation: "Livestock Veterinary Resources, LLC"
+    # orcid: "https://orcid.org/<TODO>"
+  # - name: "The DairyHealthDataProcessing contributors"
+  #   <TODO: add additional maintainers/contributors as appropriate>
