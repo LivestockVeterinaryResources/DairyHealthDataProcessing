@@ -1,0 +1,156 @@
+---
+title: "Milk Analysis"
+editor: source
+format: 
+ html:
+   embed-resources: true
+   toc: true
+   toc-location: left
+   code-fold: true
+execute:
+    echo: false
+    message: false
+    warning: false
+---
+
+```{r}
+#| label: load packages
+
+pacman::p_load(
+  readxl,        #read excel files
+  readr,         #read csv files 
+  openxlsx,      #opens worksheets
+  rio,           # import/expor
+  here,          # filepaths
+  janitor,       # tables
+  tidyverse,     # data mgmt and viz
+  zoo,           # dates
+  lubridate,     #parse dates
+  #broom,         # model output
+  #scales,        # for tables %
+  glue,           #glue syntax together for captions in ggplot
+  gt,              # create tables
+  #gtsummmary,   #tables
+  patchwork,       #arrange ggplot outputs
+  #rstatix,
+  #meantables,
+  knitr,         # tables
+  #epiR,          # Sens/Spec
+  skimr,          # quick summaries     
+  writexl, 
+  ggpubr,         #insert tables to ggplot
+  survival,        #Creates survival data
+  survminer      #Draws survival curves using ggplot2
+)
+```
+
+
+
+```{r}
+#| label: Load and view data
+
+milk_data <- read_csv(here::here('data/milk_files/IASTATE_milk_6_26.CSV'), col_types = cols(.default = "c"),
+    name_repair = "unique_quiet") |>    
+  clean_names() |>
+  remove_empty("cols") |>
+  mutate(herdid         = as.numeric(herdid),
+         id             = as.numeric(id),
+         bdat           = lubridate::mdy(bdat),
+         fdat           = lubridate::mdy(fdat),
+         lact           = as.numeric(lact),
+         test_date      = lubridate::mdy(test_date),
+         dim_td         = as.numeric(dim),
+         milk_estimated = str_detect(milk, "\\*"),
+         milk           = parse_number(milk),
+         pctf           = as.numeric(pctf),
+         pctp           = as.numeric(pctp),
+         fcm            = as.numeric(fcm),
+         me305          = as.numeric(x305me),
+         relv           = as.numeric(relv),
+         scc            = as.numeric(scc),
+         lgscc          = as.numeric(lgscc),
+         pen            = as.numeric(pen)) |>
+  filter(milk != 0 & pctf != 0 & scc != 0) |>
+  arrange(id, lact, dim_td) |>
+  mutate(lctgp = case_when(lact == 1 ~ 1,
+                           lact == 2 ~ 2,
+                           lact == 3 ~ 3,
+                           lact == 4 ~ 4, 
+                           lact >= 5 ~ 5),
+         stage = case_when(dim_td >= 1 & dim_td <=40   ~ "1-40",
+                           dim_td >= 41 & dim_td <=100 ~ "41-100",
+                           dim_td >= 101 & dim_td <=200 ~ "101-200",
+                           dim_td >= 201 & dim_td <=305 ~ "201-305",
+                           dim_td >= 306                ~ ">305")) |>
+  group_by(id) |>
+  mutate(new_lact = replace_na((lact != lag(lact)), FALSE),
+         dry_log  = if_else(new_lact, lag(lgscc), NA_real_),
+         lact_seq = cumsum(new_lact)) |>    # <- labels each lactation within the cow
+  fill(dry_log, .direction = "down") |>
+  group_by(id, lact_seq) |>     # <- regroup to per-lactation
+  mutate(log1 = first(lgscc),
+         test_num = row_number()) |>
+  ungroup() |>
+  select(herdid:lact, lctgp, test_date, dim_td, stage, milk_estimated, milk:fcm, me305,relv:lgscc, log1, dry_log, test_num, pen)
+
+#Determine current and previous test date
+cur_test_date <- max(milk_data$test_date, na.rm = TRUE)
+prev_test_date <- max(milk_data$test_date[milk_data$test_date < cur_test_date], na.rm = TRUE) 
+```
+## Current Test Summary
+```{r, echo=TRUE}
+#| label: Summarize current test data
+
+n_milking_cur_test <- milk_data |>
+  filter(test_date == cur_test_date) |> nrow()
+
+cur_test_sum <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  group_by(lctgp) |>
+  summarize(count   = n(),
+            pct     = round(count/n_milking_cur_test*100, 1), 
+            x_dim   = round(mean(dim_td), 0),
+            x_milk  = round(mean(milk), 1),
+            x_fat   = round(mean(pctf), 2),
+            x_prot  = round(mean(pctp), 2),
+            x_scc   = round(mean(scc), 0),
+            x_lgscc = round(mean(lgscc), 1)) |>
+  mutate(lctgp = as.character(lctgp)) |>
+  ungroup()
+
+cur_test_tot <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  summarize(count   = n(),
+            pct     = round(count/n_milking_cur_test*100, 1),
+            x_dim   = round(mean(dim_td), 0),
+            x_milk  = round(mean(milk), 1),
+            x_fat   = round(mean(pctf), 2),
+            x_prot  = round(mean(pctp), 2),
+            x_scc   = round(mean(scc), 0),
+            x_lgscc = round(mean(lgscc), 1)) 
+
+cur_test_tot <- cur_test_tot |> mutate(lctgp = "Total", .before = 1)
+
+cur_test_sum_all <- bind_rows(cur_test_sum, cur_test_tot) |>
+  gt() |>
+  tab_header(title = "Current Test Summary") |>
+  cols_label(
+    lctgp   = "Lact Group",
+    count   = "# in group",
+    pct     = "% in group",
+    x_dim   = "Avg DIM",
+    x_milk  = "Avg Milk",
+    x_fat   = "Avg Pct Fat",
+    x_prot  = "Avg Pct Prot",
+    x_scc   = "Avg SCC",
+    x_lgscc = "Avg Log SCC")|>
+  tab_style(
+    style = cell_text(align = "center"),  # Center the text in the cells
+    locations = cells_body()) |>
+  tab_style(
+    style = cell_text(align = "center"),
+    locations = cells_column_labels())
+
+cur_test_sum_all
+```
+

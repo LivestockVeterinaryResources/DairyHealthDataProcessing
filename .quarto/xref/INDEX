@@ -16,5 +16,8 @@
   },
   "qmd_reports/report_data_dictionary.qmd": {
     "report_data_dictionary.html": "81ed8df2"
+  },
+  "qmd_reports/report_milk.qmd": {
+    "report_milk.html": "c7006b86"
   }
 }
