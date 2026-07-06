@@ -3,10 +3,10 @@ library(tidyverse)
 library(arrow)
 library(dtplyr)
 
-source(here::here('functions/fxn_dt_base.R'))
-source(here::here('functions/fxn_denominator_eligibility.R'))
-source(here::here('functions/fxn_standardize_cow_breed.R'))
-source(here::here('functions/fxn_assign_day_of_phase_group.R'))
+source(file.path('functions/fxn_dt_base.R'))
+source(file.path('functions/fxn_denominator_eligibility.R'))
+source(file.path('functions/fxn_standardize_cow_breed.R'))
+source(file.path('functions/fxn_assign_day_of_phase_group.R'))
 
 fxn_add_dop<-function(df){
     df%>%
@@ -35,11 +35,11 @@ fxn_summarize_deno<-function(df){
 
 
 #denominator base files -------------------
-animals<-read_parquet(here::here('data/intermediate_files/animals.parquet')) #each row is an animal
+animals<-read_parquet(file.path('data/intermediate_files/animals.parquet')) #each row is an animal
 
-animal_lactations<-read_parquet(here::here('data/intermediate_files/animal_lactations.parquet')) #each row is an animal lactation
+animal_lactations<-read_parquet(file.path('data/intermediate_files/animal_lactations.parquet')) #each row is an animal lactation
 
-animal_event_existance<-read_parquet(here::here('data/intermediate_files/events_all_columns.parquet'))%>% #add a few parameters to animal
+animal_event_existance<-read_parquet(file.path('data/intermediate_files/events_all_columns.parquet'))%>% #add a few parameters to animal
   mutate(lact = parse_number(LACT))%>%
   group_by(id_animal)%>%
   summarize(
@@ -95,7 +95,7 @@ calendar<-fxn_create_calendar_summary(time_period_type = 'week')
 # calendar <-bind_rows(calendar_years, calendar_halfyears, calendar_seasons, calendar_bimonth, calendar_months, calendar_weeks)%>%
 #   mutate(date_calendar = date_time_period_start)%>%
 #   filter(time_period_typ)
-write_parquet(calendar, here::here('data/intermediate_files/calendar_from_calender_time_periods.parquet'))
+write_parquet(calendar, file.path('data/intermediate_files/calendar_from_calender_time_periods.parquet'))
 
 
 
@@ -308,7 +308,7 @@ deno_final<-deno_dataframe%>%
 
 
 write_parquet(deno_final, 
-              here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
+              file.path('data/intermediate_files/denominator_by_calendar_time_period.parquet'))
 
 
 

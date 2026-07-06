@@ -1,4 +1,4 @@
-# DairyEventBasics - single herd management file
+# Dairy Health Data Processing
 
 The goal of this is to streamline initial data processing so that more
 time can be spent acting on conclusions from data rather than processing
@@ -7,10 +7,20 @@ opportunity to look at trends over at least 3 years with complete
 lactations for most cows. However, depending on what you want to look
 at, a shorter time frame may be utilized.
 
+## Data flow at a glance
+
+![Data flow from step0 through Milestone 5](design/step0_to_milestone_5_data_flow.svg)
+
+One entry point — `step0_master_processing.R` — runs a one-time pipeline
+(step1 → step2 → step3) that turns raw DairyComp exports into parquet
+artifacts in `data/intermediate_files/`. The course milestones each read one
+of those artifacts. Full walkthrough:
+[design/milestone-data-flow.md](design/milestone-data-flow.md).
+
 This workflow is set up to intentionally NOT share original data files
 due to both their size and privacy. For this reason any files you put in
-the Data/ subfolders will not be shared to git unless they are in the
-Data/SharedFiles folder.
+the data/ subfolders will not be shared to git unless they are in the
+data/shared_files folder.
 
 More details about the data structure can be found in the resources
 folder: DataProcessingDocumentation.pptx.
@@ -83,15 +93,16 @@ reports.
 
 -   animal_lactations.parquet - each row is a unique animal lactation
 
--   events.parquet - each row is an event (animal, date, event,
-    descriptive variables)
+-   events_formatted.parquet - each row is an event (animal, date, event,
+    descriptive variables). The full, untrimmed version is
+    events_all_columns.parquet.
 
--   herd_denominators.parquet - each row is a count of animals per time
-    period
+-   denominator_by_calendar_time_period.parquet - each row is a count of
+    animals per location / lactation group / time period
 
 You can view example reports in the **reports folder**. They will be in
 subfolders.\
-The ones listed below are all in **qmd_files**
+The ones listed below are all in **qmd_reports**
 
 -   report_data_dictionary.html explains variables in intermediate files
 
@@ -101,26 +112,23 @@ The ones listed below are all in **qmd_files**
 -   the step3_xx files are show if you want more explanation of how the
     denominator code works
 
--   report_explore_lame is an example consulting report that is provided
-    as an example of how to use the intermediate files.
+-   report_explore_lame_new is an example consulting report that is
+    provided as an example of how to use the intermediate files (this is
+    the current version that step0 renders; report_explore_lame is an
+    older copy).
 
 ------------------------------------------------------------------------
 
-## Dependencies
+## Project paths
 
-This project uses the [`{here}`](https://here.r-lib.org/) package for
-robust, project-root-relative file paths. All scripts and reports call
-`here::here()` explicitly (no `library(here)` required). Make sure the
-package is installed:
+This project uses plain **project-root-relative paths** (e.g.
+`read_parquet("data/intermediate_files/animals.parquet")`); multi-part
+paths use base R `file.path()`. There is no `{here}` dependency.
 
-``` r
-install.packages("here")
-```
-
-All scripts should be run from (or rendered within) the project root —
-i.e., the directory containing `LivestockHealthDataProcessing.Rproj`.
-The `{here}` package automatically detects this root via the `.Rproj`
-file.
+For paths to resolve, run scripts and render reports from the **project
+root** — i.e., the directory containing the `.Rproj` file. RStudio
+Projects set this automatically, and `_quarto.yml` sets
+`execute-dir: project` so Quarto documents also execute from the root.
 
 ------------------------------------------------------------------------
 

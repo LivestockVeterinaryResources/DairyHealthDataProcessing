@@ -18,7 +18,7 @@ library(waldo) #we use this to create answer keys for these exercises
 
 
 #add some extra functions
-source(here::here('milestones_dairy/data_milestones/fxn_floor_dates.R'))
+source(file.path('milestones_dairy/data_milestones/fxn_floor_dates.R'))
 
 ```
 
@@ -36,7 +36,7 @@ Before you begin, you will need to import your data set. Use the code chunk belo
 #| label: recreation-import
 
 #add code to read in the events file here
-events_formatted<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+events_formatted<-read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))%>%
   add_new_variables()
 
 ```
@@ -65,9 +65,9 @@ check<-tibble(list_columns = colnames(events_formatted))%>%
 
 check
 
-write_rds(check, here::here('milestones_dairy/data_milestones/solutions_week_03_check_columns.rds'))
+write_rds(check, file.path('milestones_dairy/data_milestones/solutions_week_03_check_columns.rds'))
 
-waldo::compare(check, read_rds(here::here('milestones_dairy/data_milestones/solutions_week_03_check_columns.rds')))
+waldo::compare(check, read_rds(file.path('milestones_dairy/data_milestones/solutions_week_03_check_columns.rds')))
            
 ```
 
@@ -91,9 +91,9 @@ dim_at_bred<-events_formatted%>%
             )%>%
   ungroup()
 
-write_rds(dim_at_bred, here::here('milestones_dairy/data_milestones/solutions_week_03_summary_data.rds'))
+write_rds(dim_at_bred, file.path('milestones_dairy/data_milestones/solutions_week_03_summary_data.rds'))
 
-solution <- readr::read_rds(here::here('milestones_dairy/data_milestones/solutions_week_03_summary_data.rds'))
+solution <- readr::read_rds(file.path('milestones_dairy/data_milestones/solutions_week_03_summary_data.rds'))
 solution
 
 ```

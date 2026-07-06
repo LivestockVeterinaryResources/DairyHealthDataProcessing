@@ -53,7 +53,9 @@ local_dir <- "data/event_files"
 for (i in 1:nrow(selected_files)) {
   file_id <- as.character(selected_files$id[i])
   file_name <- selected_files$name[i]
-  download_url <- paste0("https://drive.google.com/uc?export=download&id=", file_id)
+  # use the usercontent endpoint with confirm=t so large files return the file
+  # itself instead of Google Drive's "can't scan for viruses" HTML warning page
+  download_url <- paste0("https://drive.usercontent.google.com/download?id=", file_id, "&export=download&confirm=t")
 
   message(glue::glue("Downloading file {i} of {nrow(selected_files)}: {file_name}"))
 
@@ -61,7 +63,7 @@ for (i in 1:nrow(selected_files)) {
     {
       download.file(
         url = download_url,
-        destfile = here::here("data/event_files", file_name),
+        destfile = file.path("data/event_files", file_name),
         mode = "wb",
         quiet = FALSE
       )

@@ -36,12 +36,12 @@ pacman::p_load(
   zoo
   )
 
-events_formatted_all <- read_parquet(here::here('data/intermediate_files/events_all_columns.parquet')) |>
+events_formatted_all <- read_parquet(file.path('data/intermediate_files/events_all_columns.parquet')) |>
   select(source_file_path, ID, BDAT, FDAT, LACT, ARDAT, Event, Date, 
          Protocols, Remark, R, T, B)  
 
          
-source(here::here('functions/fxn_milestone7_solution.R'))
+source(file.path('functions/fxn_milestone7_solution.R'))
 
 # create variables for inline code
 
@@ -63,7 +63,7 @@ Run this chuck below. It will open the example report in your browser.  You shou
 #| eval: false
 
 # 1. Define the file path
-file_path <- here::here("milestones_dairy/images/milestone_7.htm")
+file_path <- file.path("milestones_dairy/images/milestone_7.htm")
 
 # 2. Open the browser
 browseURL(file_path)

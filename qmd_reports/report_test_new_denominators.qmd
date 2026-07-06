@@ -20,10 +20,10 @@ library(arrow)
 ## lact group
 
 ```{r}
-get_deno_files<-tibble(file_names = list.files(here::here('data/intermediate_files'))%>%
+get_deno_files<-tibble(file_names = list.files(file.path('data/intermediate_files'))%>%
   filter(str_detect(file_names, 'denominator_by_lact_group'))
                          
-herd_deno_new = read_parquet(here::here('data/intermediate_files/denominator_by_lact_group_time_period365.parquet'))%>%
+herd_deno_new = read_parquet(file.path('data/intermediate_files/denominator_by_lact_group_time_period365.parquet'))%>%
   filter(date_time_period_start>(today()-1200))%>%
   filter(!(deno_type %in% c("dop_lact_basic", "dop_lact_2+", "dop_lact_3+", "dop_lact_5+",'lact_2+')))
 
@@ -37,7 +37,7 @@ herd_deno_new_long<-herd_deno_new%>%
 
 ```{r}
 #monthly -------------------------------------
-herd_deno_monthly_new = read_parquet(here::here('data/intermediate_files/denominator_by_lact_group_time_period30.parquet'))%>%
+herd_deno_monthly_new = read_parquet(file.path('data/intermediate_files/denominator_by_lact_group_time_period30.parquet'))%>%
   filter(date_time_period_start>(today()-1200))%>%
   filter(!(deno_type %in% c("dop_lact_basic", "dop_lact_2+", "dop_lact_3+", "dop_lact_5+",'lact_2+')))
 
@@ -51,7 +51,7 @@ herd_deno_monthly_new_long<-herd_deno_monthly_new%>%
 
 ```{r}
 #dim cats-----------------------------------
-herd_deno_dim_new = read_parquet(here::here('data/intermediate_files/denominator_by_lact_group_time_period365.parquet'))%>%
+herd_deno_dim_new = read_parquet(file.path('data/intermediate_files/denominator_by_lact_group_time_period365.parquet'))%>%
   filter(date_time_period_start>(today()-1200))%>%
   filter((deno_type %in% c("dop_lact_3+",    "dop_lact_5+",    "dop_lact_basic")))
 
@@ -70,7 +70,7 @@ herd_deno_dim_new_long<-herd_deno_dim_new%>%
 ### Lactation Group Counts
 
 ```{r}
-herd_deno<-read_parquet(here::here('data/intermediate_files/herd_denominators.parquet'))%>%
+herd_deno<-read_parquet(file.path('data/intermediate_files/herd_denominators.parquet'))%>%
   mutate(date = lubridate::ymd(paste0(time_period, '-01-01')))
 
 
@@ -110,7 +110,7 @@ ggplot()+
 get_location_lact_list<-sort(unique(herd_deno_dim_new_long$location_lact_list))
 
 for (i in seq_along(get_location_lact_list)){
-herd_deno_dim<-read_parquet(here::here('data/intermediate_files/herd_dim_denominators.parquet'))%>%
+herd_deno_dim<-read_parquet(file.path('data/intermediate_files/herd_dim_denominators.parquet'))%>%
   mutate(date = lubridate::ymd(paste0(time_period, '-01-01')))%>%
   filter(`Lactation Group` %in% c('Heifer', 'LACT > 0'))%>%
   mutate(day_of_phase_group = case_when(
@@ -151,7 +151,7 @@ Shorter time frames are less complex and metrics are nearly identical
 
 ### plot monthly
 ```{r}
-herd_deno_monthly<-read_parquet(here::here('data/intermediate_files/herd_season_denominators.parquet'))%>%
+herd_deno_monthly<-read_parquet(file.path('data/intermediate_files/herd_season_denominators.parquet'))%>%
   mutate(date = lubridate::my(month))
 
 ggplot()+

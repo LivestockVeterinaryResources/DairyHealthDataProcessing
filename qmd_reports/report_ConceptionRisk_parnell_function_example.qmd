@@ -11,7 +11,7 @@ library(arrow)
 
 source_url('https://raw.githubusercontent.com/ParnellPharma/ParnellFunctionsPublic/refs/heads/main/parnell_calculate_CR_master.R')
 
-events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
+events<-read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))
 ```
 
 ```{r}
