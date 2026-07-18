@@ -1,0 +1,538 @@
+---
+title: "Milk Analysis"
+editor: source
+format: 
+ html:
+   embed-resources: true
+   toc: true
+   toc-location: left
+   code-fold: true
+   lightbox: true
+execute:
+    echo: false
+    message: false
+    warning: false
+---
+
+```{r}
+#| label: load packages
+
+pacman::p_load(
+  readxl,        #read excel files
+  readr,         #read csv files 
+  openxlsx,      #opens worksheets
+  rio,           # import/expor
+  here,          # filepaths
+  janitor,       # tables
+  tidyverse,     # data mgmt and viz
+  zoo,           # dates
+  lubridate,     #parse dates
+  #broom,         # model output
+  #scales,        # for tables %
+  glue,           #glue syntax together for captions in ggplot
+  gt,              # create tables
+  #gtsummmary,   #tables
+  patchwork,       #arrange ggplot outputs
+  #rstatix,
+  #meantables,
+  knitr,         # tables
+  #epiR,          # Sens/Spec
+  skimr,          # quick summaries     
+  writexl, 
+  ggpubr,         #insert tables to ggplot
+  survival,        #Creates survival data
+  survminer      #Draws survival curves using ggplot2
+)
+```
+
+```{r}
+#| label: Load and view data
+
+milk_data <- read_csv(here::here('data/milk_files/IASTATE_milk_6_26.CSV'), col_types = cols(.default = "c"),
+    name_repair = "unique_quiet") |>    
+  clean_names() |>
+  remove_empty("cols") |>
+  mutate(herdid         = as.numeric(herdid),
+         id             = as.numeric(id),
+         bdat           = lubridate::mdy(bdat),
+         fdat           = lubridate::mdy(fdat),
+         lact           = as.numeric(lact),
+         test_date      = lubridate::mdy(test_date),
+         test_date_my   = floor_date(test_date, "month"),
+         dim_td         = as.numeric(dim),
+         milk_estimated = str_detect(milk, "\\*"),
+         milk           = parse_number(milk),
+         pctf           = as.numeric(pctf),
+         pctp           = as.numeric(pctp),
+         fcm            = as.numeric(fcm),
+         me305          = as.numeric(x305me),
+         relv           = as.numeric(relv),
+         scc            = as.numeric(scc),
+         lgscc          = as.numeric(lgscc),
+         pen            = as.numeric(pen)) |>
+  filter(milk != 0 & pctf != 0 & scc != 0) |>
+  arrange(id, lact, dim_td) |>
+  mutate(lctgp = case_when(lact == 1 ~ 1,
+                           lact == 2 ~ 2,
+                           lact == 3 ~ 3,
+                           lact == 4 ~ 4, 
+                           lact >= 5 ~ 5),
+         stage = case_when(dim_td >= 1 & dim_td <=40   ~ "1-40",
+                           dim_td >= 41 & dim_td <=100 ~ "41-100",
+                           dim_td >= 101 & dim_td <=200 ~ "101-200",
+                           dim_td >= 201 & dim_td <=305 ~ "201-305",
+                           dim_td >= 306                ~ ">305")) |>
+  group_by(id) |>
+  mutate(new_lact = replace_na((lact != lag(lact)), FALSE),
+         dry_log  = if_else(new_lact, lag(lgscc), NA_real_),
+         lact_seq = cumsum(new_lact)) |>    # <- labels each lactation within the cow
+  fill(dry_log, .direction = "down") |>
+  group_by(id, lact_seq) |>     # <- regroup to per-lactation
+  mutate(log1 = first(lgscc),
+         prevlg = lag(lgscc),   # <- previous test's LGSCC (NA on first test of the lactation)
+         hi_count = cumsum(replace_na(lgscc > 4, FALSE)),  # <- running count of LGSCC > 4 within the lactation
+         test_num = row_number()) |>
+  ungroup() |>
+  mutate(hi_lgscc = case_when(lgscc <= 4   ~ 0,
+                              lgscc >= 4.1 ~ 1),
+         lg_status = case_when(lgscc <= 4   & prevlg <= 4   ~ "UNIN",
+                               lgscc >= 4.1 & prevlg <= 4   ~ "NEWI",
+                               lgscc >= 4.1 & prevlg >= 4.1 ~ "CHRON",
+                               lgscc <= 4   & prevlg >= 4.1 ~ "CURE",
+                               .default = NA),
+         hi_log1 = case_when(log1 <= 4   ~ 0,
+                             log1 >= 4.1 ~ 1)) |>
+  select(herdid:lact, lctgp, test_date, test_date_my, dim_td, stage, milk_estimated, milk:fcm, me305,relv:lgscc, hi_lgscc, prevlg, lg_status, hi_count, log1, dry_log, hi_log1, test_num, pen)
+
+#Determine current and previous test date
+cur_test_date <- max(milk_data$test_date, na.rm = TRUE)
+prev_test_date <- max(milk_data$test_date[milk_data$test_date < cur_test_date], na.rm = TRUE) 
+```
+
+## Current Test Summary - `r format(cur_test_date, "%m/%d/%Y")`
+
+```{r, echo=TRUE}
+#| label: Summarize current test data
+
+n_milking_cur_test <- milk_data |>
+  filter(test_date == cur_test_date) |> nrow()
+
+cur_test_sum <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  group_by(lctgp) |>
+  summarize(count   = n(),
+            pct     = round(count/n_milking_cur_test*100, 1), 
+            x_dim   = round(mean(dim_td), 0),
+            x_milk  = round(mean(milk), 1),
+            x_fat   = round(mean(pctf), 2),
+            x_prot  = round(mean(pctp), 2),
+            x_scc   = round(mean(scc), 0),
+            x_lgscc = round(mean(lgscc), 1)) |>
+  mutate(lctgp = as.character(lctgp)) |>
+  ungroup()
+
+cur_test_tot <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  summarize(count   = n(),
+            pct     = round(count/n_milking_cur_test*100, 1),
+            x_dim   = round(mean(dim_td), 0),
+            x_milk  = round(mean(milk), 1),
+            x_fat   = round(mean(pctf), 2),
+            x_prot  = round(mean(pctp), 2),
+            x_scc   = round(mean(scc), 0),
+            x_lgscc = round(mean(lgscc), 1)) 
+
+cur_test_tot <- cur_test_tot |> mutate(lctgp = "Total", .before = 1)
+
+cur_test_sum_all <- bind_rows(cur_test_sum, cur_test_tot) |>
+  gt() |>
+  tab_header(title = "Current Test Summary") |>
+  cols_label(
+    lctgp   = "Lact Group",
+    count   = "# in group",
+    pct     = "% in group",
+    x_dim   = "Avg DIM",
+    x_milk  = "Avg Milk",
+    x_fat   = "Avg Pct Fat",
+    x_prot  = "Avg Pct Prot",
+    x_scc   = "Avg SCC",
+    x_lgscc = "Avg Log SCC")|>
+  tab_style(
+    style = cell_text(align = "center"),  # Center the text in the cells
+    locations = cells_body()) |>
+  tab_style(
+    style = cell_text(align = "center"),
+    locations = cells_column_labels())
+
+cur_test_sum_all
+```
+
+## Current Test Milk Graphs
+
+#### Click on the graphs to enlarge
+
+```{r, echo=TRUE}
+#| label: Milk graphs
+
+#Function to make scatter plots for components
+make_scatter <- function(comp = c("milk", "fat", "prot", "lgscc"), grp = NULL) {
+  comp <- match.arg(comp)
+
+  # per-component settings: column name, y-axis label, y-limits (adjust to taste)
+  settings <- list(
+    milk = list(col = "milk", ylab = "Milk Production", ylim = c(0, 150)),
+    fat  = list(col = "pctf", ylab = "% Fat",           ylim = c(0, 8)),
+    prot = list(col = "pctp", ylab = "% Protein",       ylim = c(0, 6)),
+    lgscc  = list(col = "lgscc",  ylab = "Log SCC",             ylim = c(0, 10))
+  )
+  s <- settings[[comp]]
+
+  d <- milk_data |>
+    filter(test_date == cur_test_date)
+
+  if (is.null(grp)) {
+    ttl <- "All Cows"
+  } else {
+    d   <- d |> filter(lctgp == grp)
+    ttl <- paste("Lactation Group =", grp)
+  }
+
+  d |>
+    ggplot(aes(dim_td, .data[[s$col]])) +
+    geom_point(color = "blue", alpha = 0.5, na.rm = TRUE) +
+    labs(title = ttl,
+         x = "DIM",
+         y = s$ylab) +
+    xlim(0, 1000) +
+    ylim(s$ylim[1], s$ylim[2]) +
+    theme_minimal()
+}
+
+#Scatterplots for milk (all cows + lactation groups 1-5)
+scat_milk_all <- make_scatter("milk")
+scat_milk     <- lapply(1:5, function(g) make_scatter("milk", g))
+# Stack 2/2/2 (6 total: all cows + 5 lactation groups)
+(scat_milk_all  | scat_milk[[1]]) /
+(scat_milk[[2]] | scat_milk[[3]]) /
+(scat_milk[[4]] | scat_milk[[5]])
+
+#Violin plots - milk
+sum_graph_milk_1 <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  ggplot(aes(factor(lctgp), milk)) +
+  #facet_wrap(~ lctgp) +
+  geom_violin(scale = "count",
+  quantiles = c(0.25, 0.5, 0.75),
+  quantile.linetype = 1,   # solid lines
+  fill = "skyblue") +  # adds quantile lines
+   stat_summary(fun = mean, geom = "text",
+               aes(label = round(after_stat(y), 1)),
+               position = position_nudge(x = 0.30),   # shift right of the violin
+               hjust = 0, color = "blue") +
+  labs(title = "Milk Production by Lactation Group",
+       x = "Lactation Group",
+       y = "Milk Production") +
+  theme_minimal() 
+  
+sum_graph_milk_1
+```
+
+## Current Test Fat Graphs
+
+#### Click on the graphs to enlarge
+
+```{r, echo=TRUE}
+#| label: Fat graphs
+
+#Scatterplots for fat (all cows + lactation groups 1-5)
+scat_fat_all <- make_scatter("fat")
+scat_fat     <- lapply(1:5, function(g) make_scatter("fat", g))
+# Stack 2/2/2 (6 total: all cows + 5 lactation groups)
+(scat_fat_all  | scat_fat[[1]]) /
+(scat_fat[[2]] | scat_fat[[3]]) /
+(scat_fat[[4]] | scat_fat[[5]])
+
+
+#Violin plots - fat 
+sum_graph_fat_1 <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  ggplot(aes(factor(lctgp), pctf)) +
+  #facet_wrap(~ lctgp) +
+  geom_violin(scale = "count",
+  quantiles = c(0.25, 0.5, 0.75),
+  quantile.linetype = 1,   # solid lines
+  fill = "skyblue") +  # adds quantile lines
+   stat_summary(fun = mean, geom = "text",
+               aes(label = round(after_stat(y), 1)),
+               position = position_nudge(x = 0.30),   # shift right of the violin
+               hjust = 0, color = "blue") +
+  labs(title = "Fat Production by Lactation Group",
+       x = "Lactation Group",
+       y = "Fat Production") +
+  theme_minimal() 
+  
+sum_graph_fat_1
+
+```
+
+## Current Test Protein Graphs
+
+#### Click on the graphs to enlarge
+
+```{r, echo=TRUE}
+#| label: Protein graphs
+
+#Scatterplots for protein (all cows + lactation groups 1-5)
+scat_prot_all <- make_scatter("prot")
+scat_prot     <- lapply(1:5, function(g) make_scatter("prot", g))
+# Stack 2/2/2 (6 total: all cows + 5 lactation groups)
+(scat_prot_all  | scat_prot[[1]]) /
+(scat_prot[[2]] | scat_prot[[3]]) /
+(scat_prot[[4]] | scat_prot[[5]])
+
+
+#Violin plots - protein 
+sum_graph_prot_1 <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  ggplot(aes(factor(lctgp), pctp)) +
+  #facet_wrap(~ lctgp) +
+  geom_violin(scale = "count",
+  quantiles = c(0.25, 0.5, 0.75),
+  quantile.linetype = 1,   # solid lines
+  fill = "skyblue") +  # adds quantile lines
+   stat_summary(fun = mean, geom = "text",
+               aes(label = round(after_stat(y), 1)),
+               position = position_nudge(x = 0.30),   # shift right of the violin
+               hjust = 0, color = "blue") +
+  labs(title = "Protein Production by Lactation Group",
+       x = "Lactation Group",
+       y = "Protein Production") +
+  theme_minimal() 
+  
+sum_graph_prot_1
+```
+
+## Current Test LGSCC Graphs
+
+#### Click on the graphs to enlarge
+
+```{r, echo=TRUE}
+#| label: LGSCC graphs
+
+#Scatterplots for SCC (all cows + lactation groups 1-5)
+scat_lgscc_all <- make_scatter("lgscc")
+scat_lgscc     <- lapply(1:5, function(g) make_scatter("lgscc", g))
+# Stack 2/2/2 (6 total: all cows + 5 lactation groups)
+(scat_lgscc_all  | scat_lgscc[[1]]) /
+(scat_lgscc[[2]] | scat_lgscc[[3]]) /
+(scat_lgscc[[4]] | scat_lgscc[[5]])
+
+
+#Violin plots - SCC 
+sum_graph_lgscc_1 <- milk_data |>
+  filter(test_date == cur_test_date) |>
+  ggplot(aes(factor(lctgp), lgscc)) +
+  #facet_wrap(~ lctgp) +
+  geom_violin(scale = "count",
+  quantiles = c(0.25, 0.5, 0.75),
+  quantile.linetype = 1,   # solid lines
+  fill = "skyblue") +  # adds quantile lines
+   stat_summary(fun = mean, geom = "text",
+               aes(label = round(after_stat(y), 1)),
+               position = position_nudge(x = 0.30),   # shift right of the violin
+               hjust = 0, color = "blue") +
+  labs(title = "SCC Production by Lactation Group",
+       x = "Lactation Group",
+       y = "LogSCC") +
+  theme_minimal() 
+  
+sum_graph_lgscc_1
+```
+
+## Historical SCC Data
+
+#### Click on the graphs to enlarge
+
+```{r, echo=TRUE}
+#| label: Historical SCC graphs
+
+#Function to make historical stacked SCC bar charts.
+scc_data <- milk_data |>
+    filter(test_date_my >= cur_test_date - 730, !is.na(lgscc))
+
+#Pass lact = NULL for all cows, or a lactation group (1-5) to filter.
+make_scc_stacked <- function(grp = NULL) {
+
+  if (is.null(grp)) {
+    ttl <- "All Cows"
+  } else {
+    scc_data   <- scc_data |> filter(lctgp == grp)
+    ttl <- paste("Lactation Group =", grp)
+  }
+
+  scc_data |>
+    mutate(scc_group = factor(if_else(hi_lgscc == 0, "LGSCC ≤ 4", "LGSCC > 4"),
+                     levels = c("LGSCC > 4", "LGSCC ≤ 4"))) |>
+    ggplot(aes(x = test_date_my, fill = scc_group)) +   # <- fill maps the column here
+    geom_bar(position = "fill") +
+    scale_fill_manual(values = c("LGSCC ≤ 4" = "green",
+                                 "LGSCC > 4" = "red")) +
+    scale_x_date(date_labels = "%m-%y", breaks = seq(from = floor_date(cur_test_date, "month"),
+                   by   = "-6 months", length.out = 5)) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = ttl, x = "Test Month", y = "Percent",
+         fill = "Linear score")   # <- fill names the legend here
+}
+
+#All cows
+SCC_stacked_hg_all <- make_scc_stacked()
+
+#One per lactation group
+SCC_stacked_hg <- lapply(1:5, function(g) make_scc_stacked(g))
+
+#Stack them 2/2/2 (6 total: all cows + 5 lactation groups)
+(SCC_stacked_hg_all  | SCC_stacked_hg[[1]]) /
+(SCC_stacked_hg[[2]] | SCC_stacked_hg[[3]]) /
+(SCC_stacked_hg[[4]] | SCC_stacked_hg[[5]])
+
+
+```
+
+##### High SCC table
+
+::: {.callout-note collapse="true"}
+## Click bar to open table
+
+```{r}
+#| label: hi-SCC-table
+#Per group / month: count of HIGH cows (lgscc1 > 4) and % of that group's total
+hi_grid <- scc_data |>
+  mutate(test_month = fct_reorder(format(test_date_my, "%b %y"), test_date_my)) |>
+  group_by(lctgp, test_month) |>
+  summarize(n_hi  = sum(hi_lgscc == 1, na.rm = TRUE),
+            n_tot = n(), .groups = "drop") |>
+  complete(lctgp, test_month, fill = list(n_hi = 0, n_tot = 0)) |>
+  mutate(`n Hi`  = n_hi,
+          `% Hi` = if_else(n_tot > 0, round(n_hi / n_tot * 100, 0), NA_real_))
+
+#Two rows per group (count, then within-group %), months as columns
+hi_scc_tbl <- hi_grid |>
+  select(lctgp, test_month, `n Hi`, `% Hi`) |>
+  pivot_longer(c(`n Hi`, `% Hi`), names_to = "Metric", values_to = "val") |>
+  pivot_wider(names_from = test_month, values_from = val) |>
+  arrange(lctgp) |>
+  mutate(lctgp = paste("Lact Group", lctgp))
+
+hi_scc_tbl |>
+  gt(groupname_col = "lctgp", rowname_col = "Metric", id = "hi_scc") |>
+  tab_header(title = "High SCC (LgSCC1 > 4) by Lactation Group") |>
+  tab_style(style     = cell_text(align = "center"),
+            locations = list(cells_body(), cells_column_labels())) |>
+  opt_css(css = "
+    #hi_scc .gt_stub,
+    #hi_scc .gt_stubhead {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background-color: var(--bs-body-bg, #fff);
+    }
+  ")
+```
+:::
+
+## SCC Infection Status
+
+#### Click on the graphs to enlarge
+```{r, echo=TRUE}
+#| label: Infection status-SCC graphs
+
+```
+
+
+```{r, echo=TRUE}
+##FRESH COW SCC DATA
+#Make table of High SCC at fresh data
+scc_data_fresh <- milk_data |>
+    filter(test_num == 1,
+           test_date_my >= cur_test_date - 730, !is.na(lgscc))
+
+#Function to make historical stacked log1 (fresh cow SCC) bar charts.
+make_log1_stacked <- function(grp = NULL) {
+  
+
+  if (is.null(grp)) {
+    ttl <- "All Cows"
+  } else {
+    scc_data_fresh   <- scc_data_fresh |> filter(lctgp == grp)
+    ttl <- paste("Lactation Group =", grp)
+  }
+
+  scc_data_fresh |>
+    mutate(scc_group = factor(if_else(hi_log1 == 0, "LOG1 ≤ 4", "LOG1 > 4"),
+                     levels = c("LOG1 > 4", "LOG1 ≤ 4"))) |>
+    ggplot(aes(x = test_date_my, fill = scc_group)) +   # <- fill maps the column here
+    geom_bar(position = "fill") +
+    scale_fill_manual(values = c("LOG1 ≤ 4" = "green",
+                                 "LOG1 > 4" = "red")) +
+    scale_x_date(date_labels = "%m-%y", breaks = seq(from = floor_date(cur_test_date, "month"),
+                   by   = "-6 months", length.out = 5)) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = ttl, x = "Test Month", y = "Percent",
+         fill = "Linear score")   # <- fill names the legend here
+}
+
+#All cows
+SCC_stacked_log1hg_all <- make_log1_stacked()
+
+#One per lactation group
+SCC_stacked_log1hg <- lapply(1:5, function(g) make_log1_stacked(g))
+
+#Stack them 2/2/2 (6 total: all cows + 5 lactation groups)
+((SCC_stacked_log1hg_all  | SCC_stacked_log1hg[[1]]) /
+ (SCC_stacked_log1hg[[2]] | SCC_stacked_log1hg[[3]]) /
+ (SCC_stacked_log1hg[[4]] | SCC_stacked_log1hg[[5]])) +
+  plot_annotation(title    = "High Fresh SCC",
+                  subtitle = "Click on graphs to enlarge")
+```
+
+##### High Fresh SCC table
+
+::: {.callout-note collapse="true"}
+## Click bar to open table
+
+```{r}
+#| label: fresh-hi-table
+#Per group / month: count of HIGH fresh cows (log1 > 4) and % of that group's fresh total
+fresh_hi_grid <- scc_data_fresh |>
+  mutate(test_month = fct_reorder(format(test_date_my, "%b %y"), test_date_my)) |>
+  group_by(lctgp, test_month) |>
+  summarize(n_hi  = sum(hi_log1 == 1, na.rm = TRUE),
+            n_tot = n(), .groups = "drop") |>
+  complete(lctgp, test_month, fill = list(n_hi = 0, n_tot = 0)) |>
+  mutate(`n Hi`  = n_hi,
+          `% Hi` = if_else(n_tot > 0, round(n_hi / n_tot * 100, 0), NA_real_))
+
+#Two rows per group (count, then within-group %), months as columns
+fresh_hi_tbl <- fresh_hi_grid |>
+  select(lctgp, test_month, `n Hi`, `% Hi`) |>
+  pivot_longer(c(`n Hi`, `% Hi`), names_to = "Metric", values_to = "val") |>
+  pivot_wider(names_from = test_month, values_from = val) |>
+  arrange(lctgp) |>
+  mutate(lctgp = paste("Lact Group", lctgp))
+
+fresh_hi_tbl |>
+  gt(groupname_col = "lctgp", rowname_col = "Metric", id = "fresh_hi") |>
+  tab_header(title = "High Fresh SCC (Log1 > 4) by Lactation Group") |>
+  tab_style(style     = cell_text(align = "center"),
+            locations = list(cells_body(), cells_column_labels())) |>
+  opt_css(css = "
+    #fresh_hi .gt_stub,
+    #fresh_hi .gt_stubhead {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background-color: var(--bs-body-bg, #fff);
+    }
+  ")
+```
+:::

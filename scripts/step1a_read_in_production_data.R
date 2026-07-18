@@ -78,8 +78,8 @@ production2 <- production |>
     milk_305ME = parse_number(`305ME`),
     relv = parse_number(RELV),
     scc = parse_number(SCC),
-    linear_score = parse_number(LGSCC),
-    mun = parse_number(MUN)
+    linear_score = parse_number(LGSCC)#,
+    #mun = parse_number(MUN)
   ) |>
   arrange(id_animal, date_test) |>
   # dedups to get but ignores source file
@@ -93,7 +93,7 @@ production2 <- production |>
 
 # add custom variables (optional)
 # define event types------------------------------------
-production2 <- production2 |>
+production3 <- production2 |>
   # create lactation groups ---------------------intentionally not a function so it is obvious...but could make it a function
   mutate(
     lact_group_basic = case_when(
@@ -132,11 +132,11 @@ production2 <- production2 |>
 # write out files-----------------------
 
 # main file ------------
-write_parquet(production2, file.path("data/intermediate_files/production_all_columns.parquet")) # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
+write_parquet(production3, here::here("data/intermediate_files/production_all_columns.parquet")) # this file is for if you wanted to chase a problem between original and formatted file without re-running step1
 
 # formatted file -----------------------
 write_parquet(
-  production2 %>%
+  production3 %>%
     select(
       source_file_path,
       id_animal, date_birth, breed,
@@ -144,7 +144,8 @@ write_parquet(
       lact_number, lact_group_basic, lact_group, lact_group_repro, lact_group_5,
       date_test, dim_test, location_event, pen,
       milk, milk_fcm, milk_305ME, fat_pct, prot_pct,
-      scc, linear_score, mun, relv
+      scc, linear_score, #mun, 
+      relv
     ),
   "data/intermediate_files/production_formatted.parquet"
 )
