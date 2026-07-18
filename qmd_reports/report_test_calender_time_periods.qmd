@@ -7,8 +7,8 @@ format: html
 library(tidyverse)
 library(arrow)
 
-source(here::here('functions/fxn_add_event_counts.R'))
-source(here::here('functions/fxn_create_dop.R'))
+source(file.path('functions/fxn_add_event_counts.R'))
+source(file.path('functions/fxn_create_dop.R'))
 
 ```
 
@@ -18,7 +18,7 @@ source(here::here('functions/fxn_create_dop.R'))
 fxn_create_age_cuts()
 fxn_create_dim_cuts()
 
-deno_month<-read_parquet(here::here('data/intermediate_files/denominator_by_calendar_time_period.parquet'))%>%
+deno_month<-read_parquet(file.path('data/intermediate_files/denominator_by_calendar_time_period.parquet'))%>%
   filter(calendar_time_period_type %in% 'month')%>%
   mutate(date_event_month = date_time_period_start)%>%
   filter(deno_type %in% 'lact_3+')%>%
@@ -34,7 +34,7 @@ get_dop_groups<-deno_month%>%
 
 ```{r}
 
-mast_events<-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))%>%
+mast_events<-read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))%>%
   filter(event %in% 'MAST')%>%
   mutate(date_event_month = floor_date(date_event, unit = 'month'))%>%
   fxn_add_event_counts()%>%

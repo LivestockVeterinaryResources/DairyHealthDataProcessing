@@ -25,9 +25,9 @@ source("../ParnellFunctions/fxn_connect_to_mySYNCH_update_herd_cows_events_meta.
 #It is safest to choose based on HerdId, but if single farm for target purposes name can be used
 
 herd_list<-herd_farm_events_meta
-safe_write_rds(herd_list, here::here('data/global_files/herd_list.rds'))
+safe_write_rds(herd_list, file.path('data/global_files/herd_list.rds'))
 
-herd_list<-read_rds(here::here('data/global_files/herd_list.rds')) #only use if Database connection is broken
+herd_list<-read_rds(file.path('data/global_files/herd_list.rds')) #only use if Database connection is broken
 
 herd_list_active<-herd_list%>%
   filter(Status<2)%>%

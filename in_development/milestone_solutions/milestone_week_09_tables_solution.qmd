@@ -59,7 +59,7 @@ deno_cal <- read_parquet(
 
   
 # load GC's functions
-source(here::here('functions/fxn_load_os_fxns.R'))
+source(file.path('functions/fxn_load_os_fxns.R'))
 fxn_load_os_fxns()
 
 # Load Parnell CR fucntions from Github

@@ -20,10 +20,10 @@ library(tidyverse)
 library(arrow)
 library(dtplyr)
 
-source(here::here('functions/fxn_dt_base.R'))
-source(here::here('functions/fxn_denominator_eligibility.R'))
-source(here::here('functions/fxn_standardize_cow_breed.R'))
-source(here::here('functions/fxn_assign_day_of_phase_group.R'))
+source(file.path('functions/fxn_dt_base.R'))
+source(file.path('functions/fxn_denominator_eligibility.R'))
+source(file.path('functions/fxn_standardize_cow_breed.R'))
+source(file.path('functions/fxn_assign_day_of_phase_group.R'))
 
 fxn_add_dop<-function(df){
     df%>%
@@ -56,11 +56,11 @@ Denominators are created from animals.parquet, animal_lactations.parquet, and a 
 
 ```{r}
 #denominator base files -------------------
-animals<-read_parquet(here::here('data/intermediate_files/animals.parquet')) #each row is an animal
+animals<-read_parquet(file.path('data/intermediate_files/animals.parquet')) #each row is an animal
 
-animal_lactations<-read_parquet(here::here('data/intermediate_files/animal_lactations.parquet')) #each row is an animal lactation
+animal_lactations<-read_parquet(file.path('data/intermediate_files/animal_lactations.parquet')) #each row is an animal lactation
 
-animal_event_existance<-read_parquet(here::here('data/intermediate_files/events_all_columns.parquet'))%>% #add a few parameters to animal
+animal_event_existance<-read_parquet(file.path('data/intermediate_files/events_all_columns.parquet'))%>% #add a few parameters to animal
   mutate(lact = parse_number(LACT))%>%
   group_by(id_animal)%>%
   summarize(
@@ -410,7 +410,7 @@ Errors are also written out for further investigation.
 
 ```{r}
 write_parquet(deno_final, 
-              here::here(paste0('data/intermediate_files/denominator_by_lact_group_time_period', params$denominator_granularity, '.parquet')))
+              file.path(paste0('data/intermediate_files/denominator_by_lact_group_time_period', params$denominator_granularity, '.parquet')))
 
 
 

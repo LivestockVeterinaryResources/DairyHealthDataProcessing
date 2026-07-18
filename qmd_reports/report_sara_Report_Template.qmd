@@ -59,19 +59,19 @@ library(scales)
 
 # Initialization and organization of initial data sets
 
-source(here::here('functions/fxn_dt_base.R')) #functions to parse remarks and protocols
+source(file.path('functions/fxn_dt_base.R')) #functions to parse remarks and protocols
 
 # Intialize animal and animal lactation file and assign data pull date to an object for later use.
-animals <- read_parquet(here::here('data/intermediate_files/animals.parquet'))
+animals <- read_parquet(file.path('data/intermediate_files/animals.parquet'))
 
-animal_lactations<-read_parquet(here::here('data/intermediate_files/animal_lactations.parquet')) 
+animal_lactations<-read_parquet(file.path('data/intermediate_files/animal_lactations.parquet')) 
 
 pull_date <- unique(animals$data_pull_date_max)
 
 date_start <- pull_date - 365 # pulls last year of data, modify for specific project
 date_end <- pull_date
 
-events_formatted <-read_parquet(here::here('data/intermediate_files/events_formatted.parquet'))
+events_formatted <-read_parquet(file.path('data/intermediate_files/events_formatted.parquet'))
 
 # Pull the wanted information into a new data sets (double check in DC that the events are actually being recorded under these event names)
 
@@ -101,9 +101,9 @@ youngstock_data <- events_formatted%>%
 # Define file path 
 #***This breaks when Nora trys to run it . . . where did this file comefrom?***
 #*I am going to substitute events?
-#*production_file <- here::here("data/intermediate_files/production_data/production.parquet")
+#*production_file <- file.path("data/intermediate_files/production_data/production.parquet")
 
-production_file <- here::here("data/intermediate_files/production_data/production.parquet")
+production_file <- file.path("data/intermediate_files/production_data/production.parquet")
 
 # # Read Parquet file
 production_data <- read_parquet(production_file)
@@ -132,11 +132,11 @@ Herd Demographics:
 
 ```{r}
 # Denominator files:
-denos <-read_parquet(here::here('data/intermediate_files/herd_denominators.parquet'))
+denos <-read_parquet(file.path('data/intermediate_files/herd_denominators.parquet'))
 
-denos_dim <-read_parquet(here::here('data/intermediate_files/herd_dim_denominators.parquet'))
+denos_dim <-read_parquet(file.path('data/intermediate_files/herd_dim_denominators.parquet'))
 
-denos_season <- read_parquet(here::here('data/intermediate_files/herd_season_denominators.parquet'))
+denos_season <- read_parquet(file.path('data/intermediate_files/herd_season_denominators.parquet'))
 ```
 
 ```{r}

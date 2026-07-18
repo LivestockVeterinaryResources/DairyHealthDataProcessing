@@ -4,13 +4,13 @@ library(dtplyr)
 
 
 
-source(here::here("functions/fxn_lag_master.R"))
-source(here::here("functions/fxn_parse_free_text.R")) # functions to parse remarks and protocols
+source(file.path("functions/fxn_lag_master.R"))
+source(file.path("functions/fxn_parse_free_text.R")) # functions to parse remarks and protocols
 
 
 # read in file-----------------
 
-events_formatted <- read_parquet(here::here("data/intermediate_files/events_all_columns.parquet")) |>
+events_formatted <- read_parquet(file.path("data/intermediate_files/events_all_columns.parquet")) |>
   # filter(!(is.na(bdat)))|>
   mutate(data_pull_date_min = min(date_event, na.rm = TRUE)) |>
   mutate(data_pull_date_max = max(date_event, na.rm = TRUE)) |>
@@ -100,7 +100,7 @@ master_animals <- animals |>
   ) |>
   rename(id = ID)
 
-write_parquet(master_animals, here::here("data/intermediate_files/animals.parquet"))
+write_parquet(master_animals, file.path("data/intermediate_files/animals.parquet"))
 
 
 
@@ -162,7 +162,7 @@ freshs <- events_formatted |>
   ))
 
 
-fresh_date_next <- read_parquet(here::here("data/intermediate_files/events_all_columns.parquet")) %>%
+fresh_date_next <- read_parquet(file.path("data/intermediate_files/events_all_columns.parquet")) %>%
   filter(event %in% "FRESH") %>%
   group_by(id_animal, lact_number) %>%
   summarize(date_fresh = min(date_event)) %>%
@@ -204,7 +204,7 @@ master_animal_lactations <- animal_lactations |>
   ) |>
   rename(id = ID)
 
-write_parquet(master_animal_lactations, here::here("data/intermediate_files/animal_lactations.parquet"))
+write_parquet(master_animal_lactations, file.path("data/intermediate_files/animal_lactations.parquet"))
 
 
 
@@ -221,4 +221,4 @@ write_parquet(master_animal_lactations, here::here("data/intermediate_files/anim
 #     .fns = ~ str_replace_na(.x, "Unknown")
 #   )) # removes NA from disease and treatment variables
 # 
-# write_parquet(events_parsed, here::here("data/intermediate_files/events_parsed.parquet"))
+# write_parquet(events_parsed, file.path("data/intermediate_files/events_parsed.parquet"))

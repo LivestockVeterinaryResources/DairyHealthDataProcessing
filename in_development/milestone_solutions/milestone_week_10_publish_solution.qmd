@@ -68,7 +68,7 @@ deno_cal <- read_parquet(
 
   
 # load GC's functions
-source(here::here('functions/fxn_load_os_fxns.R'))
+source(file.path('functions/fxn_load_os_fxns.R'))
 fxn_load_os_fxns()
 
 # Load Parnell CR fucntions from Github
@@ -85,7 +85,7 @@ date_max_pull <- max(events_formatted$date_event, na.rm = TRUE)
 date_min_pull <- date_max_pull - years(1)
 
 # pull data for graphs
-source(here::here('functions/fxn_milestone8_solution.R'))
+source(file.path('functions/fxn_milestone8_solution.R'))
 
 
 ```

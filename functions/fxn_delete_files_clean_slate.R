@@ -5,7 +5,7 @@ library(tidyverse)
 fxn_delete_event_files <- function() {
   ## Event files---------------------------
   # Define the directory
-  dir_path <- here::here("data/event_files")
+  dir_path <- file.path("data/event_files")
 
   # Get a list of all files in the directory
   files <- list.files(dir_path, full.names = TRUE)
@@ -25,7 +25,7 @@ fxn_delete_event_files <- function() {
 fxn_delete_milk_files <- function() {
   ## Event files---------------------------
   # Define the directory
-  dir_path <- here::here("data/milk_files")
+  dir_path <- file.path("data/milk_files")
 
   # Get a list of all files in the directory
   files <- list.files(dir_path, full.names = TRUE)
@@ -45,7 +45,7 @@ fxn_delete_milk_files <- function() {
 fxn_delete_processed_files <- function() {
   ## intermediate files---------------------------
   # Define the directory
-  dir_path <- here::here("data/intermediate_files")
+  dir_path <- file.path("data/intermediate_files")
 
   # Get a list of all files in the directory
   files <- list.files(dir_path, full.names = TRUE)
@@ -62,7 +62,7 @@ fxn_delete_processed_files <- function() {
 
   ## template files---------------------------
   # Define the directory
-  dir_path <- here::here("data/template_files")
+  dir_path <- file.path("data/template_files")
 
   # Get a list of all files in the directory
   files <- list.files(dir_path, full.names = TRUE)
@@ -79,7 +79,7 @@ fxn_delete_processed_files <- function() {
 
   ## reports---------------------------
   # Define the directory
-  dir_path <- here::here("reports/qmd_reports")
+  dir_path <- file.path("reports/qmd_reports")
 
   # Get a list of all files in the directory
   files <- list.files(dir_path, full.names = TRUE)
